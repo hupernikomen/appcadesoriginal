@@ -1,8 +1,7 @@
-import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { useTheme } from '@react-navigation/native';
-import MaskInput, { Masks } from 'react-native-mask-input';
+import { View, Text, StyleSheet } from 'react-native';
+import MaskInput from 'react-native-mask-input';
 
-export default function MaskOfInput({mask, editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info }) {
+export default function MaskOfInput({mask, editable = true, type = 'default', title, value =1, setValue, multiline = true, maxlength, info }) {
 
 
   const styles = StyleSheet.create({
@@ -44,6 +43,7 @@ export default function MaskOfInput({mask, editable = true, type = 'default', ti
       </View>
 
       <MaskInput
+      editable={editable}
       placeholder=''
         style={styles.input}
         keyboardType='numeric'

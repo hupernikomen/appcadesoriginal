@@ -1,8 +1,6 @@
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { useTheme } from '@react-navigation/native';
 
-export default function Input({ colorActive='#000', editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info }) {
-
+export default function Input({ security=true, colorActive = '#000', editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info }) {
 
   const styles = StyleSheet.create({
     box: {
@@ -43,6 +41,7 @@ export default function Input({ colorActive='#000', editable = true, type = 'def
       </View>
 
       <TextInput
+        secureTextEntry={security}
         editable={editable}
         maxLength={maxlength}
         multiline={multiline}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import { Platform, Text, View, Dimensions, FlatList, StyleSheet, Pressable } from 'react-native';
 import { PERMISSIONS, request } from 'react-native-permissions';
 import { useNavigation, useTheme, useRoute } from '@react-navigation/native';
@@ -9,18 +9,24 @@ import {
     useCodeScanner
 } from 'react-native-vision-camera';
 
+import { AppContext } from '../../contexts/appContext';
+import { CrudContext } from '../../contexts/crudContext';
+
 import api from '../../services/api';
 
-export default function Scanner({ setScannerResult }) {
+export default function Scanner() {
     const device = useCameraDevice('back');
+    const { Toast } = useContext(AppContext)
+    const {AddItemOrder} = useContext(CrudContext)
     const { hasPermission } = useCameraPermission();
     const navigation = useNavigation()
     const route = useRoute()
-    const [pedidoId, setPedidoId] = useState(null)
+    const [salesformID, setSalesformID] = useState(null)
+    const [hasScanned, setHasScanned] = useState(false);
+
 
     useEffect(() => {
-        setPedidoId(route.params);
-        console.log(route.params, "route.params da inicializacao - scanner");
+        setSalesformID(route.params);
     }, [route])
 
     const { width, height } = Dimensions.get("window")
@@ -35,18 +41,20 @@ export default function Scanner({ setScannerResult }) {
     }
 
 
+
+
     const codeScanner = useCodeScanner({
         codeTypes: ['ean-13'],
         onCodeScanned: (codes) => {
-            VerifyCode(codes)
+            if (!hasScanned) {
+                console.log(codes);
+                VerifyCode(codes);
+                setHasScanned(true);
+            }
+        },
+        enabled: !hasScanned, // disable the scanner once it's scanned
+    });
 
-        }
-    })
-
-    const onError = useCallback((error) => {
-        console.error(error);
-        // Handle the error here
-      }, []);
 
     useEffect(() => {
         if (!hasPermission) requestCameraPermission();
@@ -62,16 +70,29 @@ export default function Scanner({ setScannerResult }) {
     }
 
     async function VerifyCode(code) {
-        console.log(code, "codigo escanneado - scanner");
+
+    
+
+        if (code[0].value.substr(0, 3) !== '789') return
+
         try {
-            const product = await api.get(`/produto/codigo?codigo=${code[0].value}`)
-            !!pedidoId ? 
-            navigation.navigate('Budget', { product: product.data, pedidoId: pedidoId }) :
-            navigation.navigate('RegisterStock', {codigo: code[0].value})
+            const product = await api.get(`/getproduct/code?code=${code[0].value}`)
+            if (!product.data) {
+                Toast("Item não cadastrado")
+            }
+
+            if(!!salesformID) {
+                AddItemOrder({ product: product.data, salesformID: salesformID })
+                navigation.navigate('Budget', {salesformID: route.params})
+            }else {
+
+                navigation.navigate('RegisterStock', { code: code[0].value })
+                setHasScanned(false);
+            }
 
         } catch (error) {
             console.log(error.response);
-        }
+        } 
     }
 
 
@@ -79,7 +100,6 @@ export default function Scanner({ setScannerResult }) {
         <View style={{ flex: 1, position: 'absolute', zIndex: 9, height: height, backgroundColor: '#fff' }}>
 
             <Camera
-            onError={onError}
                 style={{ width: width, height: 140, alignSelf: 'center' }}
                 device={device}
                 isActive={true}

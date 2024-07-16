@@ -1,255 +1,266 @@
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet, Modal, ActivityIndicator, TextInput } from 'react-native';
 
-import { useRoute, useNavigation, useIsFocused } from '@react-navigation/native';
+import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
 import api from '../../services/api';
-import SelectDropdown from 'react-native-select-dropdown'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 
 import { AppContext } from '../../contexts/appContext';
+import { CrudContext } from '../../contexts/crudContext';
 export default function Budget() {
 
-    const { credential, Toast } = useContext(AppContext)
-    const route = useRoute()
-    const navigation = useNavigation()
+   const { credential } = useContext(AppContext)
+   const { HandleBudget, budgets } = useContext(CrudContext)
 
-    const [productsScan, setProductsScan] = useState([])
-    const [budgets, setBudgets] = useState([])
-    const [quantidade, setQuantidade] = useState('')
-    const [tamanhoFilter, setTamanhoFilter] = useState('')
+   const route = useRoute()
+   const navigation = useNavigation()
+   const { colors } = useTheme()
 
+   const [load, setLoad] = useState(false)
+   const [amountEditVisible, setAmountEditVisible] = useState(false)
 
-    useEffect(() => {
-        Promise.all([HandleBudget()])
-
-        setProductsScan(route.params?.product)
-
-        navigation.setOptions({
-            title: 'Orçamento - ' + route.params?.pedidoId?.substr(0, 6).toUpperCase()
-        })
+   const [amountUpdate, setAmountUpdate] = useState('')
+   const [budgetID, setBudgetID] = useState('')
+   const [productID, setProductID] = useState('')
 
 
-    }, [route])
+   useEffect(() => {
 
+      navigation.setOptions({
+         title: 'Orçamento - ' + route.params?.salesformID?.substr(0, 6).toUpperCase(),
+         headerRight: () => (
+            route.params?.stateSalesform !== 'Concluded' ?
+               <View style={{ width: 50, aspectRatio: 1, marginRight: -14, alignItems: 'center', justifyContent: "center" }}>
 
+                  {/* Colocar modal confirmando ação */}
 
-    async function HandleBudget() {
-        try {
-            const res = await api.get(`/orcamentos/pedido?pedidoId=${route.params?.pedidoId}`)
-            setBudgets(res.data)
+                  <Pressable onPress={() => StateBudget(route.params?.salesformID)}>
+                     {route.params?.stateSalesform !== 'Created' ?
+                        <AntDesign name='folderopen' color='#fff' size={22} /> :
+                        <AntDesign name='folder1' color='#fff' size={22} />
+                     }
+                  </Pressable>
+               </View> : null
+         )
 
-        } catch (error) {
-            console.log(error.response, "erro: HandleBudget");
-        }
-    }
+      })
 
-    async function AddItemOrder(data) {
-        try {
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${credential?.token}`
-            }
+      HandleBudget(route.params?.salesformID)
 
-            const item = {
-                pedidoId: route.params?.pedidoId,
-                referencia: data?.referencia,
-                quantidade: 0,
-                cor: data?.cor,
-                tamanho: data?.tamanho
-            }
-
-            await api.post('/orcamento', item, { headers }).then(() => HandleBudget()).then(() => setProductsScan([]))
-
-            setTamanhoFilter('')
-
-        } catch (error) {
-            console.log(error.response);
-        }
-
-    }
+   }, [route])
 
 
 
-    const RenderItem = ({ data }) => {
+   useEffect(() => {
+      // Promise.all(HandleBudget(route.params?.salesformID))
 
-        console.log(data);
 
-        if (Number(data?.entrada) - Number(data?.saida) - Number(data?.separado) <= 0) {
-            return
-        }
 
-        return (
-            <Pressable onPress={() => AddItemOrder(data)} style={{ flexDirection: 'row', gap: 6, flex: 1, paddingVertical: 16 }}>
-                <View style={{ flexDirection: 'row', gap: 6, flex: 1 }}>
-                    <Text style={{ fontWeight: '300', color: '#000' }}>{data?.referencia}</Text>
-                    <Text style={{ fontWeight: '300', color: '#000', marginLeft: 4 }}>{data?.quantidade > 0 ? data?.quantidade + 'x' : ''}</Text>
-                    <Text style={{ fontWeight: '300', color: '#000' }}>{data?.nome}</Text>
-                    <Text style={{ fontWeight: '300', color: '#000' }}>{data?.tamanho}</Text>
-                    <Text style={{ fontWeight: '300', color: '#000' }}>{data?.cor}</Text>
-                </View>
-                <Text style={{ fontWeight: '300', color: '#000' }}>{data?.valorAtacado}</Text>
-            </Pressable>
-        )
-    }
+      return () => {
+         if (budgets?.length === 0) {
+            DelSalesform(route.params?.salesformID)
+         }
+      }
 
-    const RenderBudgets = ({ data }) => {
-        return (
-            <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1, paddingVertical: 16 }}>
-                <View style={{ flexDirection: 'row', gap: 6, flex: 1 }}>
-                    <Text style={{ fontWeight: '300', color: '#000' }}>{data.Produto.referencia}</Text>
-                    <Text style={{ fontWeight: '300', color: '#000', marginLeft: 4 }}>{data.quantidade > 0 ? data.quantidade + 'x' : ''}</Text>
-                    <Text style={{ fontWeight: '300', color: '#000' }}>{data.Produto.nome}</Text>
-                    <Text style={{ fontWeight: '300', color: '#000' }}>{data.Produto.tamanho}</Text>
-                    <Text style={{ fontWeight: '300', color: '#000' }}>{data.Produto.cor}</Text>
-                </View>
-                <Text style={{ fontWeight: '300', color: '#000' }}>{data.Produto.valorAtacado}</Text>
+   }, [])
+
+   async function DelSalesform(salesformID) {
+
+      const headers = {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${credential?.token}`
+      }
+
+      try {
+         await api.delete(`/delsalesform?salesformID=${salesformID}`, { headers })
+
+      } catch (error) {
+         console.log(error.response);
+
+      }
+   }
+
+
+   async function StateBudget(salesformID) {
+
+      const headers = {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${credential?.token}`
+      }
+
+      try {
+         await api.put(`/putstock?salesformID=${salesformID}`, { headers })
+
+      } catch (error) {
+         console.log(error.response);
+
+      } finally {
+         navigation.navigate('Home')
+      }
+   }
+
+
+   async function PutAmount() {
+
+      const headers = {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${credential?.token}`
+      }
+
+      try {
+         if (amountUpdate > 0) {
+
+            await api.put(`/budget?productID=${productID}&budgetID=${budgetID}`, { amount: Number(amountUpdate) }, { headers })
+         }
+
+      } catch (error) {
+         console.log(error.response);
+      } finally {
+         setAmountEditVisible(false)
+         HandleBudget(route.params?.salesformID)
+      }
+
+   }
+
+
+   const AmountInput = () => {
+      return (
+         <View style={{ borderRadius: 20, flexDirection: 'row', alignItems: 'center', padding: 2, gap: 6, backgroundColor: '#fff' }}   >
+
+            <TextInput
+               value={amountUpdate}
+               keyboardType='numeric'
+               onChangeText={setAmountUpdate}
+               autoFocus
+               maxLength={3}
+               style={{
+                  backgroundColor: '#eee',
+                  borderRadius: 20,
+                  height: 30,
+                  color: '#222',
+                  paddingVertical: 0,
+                  textAlign: 'center',
+                  paddingHorizontal: 10
+               }}
+
+            />
+
+            <Pressable style={{ backgroundColor: 'green', borderRadius: 20, height: 30, aspectRatio: 1, alignItems: 'center', justifyContent: "center" }}
+               onPress={() => PutAmount()}><AntDesign name='reload1' size={16} color={'#fff'} /></Pressable>
+         </View>
+      )
+   }
+
+   const RenderBudgets = ({ data }) => {
+      return (
+         <Pressable onPress={() => {
+            setProductID(data.product.id)
+            setBudgetID(data.id)
+            setAmountEditVisible(true)
+         }} style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1, paddingVertical: 16 }}>
+            <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'center' }}>
+               <Text style={{ fontWeight: '300', color: '#000' }}>{data.product.ref}</Text>
+               {amountEditVisible && data.id === budgetID ? <AmountInput /> :
+                  <Text style={{ fontWeight: '300', color: '#000', marginLeft: 4 }}>{data.amount > 0 ? data.amount + 'x' : ''}</Text>
+               }
+               <Text numberOfLines={1} style={{ fontWeight: '300', color: '#000', flex: 1, paddingRight: 20 }}>{data.product.name} {data.product.size} {data.product.color}</Text>
             </View>
-        )
-    }
-
-
-    const listProductsTamsUnique = getUniqueTamanhos(productsScan);
-
-
-    function getUniqueTamanhos(products) {
-        return ['', ...new Set(products?.map(produto => produto.tamanho))];
-    }
-
-
-    function getItemsNotInB(a, b) {
-        Toast("Referencia ja inserida no orçamento")
-        return a.filter(item => !b.find(itemB => itemB.Produto.id === item.id));
-    }
+            <Text style={{ fontWeight: '300', color: '#000' }}>{data.product.valueResale}</Text>
+         </Pressable>
+      )
+   }
 
 
 
-    return (
-        <View style={{ flex: 1 }}>
+   if (load) return <ActivityIndicator size={30} color={colors.theme} style={{ marginTop: 50 }} />
 
-            {productsScan?.length > 0 ?
-   
-                    <SelectDropdown
-                        data={listProductsTamsUnique}
-                        onSelect={(selectedItem, index) => {
-                            setTamanhoFilter(selectedItem)
-                        }}
-                        renderButton={(selectedItem, isOpened) => {
-                            return (
-                                <View style={styles.dropdownButtonStyle}>
-                                    <Text style={styles.dropdownButtonTxtStyle}>
-                                        {(selectedItem && selectedItem) || 'Filtro'}
-                                    </Text>
-                                </View>
-                            );
-                        }}
-                        renderItem={(item, index, isSelected) => {
-                            return (
-                                <View style={{ ...styles.dropdownItemStyle, ...(isSelected && { backgroundColor: '#D2D9DF' }) }}>
-                                    <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
-                                </View>
-                            );
-                        }}
-                        showsVerticalScrollIndicator={false}
-                        dropdownStyle={styles.dropdownMenuStyle}
-                    />
-                : null
+
+   return (
+      <View style={{ flex: 1 }}>
+         <FlatList
+            ItemSeparatorComponent={<View style={{ borderBottomWidth: 1, borderColor: '#ccc' }} />}
+            contentContainerStyle={{ paddingHorizontal: 14 }}
+            data={budgets}
+            renderItem={({ item }) => <RenderBudgets data={item} />}
+         />
+
+         <View style={{
+            position: 'absolute',
+            right: 14,
+            bottom: 30,
+            gap: 10
+         }}>
+            {route.params?.stateSalesform !== 'Concluded' && route.params?.stateSalesform !== 'Reserved' ?
+               <Pressable onPress={() => {
+                  navigation.navigate('Scanner', route.params?.salesformID)
+               }} style={{
+                  width: 65,
+                  aspectRatio: 1,
+                  elevation: 5,
+                  backgroundColor: "#fff",
+                  borderRadius: 40,
+                  alignItems: 'center',
+                  justifyContent: "center"
+               }}><AntDesign name={'barcode'} size={26} color='#222' /></Pressable> : null
             }
+         </View>
 
-            {productsScan?.length > 0 ?
-                <FlatList
-                    ItemSeparatorComponent={<View style={{ borderBottomWidth: 1, borderColor: '#ccc' }} />}
-                    contentContainerStyle={{ paddingHorizontal: 14, backgroundColor:'#fff', margin:10, elevation:10 }}
-                    data={getItemsNotInB(productsScan.filter((item) => tamanhoFilter ? item.tamanho === tamanhoFilter : item), budgets)}
-                    renderItem={({ item }) => <RenderItem data={item} />}
-                />
-                :
-                <FlatList
-                    ItemSeparatorComponent={<View style={{ borderBottomWidth: 1, borderColor: '#ccc' }} />}
-                    contentContainerStyle={{ paddingHorizontal: 14 }}
-                    data={budgets}
-                    renderItem={({ item }) => <RenderBudgets data={item} />}
-                />
-            }
-
-            <View style={{
-                position: 'absolute',
-                right: 14,
-                bottom: 30,
-                gap: 10
-            }}>
-
-                {productsScan?.length > 0 ? <Pressable style={{
-                    width: 65,
-                    aspectRatio: 1,
-                    elevation: 5,
-                    backgroundColor: "#fff",
-                    borderRadius: 40,
-                    alignItems: 'center',
-                    justifyContent: "center"
-                }} onPress={() => setProductsScan([])}><AntDesign name={'close'} size={26} color='#222' /></Pressable> : null}
-
-                <Pressable onPress={() => {
-                    navigation.navigate('Scanner', route.params?.pedidoId)
-                }} style={{
-                    width: 65,
-                    aspectRatio: 1,
-                    elevation: 5,
-                    backgroundColor: "#fff",
-                    borderRadius: 40,
-                    alignItems: 'center',
-                    justifyContent: "center"
-                }}><AntDesign name={'barcode'} size={26} color='#222' /></Pressable>
-            </View>
-        </View>
-    );
+      </View>
+   );
 }
 
+
+
+
 const styles = StyleSheet.create({
-    dropdownButtonStyle: {
-        width: 150,
-        height: 45,
-        backgroundColor: '#ddd',
-        borderRadius: 25,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-        margin:6
-    },
-    dropdownButtonTxtStyle: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#151E26',
-        textAlign: 'center'
-    },
-    dropdownButtonArrowStyle: {
-        fontSize: 28,
-    },
-    dropdownButtonIconStyle: {
-        fontSize: 28,
-        marginRight: 8,
-    },
-    dropdownMenuStyle: {
-        backgroundColor: '#E9ECEF',
-        borderRadius: 8,
-    },
-    dropdownItemStyle: {
-        width: '100%',
-        flexDirection: 'row',
-        paddingHorizontal: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 8,
-    },
-    dropdownItemTxtStyle: {
-        flex: 1,
-        fontSize: 18,
-        fontWeight: '500',
-        color: '#151E26',
-    },
-    dropdownItemIconStyle: {
-        fontSize: 28,
-        marginRight: 8,
-    },
+   dropdownButtonStyle: {
+      width: 150,
+      height: 45,
+      backgroundColor: '#ddd',
+      borderRadius: 25,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      margin: 6
+   },
+   dropdownButtonTxtStyle: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '500',
+      color: '#151E26',
+      textAlign: 'center'
+   },
+   dropdownButtonArrowStyle: {
+      fontSize: 28,
+   },
+   dropdownButtonIconStyle: {
+      fontSize: 28,
+      marginRight: 8,
+   },
+   dropdownMenuStyle: {
+      backgroundColor: '#E9ECEF',
+      borderRadius: 8,
+   },
+   dropdownItemStyle: {
+      width: '100%',
+      flexDirection: 'row',
+      paddingHorizontal: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 8,
+   },
+   dropdownItemTxtStyle: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: '500',
+      color: '#151E26',
+   },
+   dropdownItemIconStyle: {
+      fontSize: 28,
+      marginRight: 8,
+   },
+
+
 });
+

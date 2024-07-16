@@ -1,9 +1,11 @@
-import { Pressable, View, Text, ScrollView } from 'react-native';
+import { Pressable, View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
 import { useEffect, useContext, useState } from 'react';
 
 import Input from '../../components/Input';
+import MaskOfInput from '../../components/MaskOfInput';
+import { createNumberMask } from 'react-native-mask-input';
 
 import { AppContext } from '../../contexts/appContext';
 
@@ -11,54 +13,76 @@ import api from '../../services/api';
 
 export default function RegisterStock() {
 
+  const focus = useIsFocused()
+
+  const CurrencyMask = createNumberMask({
+    delimiter: '.',
+    separator: ',',
+    precision: 2,
+  });
+
   const { credential, Toast } = useContext(AppContext)
   const route = useRoute()
   const navigation = useNavigation()
+  const { colors } = useTheme()
 
-  const [codigo, setCodigo] = useState('')
-  const [referencia, setReferencia] = useState('')
-  const [nome, setNome] = useState('')
-  const [cor, setCor] = useState('')
-  const [tamanho, setTamanho] = useState('')
-  const [entrada, setEntrada] = useState('')
-  const [estoque, setEstoque] = useState('')
-  const [valorAtacado, setValorAtacado] = useState('') // valor Atacado
-  const [valorVarejo, setValorVarejo] = useState('') // valor Varejo
+  const [load, setLoad] = useState(false)
 
-  const [temEstoque, setTemEstoque] = useState(false)
+  const [product, setProduct] = useState({})
+
+  const [productID, setProductID] = useState('')
+  const [code, setCode] = useState('')
+  const [ref, setRef] = useState('')
+  const [name, setName] = useState('')
+  const [color, setColor] = useState('')
+  const [size, setSize] = useState('')
+  const [stock, setStock] = useState('')
+  const [stockSubtracted, setStockSubtracted] = useState('')
+  const [valueResale, setValeuResale] = useState('') // valor Atacado
+  const [valueRetail, setValueRetail] = useState('') // valor Varejo
+
+  const [haveStock, setHaveStock] = useState(false)
 
 
   useEffect(() => {
-    setCodigo(route.params?.codigo)
-    setReferencia(route.params?.codigo?.slice(8, 12))
-    setCor(getValue(route.params?.codigo?.slice(3, 7)))
-    setTamanho(tamanhos[route.params?.codigo?.slice(7, 8)])
+    setCode(route.params?.code)
+    setRef(route.params?.code?.slice(8, 12))
+    setColor(getValue(route.params?.code?.slice(3, 7)))
+    setSize(tamanhos[route.params?.code?.slice(7, 8)])
 
     navigation.setOptions({
-      title: 'CB: ' + formatCodigo(route.params?.codigo)
+      title: 'CB: ' + formatCodigo(route.params?.code)
     })
 
-    HandleProductRef()
-
+    
   }, [route])
+  
+  
+  useEffect(() => {
+    GetProductCode()
+
+  },[focus])
 
 
-  async function HandleProductRef() {
+  async function GetProductCode() {
     // Verificar se essa referencia ja esta cadastrada
 
     try {
-      const response = await api.get(`/produto/codigo?codigo=${route.params?.codigo}`)
+      const response = await api.get(`/getproduct/code?code=${route.params?.code}`)
 
-      if (!!response.data?.referencia) {
-        setNome(response.data?.nome)
-        setValorAtacado(response.data?.valorAtacado)
-        setValorVarejo(response.data?.valorVarejo)
-        setEntrada(String(response.data?.entrada))
-        setEstoque(String(response.data?.entrada - (response.data?.separado + response.data?.saida)))
 
-        setTemEstoque(true)
+
+      if (!!response.data?.ref) {
+        setProductID(response.data?.id)
+        setName(response.data?.name)
+        setValeuResale(response.data?.valueResale)
+        setValueRetail(response.data?.valueRetail)
+        setStock(String(response.data?.stock))
+        setStockSubtracted(String(response.data?.stock - (response.data?.reserved + response.data?.out)))
+
+        setHaveStock(true)
       } else {
-        setTemEstoque(false)
+        setHaveStock(false)
       }
 
 
@@ -70,13 +94,13 @@ export default function RegisterStock() {
 
 
   const formatCodigo = (number) => {
-    const formattedNumber = number.replace(/\D+/g, ''); // remove todos os caracteres não numéricos
+    const formattedNumber = number?.replace(/\D+/g, ''); // remove todos os caracteres não numéricos
     const parts = [];
-    parts.push(formattedNumber.substring(0, 3)); // 789
-    parts.push(formattedNumber.substring(3, 7)); // 0026
-    parts.push(formattedNumber.substring(7, 8)); // 2
-    parts.push(`${formattedNumber.substring(8, 12)}`); // '4578'
-    parts.push(formattedNumber.substring(12, 13)); // 2
+    parts.push(formattedNumber?.substring(0, 3)); // 789
+    parts.push(formattedNumber?.substring(3, 7)); // 0026
+    parts.push(formattedNumber?.substring(7, 8)); // 2
+    parts.push(`${formattedNumber?.substring(8, 12)}`); // '4578'
+    parts.push(formattedNumber?.substring(12, 13)); // 2
     return parts.join(' ');
   };
 
@@ -87,6 +111,8 @@ export default function RegisterStock() {
     "0002": "Branco",
     "0003": "Cinza",
     "0004": "Grafite",
+    "0012": "Rosa",
+    "0013": "Pink",
     "0070": "Amarelo",
     "0026": "Teste2"
   }
@@ -103,27 +129,30 @@ export default function RegisterStock() {
 
 
   async function RegisterProduct() {
+    setLoad(true)
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${credential?.token}`
     }
 
     try {
-      await api.post('/produto', {
-        codigo,
-        referencia,
-        nome,
-        cor,
-        tamanho,
-        entrada: Number(entrada),
-        valorAtacado,
-        valorVarejo
+      await api.post('/createproduct', {
+        code: code,
+        ref: ref,
+        name: name,
+        color: color,
+        size: size,
+        stock: Number(stock),
+        valueResale: valueResale,
+        valueRetail: valueRetail
       }, { headers })
 
     } catch (error) {
       if (error.response.data.error === 'Referencia já cadastrada') {
-        //Atualizar produto
+
       }
+    } finally {
+      setLoad(false)
     }
   }
 
@@ -133,15 +162,45 @@ export default function RegisterStock() {
     <View style={{ flex: 1, padding: 14 }}>
       <ScrollView>
 
-        <Input colorActive='#999' editable={false} value={cor} setValue={setCor} title={'Cor'} info={'cod.: ' + route.params?.codigo?.slice(3, 7)} />
-        <Input colorActive='#999' editable={false} value={tamanho} setValue={setTamanho} title={'Tamanho'} info={'cod.: ' + route.params?.codigo?.slice(7, 8)} />
-        <Input value={nome} setValue={setNome} title={'Descrição'} maxlength={40} info={nome?.length + '/40'} />
-        <Input type='numeric' value={entrada} setValue={setEntrada} title={'Entrada'} />
-        {temEstoque ? <Input type='numeric' value={estoque} title={'Estoque'} /> : null}
-        <Input type='numeric' value={valorAtacado} setValue={setValorAtacado} title={'Valor Atacado'} />
-        <Input type='numeric' value={valorVarejo} setValue={setValorVarejo} title={'Valor Varejo'} />
-        {!temEstoque ? <Pressable onPress={() => RegisterProduct()}><Text>Registrar</Text></Pressable> : null}
+        <Input editable={!haveStock} value={color} setValue={setColor} title={'Cor'} info={'cod.: ' + route.params?.code?.slice(3, 7)} />
+        <Input editable={!haveStock} value={size} setValue={setSize} title={'Tamanho'} info={'cod.: ' + route.params?.code?.slice(7, 8)} />
+        <Input value={name} setValue={setName} editable={!haveStock} title={'Descrição'} maxlength={40} info={name?.length + '/40'} />
+        <Input type='numeric' value={stock} editable={!haveStock} setValue={setStock} title={'Entrada'} />
+        {haveStock ? <Input editable={!haveStock} type='numeric' value={stockSubtracted} title={'Estoque'} /> : null}
+        <MaskOfInput editable={!haveStock} title={'Valor Atacado'} value={valueResale} setValue={setValeuResale} mask={CurrencyMask} />
+        <MaskOfInput editable={!haveStock} title={'Valor Varejo'} value={valueRetail} setValue={setValueRetail} mask={CurrencyMask} />
+        {!haveStock ? <Pressable
+          style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}
+          onPress={() => RegisterProduct()}
+        >
+          {load ? <ActivityIndicator color={'#fff'} /> :
+            <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>
+          }
+
+        </Pressable> :
+          <Pressable
+            style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}
+            onPress={() => navigation.navigate("UpdateStock", { productID, ref, name, size, color, stockSubtracted, valueResale, valueRetail })}
+          >
+            {load ? <ActivityIndicator color={'#fff'} /> :
+              <Text style={{ color: '#fff', fontSize: 16 }}>Editar</Text>
+            }
+
+          </Pressable>
+
+        }
       </ScrollView>
     </View>
   );
 }
+
+const style = StyleSheet.create({
+  botaoCadastrar: {
+    height: 55,
+    borderRadius: 6,
+    marginVertical: 12,
+    padding: 14,
+    justifyContent: "center",
+    alignItems: "center"
+  }
+})

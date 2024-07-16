@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { Platform, Text, View, Dimensions, FlatList, StyleSheet, Pressable } from 'react-native';
+import { useEffect} from 'react';
+import { Platform, Text, View, Dimensions } from 'react-native';
 import { PERMISSIONS, request } from 'react-native-permissions';
-import { useNavigation, useTheme } from '@react-navigation/native';
 import {
     Camera,
     useCameraDevice,
@@ -9,14 +8,10 @@ import {
     useCodeScanner
 } from 'react-native-vision-camera';
 
-import { AppContext } from '../../contexts/appContext';
 
 export default function Scanner({ setScannerResult }) {
     const device = useCameraDevice('back');
     const { hasPermission } = useCameraPermission();
-
-
-
     const { width, height } = Dimensions.get("window")
 
 

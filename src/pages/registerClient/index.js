@@ -1,42 +1,28 @@
-import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 
-import api from '../../services/api';
-import { useNavigation, useRoute, useTheme } from '@react-navigation/native';
+import { useRoute, useTheme } from '@react-navigation/native';
 import { Masks } from 'react-native-mask-input';
 import Input from '../../components/Input';
 import MaskOfInput from '../../components/MaskOfInput';
 
-import { AppContext } from '../../contexts/appContext';
+import { CrudContext } from '../../contexts/crudContext';
 
 export default function RegisterClient() {
 
   const CPF_MASK = [/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/]
   const CNPJ_MASK = [/\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "/", /\d/, /\d/, /\d/, /\d/, "-", /\d/, /\d/]
 
-  const { HandleClients } = useContext(AppContext)
-  const navigation = useNavigation()
+  const { RegisterClient } = useContext(CrudContext)
   const { colors } = useTheme()
-  const rota = useRoute()
+  const route = useRoute()
 
-  const [cpf, setCpf] = useState(rota.params?.cpf)
-  const [nome, setNome] = useState("")
+  const [cpf_cnpj, setCpf_Cnpj] = useState("")
+  const [name, setName] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
-  const [endereco, setEndereco] = useState("")
-  const [dataNascimento, setDataNascimento] = useState("")
-
-  async function Register(cpf, nome, whatsapp, endereco, dataNascimento) {
-
-    try {
-      await api.post('/cliente', { cpf, nome, whatsapp, endereco, dataNascimento })
-      HandleClients()
-      navigation.goBack()
-    } catch (error) {
-      console.log(error.data);
-
-    }
-  }
+  const [country, setCountry] = useState("")
+  const [birthDate, setBirthDate] = useState("")
 
   return (
     <View style={{ padding: 10 }}>
@@ -47,16 +33,16 @@ export default function RegisterClient() {
         } else {
           return CNPJ_MASK
         }
-      }} type='default' title='CPF/CNPJ' value={cpf} setValue={setCpf} />
-      <Input type={'default'} title="Nome" value={nome} setValue={setNome} maxlength={50} info={''} />
-      <Input type={'default'} title="Endereço" value={endereco} setValue={setEndereco} maxlength={80} info={''} />
+      }} type='default' title='CPF/CNPJ' value={cpf_cnpj} setValue={setCpf_Cnpj} />
+      <Input type={'default'} title="Nome" value={name} setValue={setName} maxlength={50} info={''} />
+      <Input type={'default'} title="Endereço" value={country} setValue={setCountry} maxlength={80} info={''} />
       <MaskOfInput mask={Masks.BRL_PHONE} type='default' title='Whatsapp' value={whatsapp} setValue={setWhatsapp} />
-      <MaskOfInput mask={Masks.DATE_DDMMYYYY} type='default' title='Data de Nascimento' value={dataNascimento} setValue={setDataNascimento} />
+      <MaskOfInput mask={Masks.DATE_DDMMYYYY} type='default' title='Data de Nascimento' value={birthDate} setValue={setBirthDate} />
 
 
       <Pressable
         style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}
-        onPress={() => Register(cpf, nome, whatsapp, endereco, dataNascimento)}
+        onPress={() => RegisterClient(cpf_cnpj, name, whatsapp, country, birthDate)}
       >
         <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>
 

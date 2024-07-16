@@ -12,6 +12,7 @@ import SalesHistory from '../pages/historicSales';
 import Sale from '../pages/sale';
 import Budget from '../pages/budget';
 import Scanner from '../pages/scanner';
+import UpdateStock from '../pages/updateStock';
 
 export default function RotasStack() {
     const { colors } = useTheme()
@@ -26,7 +27,7 @@ export default function RotasStack() {
                 headerStyle: { backgroundColor: colors.theme },
             }}>
 
-            <Stack.Screen name='Home' component={Home} options={{title:'Cades Original'}}/>
+            <Stack.Screen name='Home' component={Home} options={{title:'Cades Original', headerTitleAlign:'center'}}/>
             <Stack.Screen name='RegisterStock' component={RegisterStock}  options={{title:'Estoque'}}/>
             <Stack.Screen name='RegisterClient' component={RegisterClient}  options={{title:'Cadastro de Clientes'}}/>
             <Stack.Screen name='Login' component={Login}  options={{title:''}}/>
@@ -36,6 +37,7 @@ export default function RotasStack() {
                 headerBackVisible:false
             }}/>
             <Stack.Screen name='Scanner' component={Scanner} options={{title:'Scanner'}}/>
+            <Stack.Screen name='UpdateStock' component={UpdateStock} options={{title:'Atualiza Estoque'}}/>
 
         </Stack.Navigator>
 

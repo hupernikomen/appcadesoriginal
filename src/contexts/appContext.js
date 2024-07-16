@@ -9,19 +9,17 @@ export const AppContext = createContext({})
 export function AppProvider({ children }) {
 
   const navigation = useNavigation()
-  const [scan, setScan] = useState({})
-  const [clients, setClients] = useState([])
 
   const [credential, setCredential] = useState({
     id: '',
-    nome: '',
-    tipo: '',
+    name: '',
+    type: '',
     token: '',
   })
 
 
   useEffect(() => {
-    Promise.all(ValidateCredential(), HandleClients())
+    Promise.all(ValidateCredential())
 
   }, [])
 
@@ -40,15 +38,6 @@ export function AppProvider({ children }) {
     );
   };
 
-  async function HandleClients() {
-    try {
-      const clients = await api.get('/clientes')
-      setClients(clients.data)
-    } catch (error) {
-      console.log(error.response);
-    }
-  }
-
 
   // Busca do storage informações do usuario logado e armazena em uma state
   async function ValidateCredential() {
@@ -61,8 +50,8 @@ export function AppProvider({ children }) {
 
       setCredential({
         id: credentialstorage.id,
-        nome: credentialstorage.nome,
-        tipo: credentialstorage.tipo,
+        name: credentialstorage.name,
+        type: credentialstorage.type,
         token: credentialstorage.token,
       })
 
@@ -72,15 +61,15 @@ export function AppProvider({ children }) {
 
   }
 
-  async function signIn(nome, senha) {
-    if (!nome && !senha) return
-    if (!nome || !senha) {
+  async function signIn(name, password) {
+    if (!name && !password) return
+    if (!name || !password) {
       return
     }
 
 
     try {
-      const response = await api.post('/login', { nome, senha })
+      const response = await api.post('/login', { name, password })
       const { id, token } = response.data
 
       const data = { ...response.data }
@@ -89,7 +78,7 @@ export function AppProvider({ children }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setCredential({
         id,
-        token,
+        name,
       })
 
       ValidateCredential()
@@ -109,8 +98,8 @@ export function AppProvider({ children }) {
       .then(() => {
         setCredential({
           id: '',
-          nome: '',
-          tipo: '',
+          name: '',
+          type: '',
           token: '',
         })
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] })
@@ -118,28 +107,6 @@ export function AppProvider({ children }) {
         navigation.dispatch(DrawerActions.closeDrawer());
       })
   }
-
-  // Usar esse metodo para buscar produto pelo codigo
-  async function BuscaProduto(code) {
-    try {
-      const referencia = code.slice(-5, -1); // Pega as 4 últimas letras
-      const res = await api.get(`/produto/referencia?referencia=${referencia}`)
-
-      setScan({
-        referencia: referencia,
-        produto: res.data
-      })
-      
-      console.log(scan, "scan");
-
-
-    } catch (error) {
-      console.log(error.response);
-    } 
-
-  }
-
-
 
 
 
@@ -150,9 +117,6 @@ export function AppProvider({ children }) {
       authenticate,
       signIn,
       signOut,
-      BuscaProduto,
-      clients,
-      HandleClients
     }}>
       {children}
     </AppContext.Provider>

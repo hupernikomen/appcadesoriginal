@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Keyboard } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Keyboard, ActivityIndicator } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 
 import { AppContext } from '../../contexts/appContext';
-import Feather from 'react-native-vector-icons/Feather'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 
 import MaskInput from 'react-native-mask-input';
 import api from '../../services/api';
@@ -17,51 +17,55 @@ export default function Sale() {
     const { colors } = useTheme()
 
     const [data, setData] = useState([])
-    const [cpf, setCpf] = useState('')
+    const [cpf_cnpj, setCpf_Cnpj] = useState('')
+
+    const [load, setLoad] = useState(false)
 
     useEffect(() => {
 
         // SE CPF/CNPJ ESTIVER INCOMPLETO MANTER DADOS APAGADOS
-        if (cpf.length < 14) {
+        if (cpf_cnpj.length < 14) {
             setData([])
 
         }
 
-    }, [cpf])
+    }, [cpf_cnpj])
 
     useEffect(() => {
         navigation.setOptions({
-            title: data.nome ? 'Cliente: ' + data.nome : ''
+            title: data.name ? 'Cliente: ' + data.name : ''
         })
     }, [data])
 
 
+    async function GetClient(cpf_cnpj) {
 
-    async function buscarCliente(cpf) {
+        setLoad(true)
 
         // AO CLICAR NA LUPA ESSA FUNÇÃO É EXECUTADA
         Keyboard.dismiss()
 
 
         try {
-            const dadosCliente = await api.get(`/cliente?cpf=${cpf}`)
-            const pedidosDoCliente = await api.get(`/pedidos/cliente?clienteId=${dadosCliente.data?.id}`)
+            const _client = await api.get(`/getclient?cpf_cnpj=${cpf_cnpj}`)
+            const _salesform = await api.get(`/getsalesform/client?clientID=${_client.data?.id}`)
 
 
-            if (!dadosCliente.data && cpf.length >= 14) {
+            if (!_client.data && cpf_cnpj.length >= 14) {
                 Toast("Cliente não cadastrado")
 
-            } else if (cpf.length < 14 && cpf !== '00') {
+            } else if (cpf_cnpj.length < 14 ) {
                 Toast('CPF/CNPJ incompleto')
 
-            } else if (!!dadosCliente.data) {
-                setData(dadosCliente.data);
+            } else if (!!_client.data) {
+                // setData(dadosCliente.data);
+                await CreateSalesform(_client.data)
 
-                pedidosDoCliente.data?.map(pedido => {
+                _salesform.data?.map(salesform => {
 
                     // SE CLIENTE EXISTE E NÃO HA PEDIDO EM ABERTO 
-                    if (!!dadosCliente.data && pedido.status !== 'Criado') {
-                        setData(dadosCliente.data);
+                    if (!!_client.data && salesform.state !== 'Open') {
+                        setData(_client.data);
                     } 
                 })
             }
@@ -70,11 +74,13 @@ export default function Sale() {
         } catch (error) {
             console.log(error.response.data.error);
 
+        } finally {
+            setLoad(false)
         }
     }
 
 
-    async function criarPedido() {
+    async function CreateSalesform(data) {
 
         const headers = {
             'Content-Type': 'application/json',
@@ -82,8 +88,8 @@ export default function Sale() {
         }
 
         try {
-            const resposta = await api.post(`/pedido`, { clienteId: data?.id, usuarioId: credential.id }, { headers })
-            navigation.navigate('Budget', { pedidoId: resposta.data?.id })
+            const response = await api.post(`/createsalesform`, { clientID: data?.id, collaboratorID: credential.id }, { headers })
+            navigation.navigate('Budget', { salesformID: response.data?.id })
 
         } catch (error) {
             console.log(error.response);
@@ -103,11 +109,11 @@ export default function Sale() {
                     placeholder='CPF/CNPJ'
                     style={styles.inputs}
                     autoFocus={true}
-                    value={cpf}
-                    onChangeText={setCpf}
+                    value={cpf_cnpj}
+                    onChangeText={setCpf_Cnpj}
                     placeholderTextColor={'#222'}
                     mask={(text) => {
-                        if (text.replace(/\D+/g, "").length <= 14) {
+                        if (text.replace(/\D+/g, "").length <= 11) {
                             return CPF_MASK
                         } else {
                             return CNPJ_MASK
@@ -115,7 +121,7 @@ export default function Sale() {
                     }}
                 />
 
-                <Pressable onPress={() => buscarCliente(cpf)} style={{
+                <Pressable onPress={() => GetClient(cpf_cnpj)} style={{
                     backgroundColor: colors.detail,
                     borderRadius: 50,
                     alignItems: "center",
@@ -123,26 +129,27 @@ export default function Sale() {
                     width: 45,
                     aspectRatio: 1
                 }}>
-                    <Feather name={'search'} size={20} color={'#fff'} />
+                    <AntDesign name={'search1'} size={20} color={'#fff'} />
                 </Pressable>
 
-                {!!data.id && (cpf.length >= 14 || cpf === '00') ?
-                    <Pressable onPress={() => criarPedido()} style={{
+                    <Pressable onPress={() => GetClient('15.302.980/0001-54')} style={{
                         backgroundColor: colors.detail,
                         borderRadius: 50,
                         alignItems: "center",
                         justifyContent: "center",
                         width: 45,
-                        aspectRatio: 1
+                        aspectRatio: 1,
                     }}>
-                        <Feather name={'plus'} size={20} color={'#fff'} />
-                    </Pressable> : null
-                }
+                        {load ?
+                        <ActivityIndicator color={'#fff'}/>:
+                        <AntDesign name='plus' size={20} color='#fff'/>
+                        }
+                    </Pressable>
             </View>
 
             <Text style={{ fontWeight: '300', color: '#222', textAlign: 'center', marginHorizontal: 20, marginVertical: 30 }}>
-                Informe o numero do CPF/CNPJ e clique em <Feather name={'search'} size={12} color={colors.detail} />.
-                Em seguida, aperte <Feather name={'plus'} size={12} color={colors.detail} /> para criar novo pedido.
+                Informe o numero do CPF/CNPJ e clique em <AntDesign name={'search1'} size={12} color={colors.detail} />.
+                Ou aperte <AntDesign name={'plus'} size={12} color={colors.detail} /> para criar novo pedido sem cadastro.
             </Text>
 
         </View>

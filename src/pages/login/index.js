@@ -1,9 +1,8 @@
 import { useState, useContext } from 'react'
 import { Text, Pressable, View, TextInput, StyleSheet } from 'react-native'
-import api from '../../services/api'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 
-import { useNavigation, useTheme } from '@react-navigation/native'
+import { useTheme } from '@react-navigation/native'
+import Input from '../../components/Input'
 
 import { AppContext } from '../../contexts/appContext'
 
@@ -13,40 +12,23 @@ export default function Login() {
 
     const { colors } = useTheme()
 
-    const [nome, setNome] = useState("Xavier Queiroz")
-    const [senha, setSenha] = useState("123")
+    const [name, setName] = useState("Xavier Queiroz")
+    const [password, setPassword] = useState("123")
 
     return (
         <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
             <View style={{ width: '100%' }}>
 
-                <View>
-                    <TextInput
-                        style={style.inputs}
-                        placeholder="Usuario"
-                        keyboardType='email-address'
-                        placeholderTextColor={'#aaa'}
-                        maxLength={405}
-                        onChangeText={setNome}
-                        value={nome} />
-                </View>
-
-                <View>
-
-                    <TextInput
-                        style={style.inputs}
-                        placeholder="Senha"
-                        secureTextEntry
-                        placeholderTextColor={'#aaa'}
-                        maxLength={20}
-                        onChangeText={setSenha}
-                        value={senha} />
+                <View style={{margin:14}}>
+                    <Input value={name} setValue={setName} title={'Usuário'} type='email-address'/>
+                    <Input security={true} value={password} setValue={setPassword} title={'Senha'}/>
+                    
                 </View>
 
 
                 <Pressable
                     style={[style.botaoEntrar, { backgroundColor: colors.theme }]}
-                    onPress={() => signIn(nome, senha)}
+                    onPress={() => signIn(name, password)}
                 >
 
                     <Text style={{ color: '#fff' }}>Entrar</Text>
