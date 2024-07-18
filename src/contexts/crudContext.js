@@ -49,7 +49,7 @@ export function CrudProvider({ children }) {
   async function AddItemOrder(data) {
 
     const product = budgets.find(budget => budget.product && budget.product.id === data.product?.id);
-    
+
     if (product) {
       Toast("Item já existe no orçamento");
     } else {
@@ -63,10 +63,8 @@ export function CrudProvider({ children }) {
 
         const item = {
           salesformID: data.salesformID,
-          ref: data.product?.ref,
+          productID: data.productID,
           amount: 1,
-          color: data.product?.color,
-          size: data.product?.size
         }
 
         await api.post('/createbudget', item, { headers })
@@ -93,12 +91,12 @@ export function CrudProvider({ children }) {
     }
   }
 
-  async function RegisterClient(cpf_cnpj, name, country, whatsapp, birthDate) {
+  async function RegisterClient(cpf_cnpj, name, address, district, city, uf, whatsapp, birthDate) {
 
     //inserir headers
 
     try {
-      const res = await api.post('/createclient', { cpf_cnpj, name, country, whatsapp, birthDate })
+      await api.post('/createclient', { cpf_cnpj, name, address, district, city, uf, whatsapp, birthDate })
       AllClients()
       navigation.goBack()
     } catch (error) {
@@ -117,23 +115,6 @@ export function CrudProvider({ children }) {
   }
 
 
-
-  // Usar esse metodo para buscar produto pelo codigo
-  // async function GetProduct(code) {
-  //   try {
-  //     const ref = code.slice(-5, -1); // Pega as 4 últimas letras
-  //     const response = await api.get(`/getproduct/ref?ref=${ref}`)
-
-  //     setScan({
-  //       ref: ref,
-  //       product: response.data
-  //     })
-
-  //   } catch (error) {
-  //     console.log(error.response);
-
-  //   } 
-  // }
 
   async function StateBudget(salesformID) {
 

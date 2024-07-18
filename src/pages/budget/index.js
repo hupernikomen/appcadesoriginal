@@ -1,13 +1,17 @@
-import { View, Text, FlatList, Pressable, StyleSheet, Modal, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet, Dimensions, ActivityIndicator, TextInput } from 'react-native';
 
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
 import api from '../../services/api';
 import AntDesign from 'react-native-vector-icons/AntDesign'
+import SelectDropdown from 'react-native-select-dropdown';
+import { Picker } from '@react-native-picker/picker';
 
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
 export default function Budget() {
+
+   const { width } = Dimensions.get('window')
 
    const { credential } = useContext(AppContext)
    const { HandleBudget, budgets } = useContext(CrudContext)
@@ -19,9 +23,22 @@ export default function Budget() {
    const [load, setLoad] = useState(false)
    const [amountEditVisible, setAmountEditVisible] = useState(false)
 
-   const [amountUpdate, setAmountUpdate] = useState('')
    const [budgetID, setBudgetID] = useState('')
+
+
+   const [formPayment, setFormPayment] = useState('Cartão')
+   const droplist = ["Cartão", "Boleto", "A vista", "Cheque"]
+
+   const [productsBudgets, setProductsBudgets] = useState([])
+
+
+   const [amountUpdate, setAmountUpdate] = useState('')
+   const [sizeSelect, setSizeSelect] = useState('')
+   const [colorSelect, setColorSelect] = useState('')
    const [productID, setProductID] = useState('')
+   const [total, setTotal] = useState('')
+
+   const listAmount = Array(50).fill(0).map((_, index) => ({ id: index + 1 }));
 
 
    useEffect(() => {
@@ -49,13 +66,12 @@ export default function Budget() {
 
    }, [route])
 
+   useEffect(() => {
+      setTotal(budgets.reduce((acc, current) => acc + current.total, 0).toFixed(2))
+   }, [budgets])
 
 
    useEffect(() => {
-      // Promise.all(HandleBudget(route.params?.salesformID))
-
-
-
       return () => {
          if (budgets?.length === 0) {
             DelSalesform(route.params?.salesformID)
@@ -71,102 +87,199 @@ export default function Budget() {
          'Authorization': `Bearer ${credential?.token}`
       }
 
-      try {
-         await api.delete(`/delsalesform?salesformID=${salesformID}`, { headers })
-
-      } catch (error) {
-         console.log(error.response);
-
-      }
+      try { await api.delete(`/delsalesform?salesformID=${salesformID}`, { headers }) }
+      catch (error) { console.log(error.response) }
    }
 
 
-   async function StateBudget(salesformID) {
+   async function StateBudget(salesformID, total) {
 
       const headers = {
          'Content-Type': 'application/json',
          'Authorization': `Bearer ${credential?.token}`
       }
 
-      try {
-         await api.put(`/putstock?salesformID=${salesformID}`, { headers })
-
-      } catch (error) {
-         console.log(error.response);
-
-      } finally {
-         navigation.navigate('Home')
-      }
+      try { await api.put(`/putstock?salesformID=${salesformID}`, { total: total }, { headers }) }
+      catch (error) { console.log(error.response) }
+      finally { navigation.navigate('Home') }
    }
+
+
+   async function DelBudget() {
+      try { await api.delete(`/delbudget?budgetID=${budgetID}`) }
+      catch (error) { console.log(error.response) }
+      finally { HandleBudget(route.params?.salesformID) }
+   }
+
 
 
    async function PutAmount() {
 
+      if (!amountEditVisible) return
+
       const headers = {
          'Content-Type': 'application/json',
          'Authorization': `Bearer ${credential?.token}`
       }
 
       try {
-         if (amountUpdate > 0) {
+         await api.put(`/budget?budgetID=${budgetID}`, { amount: Number(amountUpdate < 1 ? 1 : amountUpdate), productID: productID }, { headers })
 
-            await api.put(`/budget?productID=${productID}&budgetID=${budgetID}`, { amount: Number(amountUpdate) }, { headers })
-         }
+      }
+      catch (error) { console.log(error.response) }
+      finally { HandleBudget(route.params?.salesformID) }
 
+   }
+
+
+
+
+   const Dropdown = () => {
+      return (
+         <SelectDropdown
+            data={droplist}
+            onSelect={(selectedItem, index) => {
+               setFormPayment(selectedItem, index);
+            }}
+            renderButton={(selectedItem, isOpened) => {
+               return (
+                  <View style={styles.dropdownButtonStyle}>
+
+                     <Text style={styles.dropdownButtonTxtStyle}>
+                        {(selectedItem && selectedItem) || <AntDesign name='filter' size={20} />}
+                     </Text>
+                  </View>
+               );
+            }}
+            renderItem={(item, index, isSelected) => {
+               return (
+                  <View style={{ ...styles.dropdownItemStyle, ...(isSelected && { backgroundColor: '#D2D9DF' }) }}>
+                     <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+                  </View>
+               );
+            }}
+            showsVerticalScrollIndicator={false}
+         />
+      )
+   }
+
+   async function GetProducts(ref) {
+      try {
+         const products = await api.get(`/getproduct/ref?ref${ref}`)
+         setProductsBudgets(products.data)
       } catch (error) {
          console.log(error.response);
-      } finally {
-         setAmountEditVisible(false)
-         HandleBudget(route.params?.salesformID)
       }
 
    }
 
 
-   const AmountInput = () => {
+
+   function RenderBudgets({ data }) {
+
       return (
-         <View style={{ borderRadius: 20, flexDirection: 'row', alignItems: 'center', padding: 2, gap: 6, backgroundColor: '#fff' }}   >
+         <View style={{ height: 70, overflow: 'hidden', justifyContent: "center", backgroundColor: '#e7e7e7' }}>
 
-            <TextInput
-               value={amountUpdate}
-               keyboardType='numeric'
-               onChangeText={setAmountUpdate}
-               autoFocus
-               maxLength={3}
-               style={{
-                  backgroundColor: '#eee',
-                  borderRadius: 20,
-                  height: 30,
-                  color: '#222',
-                  paddingVertical: 0,
-                  textAlign: 'center',
-                  paddingHorizontal: 10
-               }}
+            {/* FUNDO */}
+            <View style={{ gap: 1, flexDirection: 'row', position: 'absolute', left: 0, height: 70, width: width - 55 }}>
 
-            />
+               <View style={{ flex: .9, marginTop: 14 }}>
+                  <Text style={{ marginLeft: 14, fontWeight: '300', fontSize: 13, color: '#000', position: "absolute", top: -4 }}>Tamanho</Text>
+                  <Picker
+                     mode="dialog"
+                     style={{ fontWeight: '300', color: '#222', height: 40 }}
+                     selectedValue={sizeSelect}
+                     onValueChange={(itemValue) => {
+                        setSizeSelect(itemValue);
+                     }}>
 
-            <Pressable style={{ backgroundColor: 'green', borderRadius: 20, height: 30, aspectRatio: 1, alignItems: 'center', justifyContent: "center" }}
-               onPress={() => PutAmount()}><AntDesign name='reload1' size={16} color={'#fff'} /></Pressable>
-         </View>
-      )
-   }
+                     {productsBudgets.filter((item) => item.ref === data.product?.ref).map((item) => {
+                        return (
+                           <Picker.Item
+                              key={item.id}
+                              value={item.size}
+                              label={item.size}
+                              style={{ fontWeight: '300', fontSize: 13, color: '#222', marginTop: 12, height: 40 }}
+                           />
+                        );
+                     })}
+                  </Picker>
+               </View>
 
-   const RenderBudgets = ({ data }) => {
-      return (
-         <Pressable onPress={() => {
-            setProductID(data.product.id)
-            setBudgetID(data.id)
-            setAmountEditVisible(true)
-         }} style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1, paddingVertical: 16 }}>
-            <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'center' }}>
-               <Text style={{ fontWeight: '300', color: '#000' }}>{data.product.ref}</Text>
-               {amountEditVisible && data.id === budgetID ? <AmountInput /> :
-                  <Text style={{ fontWeight: '300', color: '#000', marginLeft: 4 }}>{data.amount > 0 ? data.amount + 'x' : ''}</Text>
-               }
-               <Text numberOfLines={1} style={{ fontWeight: '300', color: '#000', flex: 1, paddingRight: 20 }}>{data.product.name} {data.product.size} {data.product.color}</Text>
+
+               <View style={{ flex: .9, marginTop: 14 }}>
+                  <Text style={{ marginLeft: 14, fontWeight: '300', fontSize: 13, color: '#000', position: "absolute", top: -4 }}>Cor</Text>
+                  <Picker
+                     mode="dialog"
+                     style={{ fontWeight: '300', color: '#222', height: 40 }}
+                     selectedValue={colorSelect}
+                     onValueChange={(itemValue) => {
+                        setColorSelect(itemValue);
+                     }}>
+                     {productsBudgets.filter((item) => item.size === sizeSelect).map((item) => {
+
+                        return (
+                           <Picker.Item
+                              key={item.id}
+                              value={item.color}
+                              label={item.color}
+                              style={{ fontWeight: '300', fontSize: 13, color: '#222', marginTop: 12, height: 40 }}
+                           />
+                        );
+                     })}
+                  </Picker>
+               </View>
+
+               <View style={{ flex: .9, marginTop: 14 }}>
+                  <Text style={{ marginLeft: 14, fontWeight: '300', fontSize: 13, color: '#000', position: "absolute", top: -4 }}>Quantidade</Text>
+                  <Picker
+                     mode="dropdown"
+                     style={{ fontWeight: '300', color: '#222', height: 40 }}
+                     selectedValue={amountUpdate}
+                     onValueChange={(itemValue) => {
+                        setAmountUpdate(itemValue);
+                     }}>
+                     {listAmount.map((item) => {
+                        return (
+                           <Picker.Item
+                              key={item.id}
+                              value={item.id}
+                              label={item.id}
+                              style={{ fontWeight: '300', fontSize: 13, color: '#222', marginTop: 12, height: 40 }}
+                           />
+                        );
+                     })}
+                  </Picker>
+               </View>
+
+
             </View>
-            <Text style={{ fontWeight: '300', color: '#000' }}>{data.product.valueResale}</Text>
-         </Pressable>
+
+
+            {/* BOTÃO */}
+            <Pressable
+               onLongPress={() => DelBudget()}
+               onPress={() => {
+                  PutAmount()
+                  setBudgetID(data.id)
+                  setProductID(data.product.id)
+                  setSizeSelect(data.product.size)
+                  setColorSelect(data.product.color)
+                  setAmountEditVisible(!amountEditVisible)
+                  GetProducts(data.ref)
+               }} style={{ borderRadius: amountEditVisible ? 14 : 0, marginVertical: .5, elevation: 15, backgroundColor: "#fff", paddingHorizontal: 14, transform: [{ translateX: amountEditVisible && data.id === budgetID ? width - 55 : 0 }], flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
+
+               {load && !amountEditVisible ? <ActivityIndicator /> :
+                  <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'flex-start' }}>
+                     <Text style={{ fontWeight: '300', color: '#000' }}>{data.product?.ref}</Text>
+                     <Text style={{ fontWeight: '300', color: '#000' }}>{data.amount > 0 ? data.amount + 'x' : ''}</Text>
+                     <Text numberOfLines={2} style={{ fontWeight: '300', color: '#000', flex: 1, paddingRight: 18 }}>{data.product?.name} {data.product.size} {data.product.color}. unid. {data.product?.valueResale}</Text>
+                     <Text style={{ fontWeight: '300', color: '#000' }}>{data.total}</Text>
+                  </View>
+               }
+
+            </Pressable>
+         </View>
       )
    }
 
@@ -177,11 +290,25 @@ export default function Budget() {
 
    return (
       <View style={{ flex: 1 }}>
+
+         {route.params?.stateSalesform === 'Reserved' ? <Dropdown /> : null}
+
+
          <FlatList
-            ItemSeparatorComponent={<View style={{ borderBottomWidth: 1, borderColor: '#ccc' }} />}
-            contentContainerStyle={{ paddingHorizontal: 14 }}
             data={budgets}
             renderItem={({ item }) => <RenderBudgets data={item} />}
+            ListFooterComponent={
+               budgets.length > 0 ? <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={{ fontWeight: '300', color: '#222', alignItems: "flex-start" }}>
+                     <Text>Valor a pagar: </Text>
+                     <Text style={{ fontWeight: '400', fontSize: 16 }}> {total}</Text>
+                  </Text>
+               </View> : null}
+            ListFooterComponentStyle={{
+               marginTop: 14,
+               padding: 14,
+
+            }}
          />
 
          <View style={{

@@ -7,7 +7,6 @@ import SelectDropdown from 'react-native-select-dropdown';
 
 import AntDesign from 'react-native-vector-icons/AntDesign'
 
-import api from '../../services/api';
 
 export default function SalesHistory() {
 
@@ -18,6 +17,7 @@ export default function SalesHistory() {
   const { AllSalesform, salesform } = useContext(CrudContext)
   const [stateSalesform, setStateSalesform] = useState('Created')
   const statusList = ["Open", "Created", "Reserved", "Concluded"]
+
 
   useEffect(() => {
 
@@ -54,12 +54,14 @@ export default function SalesHistory() {
         break;
     }
 
+
   }, [])
 
   useEffect(() => {
     AllSalesform()
 
   }, [focus])
+
 
   const converteData = (date) => {
 
@@ -143,6 +145,8 @@ export default function SalesHistory() {
       />
     )
   }
+
+
 
 
   return (

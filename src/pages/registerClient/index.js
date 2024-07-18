@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 
 import { useState, useContext, useEffect } from 'react';
 
@@ -21,11 +21,14 @@ export default function RegisterClient() {
   const [cpf_cnpj, setCpf_Cnpj] = useState("")
   const [name, setName] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
-  const [country, setCountry] = useState("")
+  const [address, setAddress] = useState("")
+  const [district, setDistrict] = useState("")
+  const [city, setCity] = useState("")
+  const [uf, setUf] = useState("")
   const [birthDate, setBirthDate] = useState("")
 
   return (
-    <View style={{ padding: 10 }}>
+    <ScrollView style={{ padding: 10 }}>
 
       <MaskOfInput mask={(text) => {
         if (text?.replace(/\D+/g, "")?.length <= 11) {
@@ -35,19 +38,22 @@ export default function RegisterClient() {
         }
       }} type='default' title='CPF/CNPJ' value={cpf_cnpj} setValue={setCpf_Cnpj} />
       <Input type={'default'} title="Nome" value={name} setValue={setName} maxlength={50} info={''} />
-      <Input type={'default'} title="Endereço" value={country} setValue={setCountry} maxlength={80} info={''} />
+      <Input type={'default'} title="Endereço" value={address} setValue={setAddress} maxlength={80} info={''} />
+      <Input type={'default'} title="Bairro" value={district} setValue={setDistrict} maxlength={40} info={''} />
+      <Input type={'default'} title="Cidade" value={city} setValue={setCity} maxlength={20} info={''} />
+      <Input type={'default'} title="UF" value={uf} setValue={setUf} maxlength={2} info={''} />
       <MaskOfInput mask={Masks.BRL_PHONE} type='default' title='Whatsapp' value={whatsapp} setValue={setWhatsapp} />
       <MaskOfInput mask={Masks.DATE_DDMMYYYY} type='default' title='Data de Nascimento' value={birthDate} setValue={setBirthDate} />
 
 
       <Pressable
         style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}
-        onPress={() => RegisterClient(cpf_cnpj, name, whatsapp, country, birthDate)}
+        onPress={() => RegisterClient(cpf_cnpj, name, address, district, city, uf, whatsapp, birthDate)}
       >
         <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>
 
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 

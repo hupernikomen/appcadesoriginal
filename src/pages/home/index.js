@@ -23,7 +23,7 @@ export default function Home() {
           (
             <>
               <Pressable onPress={() => signOut()}>
-                <AntDesign name={'user'} size={22} color='#fff' />
+                <AntDesign name={'key'} size={22} color='#fff' />
               </Pressable>
               <View style={{ position: 'absolute', bottom: -6, right: -6 }}>
                 <FontAwesome name={'check'} size={18} color='#33cc33' />
@@ -64,8 +64,8 @@ export default function Home() {
   const buttonsInfo = [
     { icon: 'swap', name: 'Vendas', notification: '', action: 'Sale', disabled: '' },
     { icon: 'profile', name: 'Histórico', notification: salesform.filter(item => item.state === 'Reserved').length, action: 'SalesHistory', disabled: '' },
-    { icon: 'adduser', name: 'Clientes', notification: clients.length, action: 'RegisterClient', disabled: credential.type === 'Vendedor' },
-    { icon: 'barcode', name: 'Consulta', notification: '', action: 'Scanner', disabled: credential.type === 'Vendedor' }
+    { icon: 'user', name: 'Clientes', notification: clients.length, action: 'RegisterClient', disabled: credential.type === 'Vendedor' },
+    { icon: 'skin', name: 'Estoque', notification: '', action: 'Scanner', disabled: credential.type === 'Vendedor' }
   ]
 
   return (

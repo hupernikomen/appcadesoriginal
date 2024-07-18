@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback, useContext } from 'react';
-import { Platform, Text, View, Dimensions, FlatList, StyleSheet, Pressable } from 'react-native';
+import React, { useEffect, useState,useContext } from 'react';
+import { Text, View, Dimensions } from 'react-native';
 import { PERMISSIONS, request } from 'react-native-permissions';
-import { useNavigation, useTheme, useRoute } from '@react-navigation/native';
+import { useNavigation,  useRoute, CommonActions  } from '@react-navigation/native';
 import {
     Camera,
     useCameraDevice,
@@ -17,37 +17,28 @@ import api from '../../services/api';
 export default function Scanner() {
     const device = useCameraDevice('back');
     const { Toast } = useContext(AppContext)
-    const {AddItemOrder} = useContext(CrudContext)
+    const { AddItemOrder } = useContext(CrudContext)
     const { hasPermission } = useCameraPermission();
     const navigation = useNavigation()
     const route = useRoute()
     const [salesformID, setSalesformID] = useState(null)
     const [hasScanned, setHasScanned] = useState(false);
+    const { width, height } = Dimensions.get("window")
 
 
     useEffect(() => {
         setSalesformID(route.params);
     }, [route])
 
-    const { width, height } = Dimensions.get("window")
-
-
     const requestCameraPermission = async () => {
-        const isIos = Platform.OS === 'ios';
-        const permission = isIos
-            ? PERMISSIONS.IOS.CAMERA
-            : PERMISSIONS.ANDROID.CAMERA;
-        await request(permission);
+        await request(PERMISSIONS.ANDROID.CAMERA);
+
     }
-
-
-
 
     const codeScanner = useCodeScanner({
         codeTypes: ['ean-13'],
         onCodeScanned: (codes) => {
             if (!hasScanned) {
-                console.log(codes);
                 VerifyCode(codes);
                 setHasScanned(true);
             }
@@ -71,28 +62,36 @@ export default function Scanner() {
 
     async function VerifyCode(code) {
 
-    
-
-        if (code[0].value.substr(0, 3) !== '789') return
-
+        const product = await api.get(`/getproduct/code?code=${code[0].value}`)
+        if (!product.data) {
+            Toast("Item não cadastrado")
+            navigation.goBack()
+        }
         try {
-            const product = await api.get(`/getproduct/code?code=${code[0].value}`)
-            if (!product.data) {
-                Toast("Item não cadastrado")
+            if (code[0].value.substr(0, 3) === '789') {
+
+                if (!!salesformID) {
+                    AddItemOrder({ productID: product.data.id, salesformID: salesformID })
+                    navigation.navigate('Budget', { salesformID: route.params })
+
+                } else {
+                    navigation.dispatch(
+                        CommonActions.reset({
+                          index: 1,
+                          routes: [
+                            { name: 'Home' }, { name: 'RegisterStock', params: { code: code[0].value } },
+                          ],
+                          params: { code: code[0].value }
+                        })
+                      )
+                }
+
             }
-
-            if(!!salesformID) {
-                AddItemOrder({ product: product.data, salesformID: salesformID })
-                navigation.navigate('Budget', {salesformID: route.params})
-            }else {
-
-                navigation.navigate('RegisterStock', { code: code[0].value })
-                setHasScanned(false);
-            }
-
         } catch (error) {
             console.log(error.response);
-        } 
+        }
+
+
     }
 
 

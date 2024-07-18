@@ -11,6 +11,8 @@ import { AppContext } from '../../contexts/appContext';
 
 import api from '../../services/api';
 
+import Load from '../../components/Load';
+
 export default function RegisterStock() {
 
   const focus = useIsFocused()
@@ -47,7 +49,7 @@ export default function RegisterStock() {
   useEffect(() => {
     setCode(route.params?.code)
     setRef(route.params?.code?.slice(8, 12))
-    setColor(getValue(route.params?.code?.slice(3, 7)))
+    setColor(getValue(route.params?.code?.slice(5, 7)))
     setSize(tamanhos[route.params?.code?.slice(7, 8)])
 
     navigation.setOptions({
@@ -66,6 +68,8 @@ export default function RegisterStock() {
 
   async function GetProductCode() {
     // Verificar se essa referencia ja esta cadastrada
+
+    setLoad(true)
 
     try {
       const response = await api.get(`/getproduct/code?code=${route.params?.code}`)
@@ -89,6 +93,8 @@ export default function RegisterStock() {
 
     } catch (error) {
       console.log(error.response);
+    } finally {
+      setLoad(false)
     }
   }
 
@@ -96,8 +102,8 @@ export default function RegisterStock() {
   const formatCodigo = (number) => {
     const formattedNumber = number?.replace(/\D+/g, ''); // remove todos os caracteres não numéricos
     const parts = [];
-    parts.push(formattedNumber?.substring(0, 3)); // 789
-    parts.push(formattedNumber?.substring(3, 7)); // 0026
+    parts.push(formattedNumber?.substring(0, 5)); // 78900
+    parts.push(formattedNumber?.substring(5, 7)); // 26
     parts.push(formattedNumber?.substring(7, 8)); // 2
     parts.push(`${formattedNumber?.substring(8, 12)}`); // '4578'
     parts.push(formattedNumber?.substring(12, 13)); // 2
@@ -107,14 +113,13 @@ export default function RegisterStock() {
 
   const tamanhos = ["PP", "P", "M", "G", "GG", "XGG"]
   const cores = {
-    "0001": "Preto",
-    "0002": "Branco",
-    "0003": "Cinza",
-    "0004": "Grafite",
-    "0012": "Rosa",
-    "0013": "Pink",
-    "0070": "Amarelo",
-    "0026": "Teste2"
+    "01": "Preto",
+    "02": "Branco",
+    "03": "Cinza",
+    "04": "Grafite",
+    "12": "Rosa",
+    "13": "Pink",
+    "70": "Amarelo",
   }
 
   function getValue(valor) {
@@ -156,13 +161,14 @@ export default function RegisterStock() {
     }
   }
 
+  if(load) return <ActivityIndicator/>
 
 
   return (
     <View style={{ flex: 1, padding: 14 }}>
       <ScrollView>
 
-        <Input editable={!haveStock} value={color} setValue={setColor} title={'Cor'} info={'cod.: ' + route.params?.code?.slice(3, 7)} />
+        <Input editable={!haveStock} value={color} setValue={setColor} title={'Cor'} info={'cod.: ' + route.params?.code?.slice(5, 7)} />
         <Input editable={!haveStock} value={size} setValue={setSize} title={'Tamanho'} info={'cod.: ' + route.params?.code?.slice(7, 8)} />
         <Input value={name} setValue={setName} editable={!haveStock} title={'Descrição'} maxlength={40} info={name?.length + '/40'} />
         <Input type='numeric' value={stock} editable={!haveStock} setValue={setStock} title={'Entrada'} />
