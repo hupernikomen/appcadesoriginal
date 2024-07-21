@@ -23,21 +23,21 @@ export default function RotasStack() {
             screenOptions={{
                 headerTintColor: colors.text,
                 orientation: 'portrait',
-                // headerTitleStyle: { fontFamily: 'Roboto-Regular', fontSize: 19 },
+                headerTitleStyle: { fontSize: 19 },
                 headerStyle: { backgroundColor: colors.theme },
             }}>
 
-            <Stack.Screen name='Home' component={Home} options={{title:'Cades Original', headerTitleAlign:'center'}}/>
-            <Stack.Screen name='RegisterStock' component={RegisterStock}  options={{title:'Estoque'}}/>
-            <Stack.Screen name='RegisterClient' component={RegisterClient}  options={{title:'Cadastro de Clientes'}}/>
-            <Stack.Screen name='Login' component={Login}  options={{title:''}}/>
-            <Stack.Screen name='SalesHistory' component={SalesHistory}  options={{title:'Histórico'}}/>
-            <Stack.Screen name='Sale' component={Sale}  options={{title:'Vendas'}}/>
+            <Stack.Screen name='Home' component={Home} options={{ title: 'Cades Original', headerTitleAlign: 'center' }} />
+            <Stack.Screen name='RegisterStock' component={RegisterStock} options={{ title: 'Cadastro de Estoque' }} />
+            <Stack.Screen name='RegisterClient' component={RegisterClient} options={{ title: 'Cadastro de Clientes' }} />
+            <Stack.Screen name='Login' component={Login} options={{ title: '' }} />
+            <Stack.Screen name='SalesHistory' component={SalesHistory} options={{ title: 'Histórico' }} />
+            <Stack.Screen name='Sale' component={Sale} options={{ title: 'Vendas' }} />
             <Stack.Screen name='Budget' component={Budget} options={{
-                headerBackVisible:false
-            }}/>
-            <Stack.Screen name='Scanner' component={Scanner} options={{title:'Scanner'}}/>
-            <Stack.Screen name='UpdateStock' component={UpdateStock} options={{title:'Atualiza Estoque'}}/>
+                headerBackVisible: false
+            }} />
+            <Stack.Screen name='Scanner' component={Scanner} options={{ title: 'Scanner' }} />
+            <Stack.Screen name='UpdateStock' component={UpdateStock} options={{ title: 'Atualiza Estoque' }} />
 
         </Stack.Navigator>
 

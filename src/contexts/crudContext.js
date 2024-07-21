@@ -15,12 +15,15 @@ export function CrudProvider({ children }) {
   const [clients, setClients] = useState([])
   const [salesform, setSalesform] = useState([])
   const [budgets, setBudgets] = useState([])
+  const [stockAmount, setStockAmount] = useState('')
 
 
   useEffect(() => {
-    Promise.all(AllClients(), AllSalesform())
+    Promise.all(AllClients(), AllSalesform(), GetProductsAll())
 
   }, [])
+
+
 
   // Exibe mensagens de retorno de execução de comandos
   const Toast = message => {
@@ -91,6 +94,21 @@ export function CrudProvider({ children }) {
     }
   }
 
+
+  async function GetProductsAll() {
+    try {
+      const response = await api.get('/getproducts/all')
+      let stock = response.data.reduce((acc, current) => acc + current.stock, 0)
+      let out = response.data.reduce((acc, current) => acc + current.out, 0)
+      let reserved = response.data.reduce((acc, current) => acc + current.reserved, 0)
+  
+      setStockAmount(stock)
+      
+    } catch (error) {
+      console.log(error.response);
+    }
+  }
+
   async function RegisterClient(cpf_cnpj, name, address, district, city, uf, whatsapp, birthDate) {
 
     //inserir headers
@@ -138,7 +156,6 @@ export function CrudProvider({ children }) {
 
   return (
     <CrudContext.Provider value={{
-      // GetProduct,
       RegisterClient,
       clients,
       AllClients,
@@ -147,7 +164,9 @@ export function CrudProvider({ children }) {
       StateBudget,
       AddItemOrder,
       HandleBudget,
-      budgets
+      budgets,
+      GetProductsAll,
+      stockAmount
     }}>
       {children}
     </CrudContext.Provider>

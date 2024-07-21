@@ -1,12 +1,13 @@
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 
-export default function Input({ security=true, colorActive = '#000', editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info }) {
+export default function Input({ style, security = true, colorActive = '#777', editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info }) {
 
   const styles = StyleSheet.create({
     box: {
+      margin: 2,
+      height: 60,
       paddingVertical: 8,
-      marginVertical: 4,
-      borderWidth: .4,
+      borderWidth: .7,
       borderColor: colorActive,
       borderRadius: 6,
       paddingHorizontal: 12,
@@ -18,23 +19,24 @@ export default function Input({ security=true, colorActive = '#000', editable = 
       paddingHorizontal: 6
     },
     title: {
-      opacity: value ? .6 : 1,
-      color: colorActive,
-      fontSize: 13
+      color: '#000',
+      fontSize: 13,
+      fontWeight: '300'
     },
     info: {
       color: '#000',
-      fontSize: 13
+      fontSize: 13,
+      fontWeight: '300'
     },
     input: {
-      fontSize: 15,
+      fontWeight: '300',
       paddingVertical: 0,
-      color: colorActive
+      color: '#000'
     }
   })
 
   return (
-    <View style={styles.box}>
+    <View style={[styles.box, style]}>
       <View style={styles.boxtop}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.info}>{info}</Text>
@@ -48,7 +50,7 @@ export default function Input({ security=true, colorActive = '#000', editable = 
         style={styles.input}
         keyboardType={type}
         value={value}
-        onChangeText={(e) => setValue(e)}
+        onChangeText={setValue}
       />
     </View>
   );

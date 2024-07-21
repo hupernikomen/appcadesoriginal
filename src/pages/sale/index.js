@@ -22,11 +22,9 @@ export default function Sale() {
     const [load, setLoad] = useState(false)
 
     useEffect(() => {
-
         // SE CPF/CNPJ ESTIVER INCOMPLETO MANTER DADOS APAGADOS
         if (cpf_cnpj.length < 14) {
             setData([])
-
         }
 
     }, [cpf_cnpj])
@@ -54,7 +52,7 @@ export default function Sale() {
             if (!_client.data && cpf_cnpj.length >= 14) {
                 Toast("Cliente não cadastrado")
 
-            } else if (cpf_cnpj.length < 14 ) {
+            } else if (cpf_cnpj.length < 14) {
                 Toast('CPF/CNPJ incompleto')
 
             } else if (!!_client.data) {
@@ -66,7 +64,7 @@ export default function Sale() {
                     // SE CLIENTE EXISTE E NÃO HA PEDIDO EM ABERTO 
                     if (!!_client.data && salesform.state !== 'Open') {
                         setData(_client.data);
-                    } 
+                    }
                 })
             }
 
@@ -102,7 +100,7 @@ export default function Sale() {
         <View style={{ flex: 1, alignItems: 'center', marginHorizontal: 14, marginVertical: 10 }}>
 
 
-            <View style={{ flexDirection: "row", alignItems: 'center', gap: 6 }}>
+            <View style={{ flexDirection: "row", alignItems: 'center', gap: 6, marginBottom: 30 }}>
 
                 <MaskInput
                     keyboardType='numeric'
@@ -129,28 +127,21 @@ export default function Sale() {
                     width: 45,
                     aspectRatio: 1
                 }}>
-                    <AntDesign name={'search1'} size={20} color={'#fff'} />
+                    {load ?
+                        <ActivityIndicator color={'#fff'} /> :
+                        <AntDesign name={'search1'} size={20} color={'#fff'} />
+                    }
                 </Pressable>
 
-                    <Pressable onPress={() => GetClient('15.302.980/0001-54')} style={{
-                        backgroundColor: colors.detail,
-                        borderRadius: 50,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 45,
-                        aspectRatio: 1,
-                    }}>
-                        {load ?
-                        <ActivityIndicator color={'#fff'}/>:
-                        <AntDesign name='plus' size={20} color='#fff'/>
-                        }
-                    </Pressable>
             </View>
 
-            <Text style={{ fontWeight: '300', color: '#222', textAlign: 'center', marginHorizontal: 20, marginVertical: 30 }}>
-                Informe o numero do CPF/CNPJ e clique em <AntDesign name={'search1'} size={12} color={colors.detail} />.
-                Ou aperte <AntDesign name={'plus'} size={12} color={colors.detail} /> para criar novo pedido sem cadastro.
-            </Text>
+            <Text style={{ fontWeight: '300', color: '#000', textAlign: 'center', marginHorizontal: 14 }}>
+                Informe o numero do CPF/CNPJ e clique em <AntDesign name={'search1'} size={12} color={colors.detail} />.</Text>
+
+            <Text style={{ fontWeight: '300', color: '#000' }}>Ou<Text onPress={() => GetClient('15.302.980/0001-54')}
+                style={{ color: colors.detail, fontWeight: '300' }} numberOfLines={1}> Toque aqui </Text>
+                para criar novo pedido sem cadastro.</Text>
+
 
         </View>
     )
@@ -166,7 +157,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#222',
         flex: 1,
-        paddingHorizontal: 40,
+        paddingHorizontal: 24,
     },
     textobotao: {
         fontSize: 15,

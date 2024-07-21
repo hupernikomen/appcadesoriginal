@@ -1,15 +1,16 @@
 import { View, Text, StyleSheet } from 'react-native';
 import MaskInput from 'react-native-mask-input';
 
-export default function MaskOfInput({mask, editable = true, type = 'default', title, value =1, setValue, multiline = true, maxlength, info }) {
+export default function MaskOfInput({mask, style, colorActive='#777', editable = true, type = 'default', title, value =1, setValue, multiline = true, maxlength, info }) {
 
 
   const styles = StyleSheet.create({
     box: {
+      margin:2,
+      height:60,
       paddingVertical: 8,
-      marginVertical: 4,
-      borderWidth: .4,
-      borderColor: '#777',
+      borderWidth: .7,
+      borderColor: colorActive,
       borderRadius: 6,
       paddingHorizontal: 12,
     },
@@ -20,23 +21,24 @@ export default function MaskOfInput({mask, editable = true, type = 'default', ti
       paddingHorizontal: 6
     },
     title: {
-      opacity: value ? .4 : 1,
       color: '#000',
-      fontSize: 13
+      fontSize: 13,
+      fontWeight: '300',
+      
     },
     info: {
       color: '#000',
       fontSize: 13
     },
     input: {
-      fontSize: 15,
       paddingVertical: 0,
-      color: '#000'
+      fontWeight:'300',
+      color: '#000',
     }
   })
 
   return (
-    <View style={styles.box}>
+    <View style={[styles.box, style]}>
       <View style={styles.boxtop}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.info}>{info}</Text>

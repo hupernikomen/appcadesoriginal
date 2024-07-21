@@ -3,16 +3,15 @@ import { View, Text } from 'react-native';
 import { Picker } from "@react-native-picker/picker";
 import { useTheme } from '@react-navigation/native';
 
-export default function Pick({ data, title, selectedValue, value, setValue }) {
+export default function Pick({ data, title, selectedValue, value, setValue, stylef }) {
 
   return (
-    <View>
-      <View style={{
+      <View style={[{
         borderRadius: 6,
         marginVertical: 3,
         borderWidth: .4,
-        borderColor: '#777'
-      }}>
+        borderColor: '#777',
+      },stylef]}>
         <Text style={{ opacity: value ? .3 : 1, paddingHorizontal: 18, paddingTop: 6, color: '#000', fontSize: 13 }}>{title}</Text>
         <Picker
           mode="dialog"
@@ -21,12 +20,12 @@ export default function Pick({ data, title, selectedValue, value, setValue }) {
           onValueChange={(itemValue) => {
             setValue(itemValue);
           }}>
-          <Picker.Item
+          {/* <Picker.Item
             style={{
               color: '#aaa',
               fontSize: 15
             }}
-          />
+          /> */}
           {data.map((item) => {
             return (
               <Picker.Item
@@ -39,7 +38,6 @@ export default function Pick({ data, title, selectedValue, value, setValue }) {
         </Picker>
       </View>
 
-    </View>
 
   );
 }

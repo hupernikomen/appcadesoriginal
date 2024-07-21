@@ -1,0 +1,41 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/Barcode.ttf",
+      "sha1": "f2e98b709874fa58377020046a5e793b2acf1385"
+    },
+    {
+      "path": "assets/fonts/Barcode2.ttf",
+      "sha1": "ec19626516f5313a711295d3c1756fe193ec0ef8"
+    },
+    {
+      "path": "assets/fonts/EAN-13.ttf",
+      "sha1": "af1783ea98b60e96c388adf2bc5c9a5667f792ec"
+    },
+    {
+      "path": "assets/fonts/ean13.ttf",
+      "sha1": "63abe8d2464b5f83dee18faf8db7e35de241e250"
+    },
+    {
+      "path": "assets/fonts/Roboto-Bold.ttf",
+      "sha1": "62442a18a9fe9457c1afeabf683d263a691b7798"
+    },
+    {
+      "path": "assets/fonts/Roboto-Light.ttf",
+      "sha1": "18788c5d630fa695f9283f6393bfa541b2031508"
+    },
+    {
+      "path": "assets/fonts/Roboto-Medium.ttf",
+      "sha1": "3c6a09fcc6a454924c81af7dff94fc6d399ed79b"
+    },
+    {
+      "path": "assets/fonts/Roboto-Regular.ttf",
+      "sha1": "56c5c0d38bde4c1f1549dda43db37b09c608aad3"
+    },
+    {
+      "path": "assets/fonts/Roboto-Thin.ttf",
+      "sha1": "58c733e22bceeaf9609ce578eca92ac303c6d92f"
+    }
+  ]
+}

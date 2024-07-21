@@ -10,11 +10,11 @@ import Routes from './src/routes';
 const Theme = {
   ...DefaultTheme,
   colors: {
-    // theme: '#222',
-    theme: '#cc0000',
-    detail: '#cc0000',
+    black: '#222',
+    theme: '#f3f3f3',
+    detail: '#cc2900',
     background: '#f3f3f3',
-    text: '#fff'
+    text: '#000',
   }
 };
 
@@ -29,7 +29,7 @@ export default function App() {
           <StatusBar
             backgroundColor={Theme.colors.theme}
             translucent={false}
-            barStyle={Theme.colors.statusbar} />
+            barStyle={'dark-content'} />
 
           <Routes />
 

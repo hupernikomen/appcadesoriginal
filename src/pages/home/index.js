@@ -14,7 +14,7 @@ export default function Home() {
   const focus = useIsFocused()
 
   const { credential, signOut } = useContext(AppContext)
-  const { clients, salesform, AllSalesform } = useContext(CrudContext)
+  const { clients, salesform, AllSalesform, GetProductsAll, stockAmount } = useContext(CrudContext)
 
   useEffect(() => {
     navigation.setOptions({
@@ -23,21 +23,24 @@ export default function Home() {
           (
             <>
               <Pressable onPress={() => signOut()}>
-                <AntDesign name={'key'} size={22} color='#fff' />
+                <AntDesign name={'key'} size={22} color='#222' />
               </Pressable>
-              <View style={{ position: 'absolute', bottom: -6, right: -6 }}>
-                <FontAwesome name={'check'} size={18} color='#33cc33' />
-              </View>
             </>
           )
           : null
+
+
     })
+
+
 
   }, [credential])
 
   useEffect(() => {
-    AllSalesform()
+    Promise.all([AllSalesform(), GetProductsAll()])
+
   }, [focus])
+
 
 
   function Button({ icon, name, notification, action, disabled }) {
@@ -49,10 +52,10 @@ export default function Home() {
 
         <View>
           <AntDesign name={icon} size={28} color='#333' />
-          {notification > 0 ?
-            <Text style={style.notification}>{notification}</Text> :
-            null}
         </View>
+          {notification > 0 ?
+            <Text style={[style.notification, { borderColor: colors.detail, color: colors.detail }]}>{notification}</Text> :
+            null}
 
         <Text style={style.textbutton}>{name}</Text>
 
@@ -65,7 +68,7 @@ export default function Home() {
     { icon: 'swap', name: 'Vendas', notification: '', action: 'Sale', disabled: '' },
     { icon: 'profile', name: 'Histórico', notification: salesform.filter(item => item.state === 'Reserved').length, action: 'SalesHistory', disabled: '' },
     { icon: 'user', name: 'Clientes', notification: clients.length, action: 'RegisterClient', disabled: credential.type === 'Vendedor' },
-    { icon: 'skin', name: 'Estoque', notification: '', action: 'Scanner', disabled: credential.type === 'Vendedor' }
+    { icon: 'skin', name: 'Estoque', notification: stockAmount, action: 'RegisterStock', disabled: credential.type === 'Vendedor' }
   ]
 
   return (
@@ -73,13 +76,13 @@ export default function Home() {
 
       {credential?.token ?
         //  Aumentando o numero de botoes, aumente o valor de height abaixo
-
         <FlatList
           data={buttonsInfo}
           numColumns={2}
-          contentContainerStyle={{ flex: 1, alignItems: 'center', justifyContent: "center" }}
+          contentContainerStyle={{ flex: 1, alignItems: 'center', justifyContent: "center", padding:25 }}
           columnWrapperStyle={{
-            gap: 6, marginBottom: 6
+            gap: .5, 
+            marginBottom:.5
           }}
           renderItem={({ item }) => {
             return (
@@ -106,13 +109,13 @@ export default function Home() {
 const style = StyleSheet.create({
   buttons: {
     backgroundColor: "#fff",
-    elevation: 3,
-    width: 120,
-    height: 120,
-    borderRadius: 6,
+    elevation: 2,
+    width: 130,
+    height: 130,
+    borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 2,
     padding: 12
   },
   textbutton: {
@@ -123,14 +126,14 @@ const style = StyleSheet.create({
   },
   notification: {
     fontSize: 11,
-    backgroundColor: '#fff',
+    textAlign:'center',
     borderWidth: 1,
-    borderColor: '#222',
+    backgroundColor: '#fff',
     position: "absolute",
-    paddingHorizontal: 8,
+    paddingHorizontal: 3,
     borderRadius: 6,
-    right: -12,
-    top: -8
+    right: 45,
+    top: 28
   }
 
 })
