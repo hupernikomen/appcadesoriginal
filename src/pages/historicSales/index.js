@@ -15,45 +15,18 @@ export default function SalesHistory() {
   const { colors } = useTheme()
   const { credential, Toast } = useContext(AppContext)
   const { AllSalesform, salesform } = useContext(CrudContext)
-  const [stateSalesform, setStateSalesform] = useState('Created')
-  const statusList = ["Open", "Created", "Reserved", "Concluded"]
+  const [stateSalesform, setStateSalesform] = useState('')
+  const statusList = ["Aberto", "Criado", "Separado", "Entregue"]
 
 
   useEffect(() => {
-
-    // VERIFICAR QUAL TIPO DE CONTA E DEFINIR TIPO DE VIZUALIZAÇÃO INCIAL PARA CADA USUARIO
-    switch (credential.type) {
-      case 'Vendedor':
-        setStateSalesform('Open')
-
-        break;
-      case 'Manager':
-        setStateSalesform('Created')
-        navigation.setOptions({
-          headerRight: () => {
-            return (
-              <Dropdown />
-            )
-          }
-        })
-
-        break;
-      case 'Owner':
-        setStateSalesform('Reserved')
-        navigation.setOptions({
-          headerRight: () => {
-            return (
-              <Dropdown />
-            )
-          }
-        })
-
-        break;
-
-      default:
-        break;
-    }
-
+    navigation.setOptions({
+      headerRight: () => {
+        return (
+          <Dropdown />
+        )
+      }
+    })
 
   }, [])
 
@@ -64,7 +37,6 @@ export default function SalesHistory() {
 
 
   const converteData = (date) => {
-
     const data = new Date(date);
     const formatoData = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
     return formatoData.format(data);
@@ -73,22 +45,27 @@ export default function SalesHistory() {
 
   const RenderItem = ({ item }) => {
     return (
-      <View style={[styles.containerPedido, { borderColor: colors.detail }]}>
+      <View style={[styles.containerPedido, { borderColor: colors.theme }]}>
 
         <View style={{
-          backgroundColor: '#fff',
+          backgroundColor: '#f3f3f3',
+          elevation: 5,
           flexDirection: 'row',
           padding: 14,
-          alignItems: 'center'
+          height: 80,
+          margin: 1,
+          alignItems: 'center',
+          borderWidth: 2,
+          borderColor: '#fff',
         }}>
 
           <Pressable
-            style={{ borderRadius: 6, flex: 1 }}
+            style={{ flex: 1 }}
             onPress={() => {
               if (credential.type === 'Owner') {
-                navigation.navigate('Budget', { salesformID: item?.id, stateSalesform: item.state })
+                navigation.navigate('Budget', { salesformID: item?.id, stateSalesform: item.state, client: item.client })
 
-              } else if (credential.type === 'Vendedor' && item.state === "Open") {
+              } else if (credential.type === 'Vendedor' && item.state === "Aberto") {
                 navigation.navigate('Budget', { salesformID: item?.id })
 
               } else {
@@ -96,7 +73,7 @@ export default function SalesHistory() {
               }
             }} >
 
-            <View style={styles.linhaDePedido}>
+            <View>
               <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
 
                 <Text style={styles.pedidoText}>Pedido {item?.state} - {item.id.substr(0, 6).toUpperCase()}</Text>
@@ -107,7 +84,7 @@ export default function SalesHistory() {
 
 
           </Pressable>
-          <View style={[styles.marcadorDoPedido, { borderColor: colors.detail }]} />
+          <View style={[styles.marcadorDoPedido, { borderColor: colors.theme }]} />
 
         </View>
 
@@ -124,12 +101,12 @@ export default function SalesHistory() {
         onSelect={(selectedItem, index) => {
           setStateSalesform(selectedItem, index);
         }}
-        renderButton={(selectedItem, isOpened) => {
+        renderButton={(selectedItem, isAbertoed) => {
           return (
             <View style={styles.dropdownButtonStyle}>
 
               <Text style={styles.dropdownButtonTxtStyle}>
-                {(selectedItem && selectedItem) || <AntDesign name='filter' size={20} />}
+                {(selectedItem && selectedItem) || <AntDesign name='filter' size={20} color={colors.text} />}
               </Text>
             </View>
           );
@@ -147,13 +124,16 @@ export default function SalesHistory() {
   }
 
 
-
-
   return (
-    <FlatList
-      data={salesform.filter((item) => item.state === stateSalesform)}
-      renderItem={({ item }) => <RenderItem item={item} />}
-    />
+    <View style={{ flex: 1 }}>
+
+      <FlatList
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: 10 }}
+        data={stateSalesform ? salesform.filter((item) => item.state === stateSalesform) : salesform}
+        renderItem={({ item }) => <RenderItem item={item} />}
+      />
+    </View>
   )
 
 }
@@ -162,16 +142,14 @@ const styles = StyleSheet.create({
 
   containerPedido: {
     borderLeftWidth: 1.5,
-    marginHorizontal: 10,
-    padding: 6
   },
   marcadorDoPedido: {
     width: 10,
     aspectRatio: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f1f1f1',
     borderWidth: 2,
     position: "absolute",
-    marginLeft: -12,
+    marginLeft: -9,
     borderRadius: 6,
   },
   pedidoText: {

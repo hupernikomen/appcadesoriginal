@@ -11,10 +11,9 @@ const Theme = {
   ...DefaultTheme,
   colors: {
     black: '#222',
-    theme: '#f3f3f3',
-    detail: '#cc2900',
+    theme: '#cc2900',
     background: '#f3f3f3',
-    text: '#000',
+    text: '#fff',
   }
 };
 
@@ -24,12 +23,10 @@ export default function App() {
     <NavigationContainer theme={Theme}>
       <AppProvider>
         <CrudProvider>
-
-
           <StatusBar
             backgroundColor={Theme.colors.theme}
             translucent={false}
-            barStyle={'dark-content'} />
+            barStyle={'light-content'} />
 
           <Routes />
 

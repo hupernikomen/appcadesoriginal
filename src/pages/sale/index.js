@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Keyboard, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Keyboard, ActivityIndicator, FlatList } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 
 import { AppContext } from '../../contexts/appContext';
@@ -16,58 +16,38 @@ export default function Sale() {
     const navigation = useNavigation()
     const { colors } = useTheme()
 
-    const [data, setData] = useState([])
+    const [salesforms, setSalesforms] = useState([])
+    const [client, setClient] = useState('')
     const [cpf_cnpj, setCpf_Cnpj] = useState('')
 
     const [load, setLoad] = useState(false)
 
     useEffect(() => {
+
         // SE CPF/CNPJ ESTIVER INCOMPLETO MANTER DADOS APAGADOS
-        if (cpf_cnpj.length < 14) {
-            setData([])
-        }
+        cpf_cnpj.length >= 14 ? GetClient(cpf_cnpj) : setClient('')
+
 
     }, [cpf_cnpj])
 
     useEffect(() => {
-        navigation.setOptions({
-            title: data.name ? 'Cliente: ' + data.name : ''
-        })
-    }, [data])
+
+
+    }, [client])
 
 
     async function GetClient(cpf_cnpj) {
 
         setLoad(true)
 
-        // AO CLICAR NA LUPA ESSA FUNÇÃO É EXECUTADA
-        Keyboard.dismiss()
-
-
         try {
             const _client = await api.get(`/getclient?cpf_cnpj=${cpf_cnpj}`)
             const _salesform = await api.get(`/getsalesform/client?clientID=${_client.data?.id}`)
 
+            setClient(_client.data)
+            setSalesforms(_salesform.data)
 
-            if (!_client.data && cpf_cnpj.length >= 14) {
-                Toast("Cliente não cadastrado")
-
-            } else if (cpf_cnpj.length < 14) {
-                Toast('CPF/CNPJ incompleto')
-
-            } else if (!!_client.data) {
-                // setData(dadosCliente.data);
-                await CreateSalesform(_client.data)
-
-                _salesform.data?.map(salesform => {
-
-                    // SE CLIENTE EXISTE E NÃO HA PEDIDO EM ABERTO 
-                    if (!!_client.data && salesform.state !== 'Open') {
-                        setData(_client.data);
-                    }
-                })
-            }
-
+            !!_client.data && Keyboard.dismiss()
 
         } catch (error) {
             console.log(error.response.data.error);
@@ -80,6 +60,7 @@ export default function Sale() {
 
     async function CreateSalesform(data) {
 
+
         const headers = {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${credential?.token}`
@@ -87,7 +68,7 @@ export default function Sale() {
 
         try {
             const response = await api.post(`/createsalesform`, { clientID: data?.id, collaboratorID: credential.id }, { headers })
-            navigation.navigate('Budget', { salesformID: response.data?.id })
+            navigation.navigate('Budget', { salesformID: response.data?.id, client: data })
 
         } catch (error) {
             console.log(error.response);
@@ -97,8 +78,7 @@ export default function Sale() {
 
 
     return (
-        <View style={{ flex: 1, alignItems: 'center', marginHorizontal: 14, marginVertical: 10 }}>
-
+        <View style={{ flex: 1, marginHorizontal: 14, marginVertical: 10 }}>
 
             <View style={{ flexDirection: "row", alignItems: 'center', gap: 6, marginBottom: 30 }}>
 
@@ -119,28 +99,40 @@ export default function Sale() {
                     }}
                 />
 
-                <Pressable onPress={() => GetClient(cpf_cnpj)} style={{
-                    backgroundColor: colors.detail,
-                    borderRadius: 50,
+                <View style={{
                     alignItems: "center",
                     justifyContent: "center",
                     width: 45,
-                    aspectRatio: 1
+                    right: 5,
+                    position: 'absolute'
                 }}>
                     {load ?
-                        <ActivityIndicator color={'#fff'} /> :
-                        <AntDesign name={'search1'} size={20} color={'#fff'} />
+                        <ActivityIndicator color={'#222'} /> :
+                        <AntDesign name={'search1'} size={20} color={'#222'} />
                     }
-                </Pressable>
+                </View>
+
 
             </View>
 
-            <Text style={{ fontWeight: '300', color: '#000', textAlign: 'center', marginHorizontal: 14 }}>
-                Informe o numero do CPF/CNPJ e clique em <AntDesign name={'search1'} size={12} color={colors.detail} />.</Text>
+            {!!client && cpf_cnpj.length >= 14 ?
 
-            <Text style={{ fontWeight: '300', color: '#000' }}>Ou<Text onPress={() => GetClient('15.302.980/0001-54')}
-                style={{ color: colors.detail, fontWeight: '300' }} numberOfLines={1}> Toque aqui </Text>
-                para criar novo pedido sem cadastro.</Text>
+                <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }} onPress={() => CreateSalesform(client)}>
+                    <AntDesign name={'user'} size={32} color={'#222'} />
+                    <View>
+                        <Text style={{ color: '#000' }}>{client?.name}</Text>
+                        <Text style={{ fontWeight: '300', color: '#222', fontSize: 12 }}>{client?.whatsapp}</Text>
+                    </View>
+                </Pressable>
+                :
+
+                <Pressable style={{padding:10}} onPress={() => navigation.navigate('RegisterClient', { cpf_cnpj })}>
+
+                    <Text style={{fontWeight:'300', color:'#000'}}>Cadastrar Cliente</Text>
+                </Pressable>
+
+
+            }
 
 
         </View>

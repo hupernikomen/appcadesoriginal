@@ -3,7 +3,6 @@ import { useContext, useEffect } from 'react';
 import { useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
 
 import AntDesign from 'react-native-vector-icons/AntDesign'
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
 import { FlatList } from 'react-native-gesture-handler';
@@ -16,25 +15,6 @@ export default function Home() {
   const { credential, signOut } = useContext(AppContext)
   const { clients, salesform, AllSalesform, GetProductsAll, stockAmount } = useContext(CrudContext)
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () =>
-        credential?.token ?
-          (
-            <>
-              <Pressable onPress={() => signOut()}>
-                <AntDesign name={'key'} size={22} color='#222' />
-              </Pressable>
-            </>
-          )
-          : null
-
-
-    })
-
-
-
-  }, [credential])
 
   useEffect(() => {
     Promise.all([AllSalesform(), GetProductsAll()])
@@ -44,53 +24,56 @@ export default function Home() {
 
 
   function Button({ icon, name, notification, action, disabled }) {
+
+    if (disabled) return
+
     return (
       <Pressable
         disabled={disabled}
-        style={style.buttons}
+        style={stl.buttons}
         onPress={() => navigation.navigate(action)}>
 
-        <View>
-          <AntDesign name={icon} size={28} color='#333' />
-        </View>
-          {notification > 0 ?
-            <Text style={[style.notification, { borderColor: colors.detail, color: colors.detail }]}>{notification}</Text> :
-            null}
+        <AntDesign name={icon} size={26} color={colors.black} />
 
-        <Text style={style.textbutton}>{name}</Text>
+        {notification > 0 ?
+          <Text style={[stl.notification, { backgroundColor: colors.theme }]}>{notification}</Text> :
+          null}
+
+        <Text style={[stl.textbutton, { color: colors.black }]}>{name}</Text>
 
       </Pressable>
     )
   }
 
-
   const buttonsInfo = [
-    { icon: 'swap', name: 'Vendas', notification: '', action: 'Sale', disabled: '' },
-    { icon: 'profile', name: 'Histórico', notification: salesform.filter(item => item.state === 'Reserved').length, action: 'SalesHistory', disabled: '' },
-    { icon: 'user', name: 'Clientes', notification: clients.length, action: 'RegisterClient', disabled: credential.type === 'Vendedor' },
-    { icon: 'skin', name: 'Estoque', notification: stockAmount, action: 'RegisterStock', disabled: credential.type === 'Vendedor' }
+    { icon: 'swap', name: 'Vendas', notification: '', action: 'Sale' },
+    { icon: 'profile', name: 'Histórico', notification: salesform.filter(item => item.state === 'Reserved').length, action: 'SalesHistory' },
+    { icon: 'user', name: 'Clientes', notification: clients.length, action: 'RegisterClient', disabled: credential?.type === 'Manager' },
+    { icon: 'skin', name: 'Estoque', notification: stockAmount, action: 'RegisterStock', disabled: credential?.type === 'Manager' },
+    // { icon: 'barschart', name: 'Números', notification: '', action: 'Analytics', disabled: credential?.type !== 'Owner' }
   ]
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: "center" }}>
 
       {credential?.token ?
-        //  Aumentando o numero de botoes, aumente o valor de height abaixo
         <FlatList
           data={buttonsInfo}
           numColumns={2}
-          contentContainerStyle={{ flex: 1, alignItems: 'center', justifyContent: "center", padding:25 }}
+          contentContainerStyle={{ flex: 1, alignItems: 'flex-start', justifyContent: "center", padding: 25 }}
           columnWrapperStyle={{
-            gap: .5, 
-            marginBottom:.5
+            gap: 2,
+            marginBottom: 2
           }}
           renderItem={({ item }) => {
             return (
               <Button
                 icon={item.icon}
                 name={item.name}
-                notification={item.notification}
-                action={item.action} />
+                notification={item.notification.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+                action={item.action}
+                disabled={item.disabled}
+              />
             )
           }}
         /> :
@@ -106,34 +89,35 @@ export default function Home() {
 
 
 
-const style = StyleSheet.create({
+const stl = StyleSheet.create({
   buttons: {
-    backgroundColor: "#fff",
-    elevation: 2,
+    backgroundColor: '#f3f3f3',
+    elevation: 6,
     width: 130,
     height: 130,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 6,
+    borderWidth: 2,
+    borderColor: '#fff',
     padding: 12
   },
   textbutton: {
     fontSize: 14,
     textAlign: 'center',
-    color: '#000',
+    color: '#222',
     fontWeight: '300'
   },
   notification: {
-    fontSize: 11,
-    textAlign:'center',
-    borderWidth: 1,
-    backgroundColor: '#fff',
+    fontSize: 10,
+    textAlign: 'center',
     position: "absolute",
-    paddingHorizontal: 3,
+    paddingHorizontal: 4,
     borderRadius: 6,
-    right: 45,
-    top: 28
+    left: '62%',
+    top: 26,
+    color: '#fff'
   }
 
 })

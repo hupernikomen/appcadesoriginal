@@ -1,4 +1,4 @@
-import { Pressable, View, Text, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
+import { Pressable, View, Text, ScrollView, StyleSheet, ActivityIndicator, Image } from 'react-native';
 
 import { useTheme } from '@react-navigation/native';
 import { useEffect, useContext, useState } from 'react';
@@ -8,10 +8,10 @@ import MaskOfInput from '../../components/MaskOfInput';
 import { createNumberMask } from 'react-native-mask-input';
 import { useNavigation } from '@react-navigation/native';
 
+import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
+
 import { AppContext } from '../../contexts/appContext';
-
 import api from '../../services/api';
-
 import Load from '../../components/Load';
 
 export default function RegisterStock() {
@@ -61,20 +61,13 @@ export default function RegisterStock() {
 
 
   useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => {
-        return (
-          <View style={{ flexDirection: 'row', gap: 6, marginRight: -10 }}>
-            <Pressable onPress={() => navigation.navigate('')} style={{ height: 55, width: 40, alignItems: 'center', justifyContent: 'center' }}>
-              <AntDesign name='info' size={22} color='#000' />
-            </Pressable>
-          </View>
-        )
-      }
-    })
-  }, [])
+    GetProducts(ref)
+
+  }, [ref])
+
 
   useEffect(() => {
+
 
     const ean12 = `7890${getSizeCode(size)}${getColorCode(color)}0${ref}`
     const chave = calculateEan13Checksum(ean12)
@@ -83,6 +76,46 @@ export default function RegisterStock() {
 
   }, [size, color, ref])
 
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => {
+        return (
+          <View style={{ flexDirection: 'row', gap: 6, marginRight: -10 }}>
+            <Pressable onPress={() => navigation.navigate('ListColors')} style={{ height: 55, width: 40, alignItems: 'center', justifyContent: 'center' }}>
+              <AntDesign name='info' size={22} color={colors.text} />
+            </Pressable>
+          </View>
+        )
+      }
+    })
+  }, [])
+
+
+
+
+  async function GetProducts(ref) {
+
+    try {
+      const products = await api.get(`/getproduct/ref?ref${ref}`)
+      const product = products.data.find((item) => item.ref === ref)
+
+      if (!!product) {
+        setName(product.name)
+        setValeuResale(product.valueResale)
+        setValueRetail(product.valueRetail)
+
+      } else {
+        setName('')
+        setValeuResale('')
+        setValueRetail('')
+
+      }
+    } catch (error) {
+      console.log(error.response);
+    }
+
+  }
 
   const getColorCode = (color) => {
     for (let i = 0; i < listColors.length; i++) {
@@ -130,14 +163,14 @@ export default function RegisterStock() {
 
     setLoad(true)
 
-    try {
 
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${credential?.token}`
-      }
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${credential?.token}`
+    }
 
-      stockGrid.map(async (item) => {
+    stockGrid.map(async (item) => {
+      try {
 
         await api.post('/createproduct', {
           code: item.code,
@@ -149,23 +182,27 @@ export default function RegisterStock() {
           valueResale: item.valueResale,
           valueRetail: item.valueRetail
         }, { headers })
-      })
 
-    } catch (error) {
-      console.log(error.response);
+      } catch (error) {
+        console.log(error.response);
+        Toast(error.response.data.error)
+        setLoad(false)
 
-    } finally {
-      setLoad(false)
-      setCode('')
-      setRef('')
-      setName('')
-      setSize('')
-      setColor('')
-      setStock('')
-      setValeuResale('')
-      setValueRetail('')
-      setStockGrid([])
-    }
+      } finally {
+        setLoad(false)
+        setCode('')
+        setRef('')
+        setName('')
+        setSize('')
+        setColor('')
+        setStock('')
+        setValeuResale('')
+        setValueRetail('')
+        setStockGrid([])
+      }
+    })
+
+
   }
 
 
@@ -173,13 +210,15 @@ export default function RegisterStock() {
   if (load) return <Load />
 
   return (
-    <View style={{ flex: 1, padding: 14 }}>
+    <View style={{ flex: 1, padding: 10 }}>
 
 
       <ScrollView>
 
-        <View style={{ height: 100 }}>
-          {!!code ? <Text style={{ fontFamily: 'Barcode', fontSize: 90, color: '#000', marginBottom: 14, alignSelf: 'center' }}>{code}</Text> : null}
+        <View style={{ height: 40, alignItems: "center", justifyContent: "center", marginVertical: 12 }}>
+
+          {!!code ? <Animated.Text entering={FadeInDown.duration(300)} style={{ marginTop: -50, fontFamily: 'Barcode', fontSize: 85, color: '#000', alignSelf: 'center' }}>{code}</Animated.Text> :
+            <Animated.Image entering={FadeInDown.duration(300)} style={{ marginTop: -20,  height: 40 }} source={require('../../../assets/images/barcode.png')} />}
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -224,7 +263,7 @@ export default function RegisterStock() {
             }
 
             } style={{ flex: .3, alignItems: 'center', justifyContent: 'center', borderRadius: 6, }}>
-              <AntDesign name='plussquare' color={colors.black} size={30} />
+              <AntDesign name='enter' color={colors.black} size={26} />
             </Pressable>
 
           </View>
@@ -243,7 +282,7 @@ export default function RegisterStock() {
             <View style={{ flexDirection: 'row', justifyContent: "space-between", padding: 14 }}>
               <View style={{ flexDirection: 'row' }}>
 
-                <Text style={{ fontSize: 13, width: 65, fontWeight: '300', color: '#000' }}>Código</Text>
+                <Text style={{ fontSize: 13, width: 80, fontWeight: '300', color: '#000' }}>Código</Text>
                 <Text style={{ fontSize: 13, marginLeft: 14, fontWeight: '300', color: '#000' }}>Descrição</Text>
               </View>
               <Text style={{ fontSize: 13, fontWeight: '300', color: '#000' }}>Qtd.</Text>
@@ -254,14 +293,14 @@ export default function RegisterStock() {
               return (
 
 
-                <View key={index} style={{ flexDirection: 'row', justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 4 }}>
+                <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flexDirection: 'row', justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 4 }}>
                   <View style={{ flexDirection: 'row' }}>
 
-                    <Text numberOfLines={1} ellipsizeMode='middle' style={{ width: 65, fontWeight: '300', color: '#000' }}>{item.code.substring(3, 13)}</Text>
+                    <Text numberOfLines={1} ellipsizeMode='head' style={{ width: 80, fontWeight: '300', color: '#000' }}>{item.code.substring(4, 12)}</Text>
                     <Text style={{ marginLeft: 14, fontWeight: '300', color: '#000' }}>{item.name} {item.size} {item.color}</Text>
                   </View>
                   <Text>{item.stock}</Text>
-                </View>
+                </Animated.View>
 
               )
             })}
@@ -271,7 +310,7 @@ export default function RegisterStock() {
 
       </ScrollView>
       {stockGrid.length ? <Pressable
-        style={[styles.botaoCadastrar, { backgroundColor: colors.detail }]}
+        style={[styles.botaoCadastrar, { backgroundColor: colors.theme }]}
         onPress={() => RegisterProduct()}
       >
         {load ? <ActivityIndicator color={'#fff'} /> :

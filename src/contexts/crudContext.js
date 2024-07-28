@@ -17,15 +17,47 @@ export function CrudProvider({ children }) {
   const [budgets, setBudgets] = useState([])
   const [stockAmount, setStockAmount] = useState('')
 
+  const [load, setLoad] = useState(false)
+
 
   useEffect(() => {
     Promise.all(AllClients(), AllSalesform(), GetProductsAll())
 
   }, [])
 
+  async function AllClients() {
+    try {
+      const clients = await api.get('/getclients/all')
+      setClients(clients.data)
+    } catch (error) {
+      console.log(error.response);
+    }
+  }
+
+  async function AllSalesform() {
+    try {
+      const res = await api.get('/salesform/all')
+      setSalesform(res.data);
+
+    } catch (error) {
+      console.log(error.response);
+
+    }
+  }
+
+  async function GetProductsAll() {
+    try {
+      const response = await api.get('/getproducts/all')
+      let stock = response.data.reduce((acc, current) => acc + current.stock, 0)
+      setStockAmount(stock)
+
+    } catch (error) {
+      console.log(error.response);
+
+    }
+  }
 
 
-  // Exibe mensagens de retorno de execução de comandos
   const Toast = message => {
     ToastAndroid.showWithGravityAndOffset(
       message,
@@ -38,25 +70,29 @@ export function CrudProvider({ children }) {
 
   async function HandleBudget(salesformID) {
 
+    setLoad(true)
+
     try {
       const response = await api.get(`/getbudget?salesformID=${salesformID}`)
       setBudgets(response.data)
 
-
     } catch (error) {
       console.log(error.response);
 
+    } finally {
+      setLoad(false)
     }
   }
 
+  
   async function AddItemOrder(data) {
 
     const product = budgets.find(budget => budget.product && budget.product.id === data.product?.id);
 
     if (product) {
       Toast("Item já existe no orçamento");
-    } else {
 
+    } else {
 
       try {
         const headers = {
@@ -75,7 +111,8 @@ export function CrudProvider({ children }) {
 
       } catch (error) {
         console.log(error.response);
-      } 
+        Toast(error.response.data.error)
+      }
     }
 
 
@@ -83,38 +120,19 @@ export function CrudProvider({ children }) {
   }
 
 
-  async function AllSalesform() {
-    try {
-      const res = await api.get('/salesform/all')
-      setSalesform(res.data);
-
-    } catch (error) {
-      console.log(error.response);
-
-    }
-  }
 
 
-  async function GetProductsAll() {
-    try {
-      const response = await api.get('/getproducts/all')
-      let stock = response.data.reduce((acc, current) => acc + current.stock, 0)
-      let out = response.data.reduce((acc, current) => acc + current.out, 0)
-      let reserved = response.data.reduce((acc, current) => acc + current.reserved, 0)
-  
-      setStockAmount(stock)
-      
-    } catch (error) {
-      console.log(error.response);
-    }
-  }
+
 
   async function RegisterClient(cpf_cnpj, name, address, district, city, uf, whatsapp, birthDate) {
 
-    //inserir headers
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${credential?.token}`
+    }
 
     try {
-      await api.post('/createclient', { cpf_cnpj, name, address, district, city, uf, whatsapp, birthDate })
+      await api.post('/createclient', { cpf_cnpj, name, address, district, city, uf, whatsapp, birthDate }, { headers })
       AllClients()
       navigation.goBack()
     } catch (error) {
@@ -123,14 +141,7 @@ export function CrudProvider({ children }) {
     }
   }
 
-  async function AllClients() {
-    try {
-      const clients = await api.get('/getclients/all')
-      setClients(clients.data)
-    } catch (error) {
-      console.log(error.response);
-    }
-  }
+
 
 
 
@@ -166,7 +177,9 @@ export function CrudProvider({ children }) {
       HandleBudget,
       budgets,
       GetProductsAll,
-      stockAmount
+      stockAmount,
+      load,
+      setLoad
     }}>
       {children}
     </CrudContext.Provider>

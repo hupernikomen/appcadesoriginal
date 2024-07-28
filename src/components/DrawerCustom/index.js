@@ -1,44 +1,56 @@
 import { useNavigation } from '@react-navigation/native'
 import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer'
+import { useContext } from 'react'
+import { AppContext } from '../../contexts/appContext'
+
+import AntDesign from 'react-native-vector-icons/AntDesign'
+
+import { View, Text, Pressable } from 'react-native'
 
 export default function DrawerCustom(props) {
 
-    const navigation = useNavigation()
-
-    return (
-        <DrawerContentScrollView {...props}>
-
-            <DrawerItem
-                label="Home"
-                onPress={() => navigation.navigate("Home")}
-            />
-
-            {/* <View style={style.pages}>
+  const navigation = useNavigation()
+  const { authenticate, credential, signOut } = useContext(AppContext)
 
 
-        {authenticated ?
-          <View style={style.authenticated}>
-            <DrawerItem
-              icon={() => <Ionicons name={'log-in-outline'} size={18} color={'#fff'} />}
-              labelStyle={style.social}
-              label="Minha Página"
-              inactiveTintColor={colors.text}
-              onPress={() => navigation.navigate('Redirect')}
-            />
+  return (
+    <DrawerContentScrollView {...props}>
+
+
+
+
+      <View>
+        {!!authenticate ?
+
+          <View style={{ padding: 16, flexDirection: 'row', alignItems: "center", gap: 6 }}>
+            <AntDesign name='user' color={'#222'} size={36} />
+            <View>
+              <Text style={{ color: '#222', fontSize: 16, fontWeight: '500' }}>{credential.name}</Text>
+              <Pressable onPress={() => signOut()}>
+                <Text style={{ color: '#222', fontWeight: '300' }}>Sair</Text>
+              </Pressable>
+            </View>
           </View>
           :
           <DrawerItem
-            icon={() => <Ionicons name={'log-in-outline'} size={18} color={'#fff'} />}
-            labelStyle={style.social}
             label="Login"
-            inactiveTintColor={colors.text}
-            onPress={() => navigation.navigate("Signin")}
+            onPress={() => navigation.navigate("Login")}
           />
         }
 
-      </View> */}
+
+        <View style={{ borderTopWidth: .5, borderColor: '#aaa' }}>
+
+          <DrawerItem
+            label="Home"
+            onPress={() => navigation.navigate("Home")}
+          />
+
+        </View>
+
+      </View>
 
 
-        </DrawerContentScrollView>
-    );
+    </DrawerContentScrollView>
+  );
 }

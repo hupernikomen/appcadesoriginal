@@ -27,6 +27,14 @@ export default function RegisterClient() {
   const [uf, setUf] = useState("")
   const [birthDate, setBirthDate] = useState("")
 
+  useEffect(() => {
+
+    if(!!route.params?.cpf_cnpj) {
+      setCpf_Cnpj(route.params?.cpf_cnpj)
+    }
+
+  },[route])
+
   return (
     <ScrollView style={{ padding: 10 }}>
 

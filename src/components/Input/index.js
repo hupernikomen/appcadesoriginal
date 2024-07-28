@@ -5,18 +5,18 @@ export default function Input({ style, security = true, colorActive = '#777', ed
   const styles = StyleSheet.create({
     box: {
       margin: 2,
-      height: 60,
+      height: 55,
       paddingVertical: 8,
       borderWidth: .7,
       borderColor: colorActive,
-      borderRadius: 6,
+      borderRadius: 12,
       paddingHorizontal: 12,
     },
     boxtop: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 6
+      paddingHorizontal: 4
     },
     title: {
       color: '#000',
@@ -29,18 +29,18 @@ export default function Input({ style, security = true, colorActive = '#777', ed
       fontWeight: '300'
     },
     input: {
-      fontWeight: '300',
       paddingVertical: 0,
-      color: '#000'
+      color: '#000',
+      flex: 1
     }
   })
 
   return (
     <View style={[styles.box, style]}>
-      <View style={styles.boxtop}>
+      {!!title ? <View style={styles.boxtop}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.info}>{info}</Text>
-      </View>
+      </View> : null}
 
       <TextInput
         secureTextEntry={security}
