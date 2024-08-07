@@ -8,32 +8,20 @@ import SelectDropdown from 'react-native-select-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 
 
-export default function SalesHistory() {
+export default function HistoricoDeVendas() {
 
   const focus = useIsFocused()
   const navigation = useNavigation()
   const { colors } = useTheme()
-  const { credential, Toast } = useContext(AppContext)
-  const { AllSalesform, salesform } = useContext(CrudContext)
-  const [stateSalesform, setStateSalesform] = useState('')
-  const statusList = ["Aberto", "Criado", "Separado", "Entregue"]
+  const { credencial, Toast } = useContext(AppContext)
+  const { ordemDeCompra, ListaOrdemDeCompras } = useContext(CrudContext)
 
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => {
-        return (
-          <Dropdown />
-        )
-      }
-    })
-
-  }, [])
+  console.log(ordemDeCompra);
+  
 
   useEffect(() => {
-    AllSalesform()
-
-  }, [focus])
+    ListaOrdemDeCompras()
+  } , [focus])
 
 
   const converteData = (date) => {
@@ -62,11 +50,11 @@ export default function SalesHistory() {
           <Pressable
             style={{ flex: 1 }}
             onPress={() => {
-              if (credential.type === 'Owner') {
-                navigation.navigate('Budget', { salesformID: item?.id, stateSalesform: item.state, client: item.client })
+              if (credencial.cargo === 'Socio' || credencial.cargo === 'Gerente') {
+                navigation.navigate('Orcamento', { ordemDeCompra: item, estadoOrdemDeCompra: item.estado, cliente: item.cliente })
 
-              } else if (credential.type === 'Vendedor' && item.state === "Aberto") {
-                navigation.navigate('Budget', { salesformID: item?.id })
+              } else if (credencial.cargo === 'Vendedor' && item.estado === "Aberto" || item.estado === "Criado") {
+                navigation.navigate('Orcamento', { ordemDeCompra: item })
 
               } else {
                 Toast("Acesso Negado")
@@ -76,10 +64,10 @@ export default function SalesHistory() {
             <View>
               <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
 
-                <Text style={styles.pedidoText}>Pedido {item?.state} - {item.id.substr(0, 6).toUpperCase()}</Text>
-                <Text numberOfLines={1} style={[styles.pedidoText]}>{converteData(item?.createdAt)}</Text>
+                <Text style={styles.pedidoText}>Pedido {item?.estado} - {item.id.substr(0, 6).toUpperCase()}</Text>
+                <Text numberOfLines={1} style={[styles.pedidoText]}>{converteData(item?.criadoEm)}</Text>
               </View>
-              <Text numberOfLines={1} style={[styles.pedidoText]}>Cliente: {item?.client?.name}</Text>
+              <Text numberOfLines={1} style={[styles.pedidoText]}>Cliente: {item?.cliente?.nome}</Text>
             </View>
 
 
@@ -93,35 +81,12 @@ export default function SalesHistory() {
   }
 
 
-
-  const Dropdown = () => {
-    return (
-      <SelectDropdown
-        data={statusList}
-        onSelect={(selectedItem, index) => {
-          setStateSalesform(selectedItem, index);
-        }}
-        renderButton={(selectedItem, isAbertoed) => {
-          return (
-            <View style={styles.dropdownButtonStyle}>
-
-              <Text style={styles.dropdownButtonTxtStyle}>
-                {(selectedItem && selectedItem) || <AntDesign name='filter' size={20} color={colors.text} />}
-              </Text>
-            </View>
-          );
-        }}
-        renderItem={(item, index, isSelected) => {
-          return (
-            <View style={{ ...styles.dropdownItemStyle, ...(isSelected && { backgroundColor: '#D2D9DF' }) }}>
-              <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
-            </View>
-          );
-        }}
-        showsVerticalScrollIndicator={false}
-      />
-    )
+  function ordenarListaPorEstado(lista) {
+    const estados = { Aberto: 0, Criado: 1, Separado: 2, Entregue: 3 };
+    return lista.sort((a, b) => estados[a.estado] - estados[b.estado]);
   }
+
+  
 
 
   return (
@@ -130,7 +95,7 @@ export default function SalesHistory() {
       <FlatList
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 10 }}
-        data={stateSalesform ? salesform.filter((item) => item.state === stateSalesform) : salesform}
+        data={ordenarListaPorEstado(ordemDeCompra)}
         renderItem={({ item }) => <RenderItem item={item} />}
       />
     </View>
@@ -155,7 +120,8 @@ const styles = StyleSheet.create({
   pedidoText: {
     fontWeight: '300',
     color: '#222',
-    marginLeft: 6
+    marginLeft: 6,
+    fontFamily:'Roboto-Light',
   },
 
   dropdownButtonStyle: {

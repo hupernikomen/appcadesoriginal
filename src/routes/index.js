@@ -2,7 +2,7 @@ import { Dimensions } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { useTheme } from '@react-navigation/native';
 import HomeStack from './stacks';
-import DrawerCustom from '../components/DrawerCustom';
+import MenuLateral from '../components/MenuLateral';
 
 const Drawer = createDrawerNavigator()
 
@@ -12,16 +12,15 @@ export default function Routes() {
 
   return (
     <Drawer.Navigator
-      drawerContent={DrawerCustom}
+      drawerContent={MenuLateral}
       initialRouteName='HomeScreen'
       screenOptions={{
         headerShown: false,
         unmountOnBlur: true,
-        headerTintColor: '#000',
         drawerType: 'back',
         drawerStyle: {
           width: WIDTH - 100,
-          backgroundColor: colors.background,
+          backgroundColor: colors.theme,
         }
       }}>
       <Drawer.Screen name='HomeScreen' component={HomeStack} />

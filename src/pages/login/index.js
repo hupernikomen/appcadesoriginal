@@ -10,21 +10,21 @@ export default function Login() {
 
     const { signIn } = useContext(AppContext)
     const { colors } = useTheme()
-    const [name, setName] = useState("Xavier Queiroz")
-    const [password, setPassword] = useState("123")
+    const [nome, setNome] = useState("Wilson Ramos")
+    const [senha, setSenha] = useState("123")
 
     return (
         <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
             <View style={{ width: '100%' }}>
 
                 <View style={{ margin: 14 }}>
-                    <Input value={name} setValue={setName} title={'Usuário'} type='email-address' />
-                    <Input security={true} value={password} setValue={setPassword} title={'Senha'} />
+                    <Input value={nome} setValue={setNome} title={'Usuário'} type='email-address' />
+                    <Input security={true} value={senha} setValue={setSenha} title={'Senha'} />
                 </View>
 
                 <Pressable
                     style={[stl.botaoEntrar, { backgroundColor: colors.theme }]}
-                    onPress={() => signIn(name, password)}
+                    onPress={() => signIn(nome, senha)}
                 >
 
                     <Text style={{ color: '#fff' }}>Entrar</Text>

@@ -10,21 +10,21 @@ export function AppProvider({ children }) {
 
   const navigation = useNavigation()
 
-  const [credential, setCredential] = useState({
+  const [credencial, setCredencial] = useState({
     id: '',
-    name: '',
-    type: '',
+    nome: '',
+    cargo: '',
     token: '',
   })
 
 
   useEffect(() => {
-    Promise.all(ValidateCredential())
+    Promise.all(ValidaCredential())
 
   }, [])
 
 
-  const authenticate = !!credential.id
+  const autenticado = !!credencial.id
 
 
   // Exibe mensagens de retorno de execução de comandos
@@ -40,71 +40,69 @@ export function AppProvider({ children }) {
 
 
   // Busca do storage informações do usuario logado e armazena em uma state
-  async function ValidateCredential() {
-    const credential = await AsyncStorage.getItem('@logincades')
-    let credentialstorage = await JSON.parse(credential || '{}')
+  async function ValidaCredential() {
+    const credencial = await AsyncStorage.getItem('@logincades')
+    let credencialStorage = await JSON.parse(credencial || '{}')
+
 
     // Verifica informações armazenadas no AsyncStorage
-    if (Object.keys(credentialstorage).length > 0) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${credentialstorage.token}`
+    if (Object.keys(credencialStorage).length > 0) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${credencialStorage.token}`
 
-      setCredential({
-        id: credentialstorage.id,
-        name: credentialstorage.name,
-        type: credentialstorage.type,
-        token: credentialstorage.token,
+      setCredencial({
+        id: credencialStorage.id,
+        nome: credencialStorage.nome,
+        cargo: credencialStorage.cargo,
+        token: credencialStorage.token,
       })
 
     } else {
       AsyncStorage.removeItem('@logincades')
-    }
+    } 
+    navigation.navigate("Home")
 
   }
 
-  async function signIn(name, password) {
-    if (!name && !password) return
-    if (!name || !password) {
-      return
-    }
 
+
+
+  async function signIn(nome, senha) {
+ 
+    
+    if (!nome || !senha)  return
 
     try {
-      const response = await api.post('/login', { name, password })
-      const { id, token } = response.data
+      const res = await api.post('/login', { nome, senha })
+  
+      const { id, token } = res.data
+      const data = { ...res.data }
 
-      const data = { ...response.data }
       await AsyncStorage.setItem('@logincades', JSON.stringify(data))
 
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      setCredential({
-        id,
-        name,
-      })
+      setCredencial({ id, nome })
 
-      ValidateCredential()
-
-      navigation.navigate("Home")
+      ValidaCredential()
 
     } catch (error) {
       console.log(error);
-
     }
-
   }
 
   async function signOut() {
 
     await AsyncStorage.removeItem('@logincades')
       .then(() => {
-        setCredential({
+        setCredencial({
           id: '',
-          name: '',
-          type: '',
+          nome: '',
+          cargo: '',
           token: '',
         })
+        
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] })
-        Toast('Você saiu')
         navigation.dispatch(DrawerActions.closeDrawer());
+        Toast('Você saiu')
       })
   }
 
@@ -113,8 +111,8 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       Toast,
-      credential,
-      authenticate,
+      credencial,
+      autenticado,
       signIn,
       signOut,
     }}>

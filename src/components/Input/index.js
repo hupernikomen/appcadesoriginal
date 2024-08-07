@@ -1,57 +1,73 @@
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { useRef } from 'react';
 
-export default function Input({ style, security = true, colorActive = '#777', editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info }) {
+export default function Input({ load, lines, styleInput, styleContainer, security = true, colorActive = '#777', editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info }) {
+
+  const inputRef = useRef(null);
+
+  const handlePress = () => {
+    inputRef.current.focus();
+  };
 
   const styles = StyleSheet.create({
     box: {
-      margin: 2,
-      height: 55,
+      height: 60,
       paddingVertical: 8,
       borderWidth: .7,
       borderColor: colorActive,
       borderRadius: 12,
       paddingHorizontal: 12,
+      marginVertical: 2
     },
     boxtop: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 4
     },
     title: {
+      fontFamily: 'Roboto-Light',
       color: '#000',
       fontSize: 13,
-      fontWeight: '300'
+      fontWeight: '300',
+      marginLeft: 4
     },
     info: {
+      fontFamily: 'Roboto-Light',
       color: '#000',
       fontSize: 13,
       fontWeight: '300'
     },
     input: {
       paddingVertical: 0,
+      fontFamily: 'Roboto-Regular',
       color: '#000',
-      flex: 1
+      verticalAlign: 'top'
     }
   })
 
   return (
-    <View style={[styles.box, style]}>
-      {!!title ? <View style={styles.boxtop}>
+    <Pressable onPress={handlePress} style={[styles.box, styleContainer]}>
+      <View style={styles.boxtop}>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.info}>{info}</Text>
-      </View> : null}
+        <View>
+          {load ? <ActivityIndicator size={14} /> :
+            <Text style={styles.info}>{info}</Text>
+          }
+        </View>
+      </View>
 
       <TextInput
+        ref={inputRef}
+        numberOfLines={lines}
         secureTextEntry={security}
         editable={editable}
         maxLength={maxlength}
         multiline={multiline}
-        style={styles.input}
+        style={[styles.input, styleInput]}
         keyboardType={type}
         value={value}
         onChangeText={setValue}
       />
-    </View>
+    </Pressable>
   );
 }

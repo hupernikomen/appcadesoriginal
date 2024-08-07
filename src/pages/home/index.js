@@ -12,51 +12,54 @@ export default function Home() {
   const { colors } = useTheme()
   const focus = useIsFocused()
 
-  const { credential, signOut } = useContext(AppContext)
-  const { clients, salesform, AllSalesform, GetProductsAll, stockAmount } = useContext(CrudContext)
+  const { credencial } = useContext(AppContext)
+  const { clientes, ordemDeCompra, ListaOrdemDeCompras, ListaProdutos, quantidadeNoEstoque } = useContext(CrudContext)
 
 
   useEffect(() => {
-    Promise.all([AllSalesform(), GetProductsAll()])
+    Promise.all([ListaOrdemDeCompras(), ListaProdutos()])
 
   }, [focus])
 
+  function Button({ icone, nome, notificacao, pagina, desabilitado }) {
 
-
-  function Button({ icon, name, notification, action, disabled }) {
-
-    if (disabled) return
+    if (desabilitado) return
 
     return (
       <Pressable
-        disabled={disabled}
+        disabled={desabilitado}
         style={stl.buttons}
-        onPress={() => navigation.navigate(action)}>
+        onPress={() => navigation.navigate(pagina)}>
 
-        <AntDesign name={icon} size={26} color={colors.black} />
+        <AntDesign name={icone} size={28} color={colors.black} />
 
-        {notification > 0 ?
-          <Text style={[stl.notification, { backgroundColor: colors.theme }]}>{notification}</Text> :
+        {notificacao > 0 ?
+          <Text style={[stl.notification, { color: colors.theme }]}>{notificacao}</Text> :
           null}
 
-        <Text style={[stl.textbutton, { color: colors.black }]}>{name}</Text>
+        <Text style={[stl.textbutton, { color: colors.black }]}>{nome}</Text>
 
       </Pressable>
     )
   }
 
   const buttonsInfo = [
-    { icon: 'swap', name: 'Vendas', notification: '', action: 'Sale' },
-    { icon: 'profile', name: 'Histórico', notification: salesform.filter(item => item.state === 'Reserved').length, action: 'SalesHistory' },
-    { icon: 'user', name: 'Clientes', notification: clients.length, action: 'RegisterClient', disabled: credential?.type === 'Manager' },
-    { icon: 'skin', name: 'Estoque', notification: stockAmount, action: 'RegisterStock', disabled: credential?.type === 'Manager' },
-    // { icon: 'barschart', name: 'Números', notification: '', action: 'Analytics', disabled: credential?.type !== 'Owner' }
+    { icone: 'swap', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas' },
+    { icone: 'profile', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.state === 'Criado').length, pagina: 'HistoricoDeVendas' },
+    { icone: 'user', nome: 'Clientes', notificacao: clientes?.length, pagina: 'RegistraCliente', desabilitado: credencial?.cargo === 'Vendedor' },
+    { icone: 'skin', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'RegistraEstoque', desabilitado: credencial?.cargo === 'Vendedor' },
+    // { icone: 'barschart', nome: 'Números', notificacao: '', pagina: 'Analytics', desabilitado: credential?.cargo !== 'Socio' }
   ]
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: "center" }}>
 
-      {credential?.token ?
+      <View style={{ height: 80, justifyContent: "center", padding: 20 }}>
+        <Text style={{ fontFamily: 'Roboto-Regular', fontWeight: '400', color: colors.theme }}>Alerta:</Text>
+        <Text style={{ fontFamily: 'Roboto-Light', fontWeight: '300', color: '#000', fontSize: 15 }}>Cliente Ana Paula irá aniversariar amanhã</Text>
+      </View>
+
+      {credencial?.token ?
         <FlatList
           data={buttonsInfo}
           numColumns={2}
@@ -68,19 +71,19 @@ export default function Home() {
           renderItem={({ item }) => {
             return (
               <Button
-                icon={item.icon}
-                name={item.name}
-                notification={item.notification.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
-                action={item.action}
-                disabled={item.disabled}
+                icone={item.icone}
+                nome={item.nome}
+                notificacao={item.notificacao?.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+                pagina={item.pagina}
+                desabilitado={item.desabilitado}
               />
             )
           }}
         /> :
         <Button
-          icon={'key'}
-          name={'Acessar o CadesSG'}
-          action={'Login'} />
+          icone={'key'}
+          nome={'Acessar o CadesSG'}
+          pagina={'Login'} />
 
       }
     </View >
@@ -91,33 +94,35 @@ export default function Home() {
 
 const stl = StyleSheet.create({
   buttons: {
-    backgroundColor: '#f3f3f3',
-    elevation: 6,
+    backgroundColor: '#f7f7f7',
+    elevation: 5,
     width: 130,
     height: 130,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#fff',
     padding: 12
   },
   textbutton: {
-    fontSize: 14,
     textAlign: 'center',
     color: '#222',
-    fontWeight: '300'
+    fontWeight: '300',
+    fontFamily: 'Roboto-Light',
   },
   notification: {
-    fontSize: 10,
+    fontSize: 12,
     textAlign: 'center',
     position: "absolute",
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
     borderRadius: 6,
     left: '62%',
-    top: 26,
-    color: '#fff'
+    top: 22,
+    elevation: 5,
+    fontFamily: 'Roboto-Regular',
+    backgroundColor: '#fff'
   }
 
 })

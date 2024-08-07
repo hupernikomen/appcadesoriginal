@@ -74,17 +74,7 @@ export default function Scanner() {
                     AddItemOrder({ productID: product.data.id, salesformID: salesformID })
                     navigation.navigate('Budget', { salesformID: route.params })
 
-                } else {
-                    navigation.dispatch(
-                        CommonActions.reset({
-                          index: 1,
-                          routes: [
-                            { name: 'Home' }, { name: 'RegisterStock', params: { code: code[0].value } },
-                          ],
-                          params: { code: code[0].value }
-                        })
-                      )
-                }
+                } 
 
             }
         } catch (error) {

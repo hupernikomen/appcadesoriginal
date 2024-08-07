@@ -11,7 +11,7 @@ const Theme = {
   ...DefaultTheme,
   colors: {
     black: '#222',
-    theme: '#cc2900',
+    theme: '#b32400',
     background: '#f3f3f3',
     text: '#fff',
   }

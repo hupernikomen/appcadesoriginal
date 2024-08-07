@@ -4,6 +4,7 @@ import { useNavigation, useTheme } from '@react-navigation/native';
 
 import { AppContext } from '../../contexts/appContext';
 import AntDesign from 'react-native-vector-icons/AntDesign'
+import Feather from 'react-native-vector-icons/Feather'
 
 import MaskInput from 'react-native-mask-input';
 import api from '../../services/api';
@@ -12,12 +13,11 @@ export default function Sale() {
     const CPF_MASK = [/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/]
     const CNPJ_MASK = [/\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "/", /\d/, /\d/, /\d/, /\d/, "-", /\d/, /\d/]
 
-    const { credential, Toast } = useContext(AppContext)
+    const { credencial, Toast } = useContext(AppContext)
     const navigation = useNavigation()
     const { colors } = useTheme()
 
-    const [salesforms, setSalesforms] = useState([])
-    const [client, setClient] = useState('')
+    const [cliente, setCliente] = useState('')
     const [cpf_cnpj, setCpf_Cnpj] = useState('')
 
     const [load, setLoad] = useState(false)
@@ -25,32 +25,51 @@ export default function Sale() {
     useEffect(() => {
 
         // SE CPF/CNPJ ESTIVER INCOMPLETO MANTER DADOS APAGADOS
-        cpf_cnpj.length >= 14 ? GetClient(cpf_cnpj) : setClient('')
+        cpf_cnpj.length >= 14 ? BuscaCliente(cpf_cnpj) : setCliente('')
 
 
     }, [cpf_cnpj])
 
     useEffect(() => {
 
+        navigation.setOptions({
+            headerRight: () => {
+                return (
+                    <View style={{ flexDirection: 'row', }}>
 
-    }, [client])
+                        {!cliente && cpf_cnpj.length >= 14 ? <Pressable style={{ height: 55, width: 40, alignItems: "center", justifyContent: 'center' }}
+                            onPress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })}>
+                            <Feather name='user-plus' color='#fff' size={22} />
+                        </Pressable> : null}
+                        <Pressable style={{ height: 55, width: 40, alignItems: "center", justifyContent: 'center' }}
+                            onPress={() => BuscaCliente('15.302.980/0001-54')}>
+                            <AntDesign name='swap' color='#fff' size={22} />
+                        </Pressable>
+                    </View>
+                )
+            }
+        })
 
 
-    async function GetClient(cpf_cnpj) {
+    }, [cliente])
+
+
+    async function BuscaCliente(cpf_cnpj) {
 
         setLoad(true)
 
         try {
-            const _client = await api.get(`/getclient?cpf_cnpj=${cpf_cnpj}`)
-            const _salesform = await api.get(`/getsalesform/client?clientID=${_client.data?.id}`)
+            const response = await api.get(`/busca/cliente?cpf_cnpj=${cpf_cnpj}`)
+            if (response.data?.cpf_cnpj === "15.302.980/0001-54") {
+                CriaOrdemDeCompra(response.data)
+            }
 
-            setClient(_client.data)
-            setSalesforms(_salesform.data)
-
-            !!_client.data && Keyboard.dismiss()
+            setCliente(response.data)
+            
+            !!response.data && Keyboard.dismiss()
 
         } catch (error) {
-            console.log(error.response.data.error);
+            console.log(error.response?.data?.error);
 
         } finally {
             setLoad(false)
@@ -58,17 +77,20 @@ export default function Sale() {
     }
 
 
-    async function CreateSalesform(data) {
+    async function CriaOrdemDeCompra(data) {
 
 
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${credential?.token}`
+            'Authorization': `Bearer ${credencial?.token}`
         }
 
         try {
-            const response = await api.post(`/createsalesform`, { clientID: data?.id, collaboratorID: credential.id }, { headers })
-            navigation.navigate('Budget', { salesformID: response.data?.id, client: data })
+            const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id }, { headers })
+            console.log(response.data, "ordem");
+            
+            
+            navigation.navigate('Orcamento', { ordemDeCompra: response.data, cliente: data })
 
         } catch (error) {
             console.log(error.response);
@@ -78,7 +100,7 @@ export default function Sale() {
 
 
     return (
-        <View style={{ flex: 1, marginHorizontal: 14, marginVertical: 10 }}>
+        <View style={{ flex: 1, padding: 10 }}>
 
             <View style={{ flexDirection: "row", alignItems: 'center', gap: 6, marginBottom: 30 }}>
 
@@ -108,32 +130,20 @@ export default function Sale() {
                 }}>
                     {load ?
                         <ActivityIndicator color={'#222'} /> :
-                        <AntDesign name={'search1'} size={20} color={'#222'} />
+                        <Feather name={'search'} size={20} color={'#222'} />
                     }
                 </View>
-
-
             </View>
 
-            {!!client && cpf_cnpj.length >= 14 ?
-
-                <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }} onPress={() => CreateSalesform(client)}>
-                    <AntDesign name={'user'} size={32} color={'#222'} />
+            {!!cliente && cpf_cnpj.length >= 14 ?
+                <Pressable style={{ flexDirection: 'row', alignItems: 'center', padding: 18, borderTopWidth: .5, borderColor: '#ccc' }} onPress={() => CriaOrdemDeCompra(cliente)}>
                     <View>
-                        <Text style={{ color: '#000' }}>{client?.name}</Text>
-                        <Text style={{ fontWeight: '300', color: '#222', fontSize: 12 }}>{client?.whatsapp}</Text>
+                        <Text style={{ color: '#000', fontFamily: 'Roboto-Medium', fontSize: 15 }}>{cliente?.nome}</Text>
+                        <Text style={{ fontWeight: '300', color: '#222', fontSize: 12, fontFamily: 'Roboto-Light', }}>{cliente?.whatsapp}</Text>
                     </View>
                 </Pressable>
-                :
-
-                <Pressable style={{padding:10}} onPress={() => navigation.navigate('RegisterClient', { cpf_cnpj })}>
-
-                    <Text style={{fontWeight:'300', color:'#000'}}>Cadastrar Cliente</Text>
-                </Pressable>
-
-
+                : null
             }
-
 
         </View>
     )
@@ -144,12 +154,12 @@ const styles = StyleSheet.create({
 
     inputs: {
         borderRadius: 50,
-        height: 50,
         backgroundColor: '#fff',
         fontSize: 16,
         color: '#222',
         flex: 1,
         paddingHorizontal: 24,
+        fontFamily: 'Roboto-Regular',
     },
     textobotao: {
         fontSize: 15,

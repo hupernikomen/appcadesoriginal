@@ -10,7 +10,7 @@ import { View, Text, Pressable } from 'react-native'
 export default function DrawerCustom(props) {
 
   const navigation = useNavigation()
-  const { authenticate, credential, signOut } = useContext(AppContext)
+  const { autenticado, credencial, signOut } = useContext(AppContext)
 
 
   return (
@@ -20,14 +20,14 @@ export default function DrawerCustom(props) {
 
 
       <View>
-        {!!authenticate ?
+        {!!autenticado ?
 
           <View style={{ padding: 16, flexDirection: 'row', alignItems: "center", gap: 6 }}>
-            <AntDesign name='user' color={'#222'} size={36} />
+            <AntDesign name='user' color={'#fff'} size={36} />
             <View>
-              <Text style={{ color: '#222', fontSize: 16, fontWeight: '500' }}>{credential.name}</Text>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '500' }}>{credencial.nome}</Text>
               <Pressable onPress={() => signOut()}>
-                <Text style={{ color: '#222', fontWeight: '300' }}>Sair</Text>
+                <Text style={{ color: '#fff', fontWeight: '300', fontSize:13 }}>Sair</Text>
               </Pressable>
             </View>
           </View>
@@ -39,7 +39,9 @@ export default function DrawerCustom(props) {
         }
 
 
-        <View style={{ borderTopWidth: .5, borderColor: '#aaa' }}>
+        <View style={{ borderTopWidth: .5, borderColor: '#ff9980' }}>
+
+          {/* PAGES */}
 
           <DrawerItem
             label="Home"
