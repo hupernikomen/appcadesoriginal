@@ -1,21 +1,20 @@
 import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, } from 'react-native';
 
-import { useRoute, useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
+import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
 import api from '../../services/api';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
-import Load from '../../components/Load';
 import Input from '../../components/Input';
 import Texto from '../../components/Texto';
+import ContainerItem from '../../components/containerItem';
 
 export default function Orcamento() {
 
    const { credencial, Toast } = useContext(AppContext)
    const { BuscaItemDoPedido, itensDoPedido, load, AdicionarItemAoPedido, SubtraiUmItemDoPedido } = useContext(CrudContext)
-   const focus = useIsFocused()
    const route = useRoute()
    const navigation = useNavigation()
    const { colors } = useTheme()
@@ -31,7 +30,7 @@ export default function Orcamento() {
 
    useEffect(() => {
       navigation.setOptions({
-         title: 'Pedido ' + route.params?.ordemDeCompra?.estado + " - " + route.params?.ordemDeCompra?.id?.substr(0, 6).toUpperCase() ,
+         title: 'Pedido ' + route.params?.ordemDeCompra?.estado + " - " + route.params?.ordemDeCompra?.id?.substr(0, 6).toUpperCase(),
       })
    }, [route, total])
 
@@ -63,34 +62,22 @@ export default function Orcamento() {
    }
 
    function RenderBudgets({ data }) {
+
       return (
-         <Pressable onPress={() => {
+         <ContainerItem onpress={() => {
             route.params?.ordemDeCompra?.estado !== "Entregue" && SubtraiUmItemDoPedido(data.id, data.produto.id, data.quantidade, route.params?.ordemDeCompra?.id)
-         }}
-            style={{ flexDirection: "row" }}>
-            <View style={{
-               flex: 1,
-               backgroundColor: '#f3f3f3',
-               elevation: 5,
-               flexDirection: 'row',
-               padding: 14,
-               height: 80,
-               margin: 1,
-               alignItems: 'center',
-               borderWidth: 2,
-               borderColor: '#fff',
-            }}>
-               <View style={{ marginVertical: .5, paddingHorizontal: 6, flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
-                  <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'flex-start' }}>
+         }}>
 
-                     <Texto texto={data.quantidade > 0 ? data.quantidade + 'x' : ''} />
-                     <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${data.produto?.referencia} - ${data.produto?.nome} ${data.produto?.tamanho} ${data.produto?.cor} (R$ ${data.produto?.valorAtacado})`} />
-                     <Texto texto={data.total.toFixed(2).replace('.', ',')} />
+            <View style={{ marginVertical: .5, paddingHorizontal: 6, flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
+               <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'flex-start' }}>
 
-                  </View>
+                  <Texto texto={data.quantidade > 0 ? data.quantidade + 'x' : ''} />
+                  <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${data.produto?.referencia} - ${data.produto?.nome} ${data.produto?.tamanho} ${data.produto?.cor} #${data.produto?.valorAtacado}`} />
+                  <Texto texto={data.total.toFixed(2).replace('.', ',')} />
+
                </View>
             </View>
-         </Pressable>
+         </ContainerItem>
       )
    }
 
@@ -128,7 +115,7 @@ export default function Orcamento() {
       }
 
       try {
-         await api.put(`/putstock?ordemDeCompraID=${route.params?.ordemDeCompra?.id}`, { headers })
+         await api.put(`/atualiza/estoque?ordemDeCompraID=${route.params?.ordemDeCompra?.id}`, { headers })
          navigation.goBack()
       }
       catch (error) { console.log(error.response) }
@@ -136,7 +123,6 @@ export default function Orcamento() {
 
 
    const HeaderBudget = () => {
-
 
       return (
          <View style={{ flexDirection: "row", alignSelf: 'flex-end', justifyContent: "space-between", marginVertical: 30 }}>
@@ -225,6 +211,22 @@ export default function Orcamento() {
                      }))]}
                </View>
             </View> : null}
+
+
+
+         <View style={{  paddingHorizontal: 18, marginBottom:12 }}>
+
+            {route.params?.ordemDeCompra?.formaDePagamento === "Cartão de Crédito" || route.params?.ordemDeCompra?.tempoDePagamento > 0 ?
+               <Texto tipo={'Light'} tamanho={13} texto={`Parcelado em ${route.params?.ordemDeCompra?.tempoDePagamento}x`}/> : null}
+
+            {route.params?.ordemDeCompra?.valorAdiantado > 0 ?
+               <Texto  tipo={'Light'} tamanho={13} texto={`Valor adiantado: ${parseFloat(route.params?.ordemDeCompra?.valorAdiantado).toFixed(2).replace('.', ',')}`}/> : null}
+
+            {!!route.params?.ordemDeCompra?.observacao ?
+               <Texto tipo={'Light'} tamanho={13} texto={`Obs. ${route.params?.ordemDeCompra?.observacao}`}/> : null}
+
+         </View>
+
 
          {route.params?.ordemDeCompra?.estado !== 'Aberto' ? <View style={{ alignSelf: 'flex-end', paddingHorizontal: 18, marginVertical: 12 }}>
             <Texto cor={'#777'} tipo={'Light'} tamanho={13} texto={`Atualizado em ${converteData(route.params?.ordemDeCompra?.atualizadoEm)}`} />

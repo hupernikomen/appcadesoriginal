@@ -6,6 +6,7 @@ import { CrudContext } from '../../contexts/crudContext';
 import SelectDropdown from 'react-native-select-dropdown';
 
 import AntDesign from 'react-native-vector-icons/AntDesign'
+import ContainerItem from '../../components/containerItem';
 
 
 export default function HistoricoDeVendas() {
@@ -17,11 +18,11 @@ export default function HistoricoDeVendas() {
   const { ordemDeCompra, ListaOrdemDeCompras } = useContext(CrudContext)
 
   console.log(ordemDeCompra);
-  
+
 
   useEffect(() => {
     ListaOrdemDeCompras()
-  } , [focus])
+  }, [focus])
 
 
   const converteData = (date) => {
@@ -32,51 +33,31 @@ export default function HistoricoDeVendas() {
   }
 
   const RenderItem = ({ item }) => {
+
     return (
-      <View style={[styles.containerPedido, { borderColor: colors.theme }]}>
 
-        <View style={{
-          backgroundColor: '#f3f3f3',
-          elevation: 5,
-          flexDirection: 'row',
-          padding: 14,
-          height: 80,
-          margin: 1,
-          alignItems: 'center',
-          borderWidth: 2,
-          borderColor: '#fff',
-        }}>
+      <ContainerItem onpress={() => {
+        if (credencial.cargo === 'Socio' || credencial.cargo === 'Gerente') {
+          navigation.navigate('Orcamento', { ordemDeCompra: item, estadoOrdemDeCompra: item.estado, cliente: item.cliente })
 
-          <Pressable
-            style={{ flex: 1 }}
-            onPress={() => {
-              if (credencial.cargo === 'Socio' || credencial.cargo === 'Gerente') {
-                navigation.navigate('Orcamento', { ordemDeCompra: item, estadoOrdemDeCompra: item.estado, cliente: item.cliente })
+        } else if (credencial.cargo === 'Vendedor' && item.estado === "Aberto" || item.estado === "Criado") {
+          navigation.navigate('Orcamento', { ordemDeCompra: item })
 
-              } else if (credencial.cargo === 'Vendedor' && item.estado === "Aberto" || item.estado === "Criado") {
-                navigation.navigate('Orcamento', { ordemDeCompra: item })
+        } else {
+          Toast("Acesso Negado")
+        }
+      }}>
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
 
-              } else {
-                Toast("Acesso Negado")
-              }
-            }} >
-
-            <View>
-              <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
-
-                <Text style={styles.pedidoText}>Pedido {item?.estado} - {item.id.substr(0, 6).toUpperCase()}</Text>
-                <Text numberOfLines={1} style={[styles.pedidoText]}>{converteData(item?.criadoEm)}</Text>
-              </View>
-              <Text numberOfLines={1} style={[styles.pedidoText]}>Cliente: {item?.cliente?.nome}</Text>
-            </View>
-
-
-          </Pressable>
-          <View style={[styles.marcadorDoPedido, { borderColor: colors.theme }]} />
-
+            <Text style={styles.pedidoText}>Pedido {item?.estado} - {item.id.substr(0, 6).toUpperCase()}</Text>
+            <Text numberOfLines={1} style={[styles.pedidoText]}>{converteData(item?.criadoEm)}</Text>
+          </View>
+          <Text numberOfLines={1} style={[styles.pedidoText]}>Cliente: {item?.cliente?.nome}</Text>
         </View>
 
-      </View>
+      </ContainerItem>
+
     )
   }
 
@@ -86,7 +67,7 @@ export default function HistoricoDeVendas() {
     return lista.sort((a, b) => estados[a.estado] - estados[b.estado]);
   }
 
-  
+
 
 
   return (
@@ -98,6 +79,7 @@ export default function HistoricoDeVendas() {
         data={ordenarListaPorEstado(ordemDeCompra)}
         renderItem={({ item }) => <RenderItem item={item} />}
       />
+
     </View>
   )
 
@@ -121,7 +103,7 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     color: '#222',
     marginLeft: 6,
-    fontFamily:'Roboto-Light',
+    fontFamily: 'Roboto-Light',
   },
 
   dropdownButtonStyle: {

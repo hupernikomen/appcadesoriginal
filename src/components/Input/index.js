@@ -1,7 +1,22 @@
 import { View, Text, TextInput, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useRef } from 'react';
 
-export default function Input({ load, lines, styleInput, styleContainer, security = true, colorActive = '#777', editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info }) {
+export default function Input({
+  load,
+  lines,
+  styleInput,
+  styleContainer,
+  security = true,
+  colorActive = '#777',
+  editable = true,
+  type = 'default',
+  title,
+  value,
+  setValue,
+  multiline = true,
+  maxlength,
+  info
+}) {
 
   const inputRef = useRef(null);
 

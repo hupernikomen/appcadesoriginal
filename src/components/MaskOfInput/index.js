@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-nati
 import { useRef } from 'react';
 import MaskInput from 'react-native-mask-input';
 
-export default function MaskOfInput({ load,mask, style, colorActive = '#777', editable = true, type = 'default', title, value = 1, setValue, multiline = true, maxlength, info }) {
+export default function MaskOfInput({ load, mask, style, colorActive = '#777', editable = true, type = 'default', title, value = 1, setValue, multiline = true, maxlength, info }) {
 
   const inputRef = useRef(null);
 
@@ -19,7 +19,7 @@ export default function MaskOfInput({ load,mask, style, colorActive = '#777', ed
       borderColor: colorActive,
       borderRadius: 12,
       paddingHorizontal: 12,
-      marginVertical:2
+      marginVertical: 2
     },
     boxtop: {
       flexDirection: 'row',
@@ -43,7 +43,8 @@ export default function MaskOfInput({ load,mask, style, colorActive = '#777', ed
       fontFamily: 'Roboto-Regular',
       paddingVertical: 0,
       color: '#000',
-      height: 20
+      height: 20,
+   
     }
   })
 
@@ -52,8 +53,8 @@ export default function MaskOfInput({ load,mask, style, colorActive = '#777', ed
       <View style={styles.boxtop}>
         <Text style={styles.title}>{title}</Text>
         {load ? <ActivityIndicator size={14} /> :
-            <Text style={styles.info}>{info}</Text>
-          }
+          <Text style={styles.info}>{info}</Text>
+        }
       </View>
 
       <MaskInput
