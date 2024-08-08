@@ -6,6 +6,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
 import { FlatList } from 'react-native-gesture-handler';
+import Texto from '../../components/Texto';
 
 export default function Home() {
   const navigation = useNavigation()
@@ -33,11 +34,9 @@ export default function Home() {
 
         <AntDesign name={icone} size={28} color={colors.black} />
 
-        {notificacao > 0 ?
-          <Text style={[stl.notification, { color: colors.theme }]}>{notificacao}</Text> :
-          null}
+        {notificacao > 0 ? <Texto estilo={stl.notification} texto={notificacao} cor={colors.theme} tipo='Medium'/> : null}
 
-        <Text style={[stl.textbutton, { color: colors.black }]}>{nome}</Text>
+        <Texto estilo={stl.textbutton} texto={nome} />
 
       </Pressable>
     )
@@ -45,18 +44,17 @@ export default function Home() {
 
   const buttonsInfo = [
     { icone: 'swap', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas' },
-    { icone: 'profile', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.state === 'Criado').length, pagina: 'HistoricoDeVendas' },
+    { icone: 'profile', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas' },
     { icone: 'user', nome: 'Clientes', notificacao: clientes?.length, pagina: 'RegistraCliente', desabilitado: credencial?.cargo === 'Vendedor' },
     { icone: 'skin', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'RegistraEstoque', desabilitado: credencial?.cargo === 'Vendedor' },
-    // { icone: 'barschart', nome: 'Números', notificacao: '', pagina: 'Analytics', desabilitado: credential?.cargo !== 'Socio' }
   ]
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: "center" }}>
 
       <View style={{ height: 80, justifyContent: "center", padding: 20 }}>
-        <Text style={{ fontFamily: 'Roboto-Regular', fontWeight: '400', color: colors.theme }}>Alerta:</Text>
-        <Text style={{ fontFamily: 'Roboto-Light', fontWeight: '300', color: '#000', fontSize: 15 }}>Cliente Ana Paula irá aniversariar amanhã</Text>
+        <Texto texto={'Alerta:'} tipo={'Medium'} cor={colors.theme} />
+        <Texto texto={'Cliente Ana Paula irá aniversariar amanhã'} tipo={'Light'} />
       </View>
 
       {credencial?.token ?
@@ -65,8 +63,8 @@ export default function Home() {
           numColumns={2}
           contentContainerStyle={{ flex: 1, alignItems: 'flex-start', justifyContent: "center", padding: 25 }}
           columnWrapperStyle={{
-            gap: 2,
-            marginBottom: 2
+            gap: 5,
+            marginBottom:5
           }}
           renderItem={({ item }) => {
             return (
@@ -94,17 +92,16 @@ export default function Home() {
 
 const stl = StyleSheet.create({
   buttons: {
-    backgroundColor: '#f7f7f7',
-    elevation: 5,
+    backgroundColor: '#f1f1f1',
+    elevation: 3,
     width: 130,
     height: 130,
-    borderRadius: 4,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    borderWidth: 3,
+    borderWidth: 1.5,
     borderColor: '#fff',
-    padding: 12
   },
   textbutton: {
     textAlign: 'center',
@@ -113,16 +110,10 @@ const stl = StyleSheet.create({
     fontFamily: 'Roboto-Light',
   },
   notification: {
-    fontSize: 12,
     textAlign: 'center',
     position: "absolute",
-    paddingHorizontal: 6,
-    borderRadius: 6,
-    left: '62%',
-    top: 22,
-    elevation: 5,
-    fontFamily: 'Roboto-Regular',
-    backgroundColor: '#fff'
+    left: '50%',
+    top: 18,
   }
 
 })

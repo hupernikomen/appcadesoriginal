@@ -3,22 +3,16 @@ import { View, StyleSheet, Pressable, Text, FlatList } from 'react-native';
 import { useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
-import SelectDropdown from 'react-native-select-dropdown';
 
-import AntDesign from 'react-native-vector-icons/AntDesign'
-import ContainerItem from '../../components/containerItem';
+import ContainerItem from '../../components/ContainerItem';
 
 
 export default function HistoricoDeVendas() {
 
   const focus = useIsFocused()
   const navigation = useNavigation()
-  const { colors } = useTheme()
   const { credencial, Toast } = useContext(AppContext)
   const { ordemDeCompra, ListaOrdemDeCompras } = useContext(CrudContext)
-
-  console.log(ordemDeCompra);
-
 
   useEffect(() => {
     ListaOrdemDeCompras()
@@ -34,9 +28,12 @@ export default function HistoricoDeVendas() {
 
   const RenderItem = ({ item }) => {
 
+    console.log(item);
+
+
     return (
 
-      <ContainerItem onpress={() => {
+      <ContainerItem opacidade={item.estado === 'Entregue' ? .9 : 1} onpress={() => {
         if (credencial.cargo === 'Socio' || credencial.cargo === 'Gerente') {
           navigation.navigate('Orcamento', { ordemDeCompra: item, estadoOrdemDeCompra: item.estado, cliente: item.cliente })
 
@@ -47,7 +44,7 @@ export default function HistoricoDeVendas() {
           Toast("Acesso Negado")
         }
       }}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .4 : 1 }}>
           <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
 
             <Text style={styles.pedidoText}>Pedido {item?.estado} - {item.id.substr(0, 6).toUpperCase()}</Text>

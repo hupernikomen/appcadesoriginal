@@ -1,16 +1,15 @@
 import { useContext, useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Keyboard, ActivityIndicator, FlatList } from 'react-native';
+import { View, Pressable, Keyboard, ActivityIndicator } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 
 import { AppContext } from '../../contexts/appContext';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import Feather from 'react-native-vector-icons/Feather'
 
-import MaskInput from 'react-native-mask-input';
 import api from '../../services/api';
 import MaskOfInput from '../../components/MaskOfInput';
 import Texto from '../../components/Texto';
-import ContainerItem from '../../components/containerItem';
+import ContainerItem from '../../components/ContainerItem';
 
 export default function Sale() {
     const CPF_MASK = [/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/]

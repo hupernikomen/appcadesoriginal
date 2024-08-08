@@ -20,7 +20,7 @@ export default function UpdateStock() {
   });
 
   const { credential, Toast } = useContext(AppContext)
-  const route = useRoute()
+  const { params: rota } = useRoute()
   const navigation = useNavigation()
   const { colors } = useTheme()
 
@@ -36,17 +36,13 @@ export default function UpdateStock() {
   useEffect(() => {
 
     navigation.setOptions({
-      title: `${route.params?.name} ${route.params?.size} ${route.params?.color}`
+      title: `${rota?.name} ${rota?.size} ${rota?.color}`
     })
 
-    setValeuResale(route.params?.valueResale)
-    setValueRetail(route.params?.valueRetail)
+    setValeuResale(rota?.valueResale)
+    setValueRetail(rota?.valueRetail)
 
-  }, [route])
-
-
-
-
+  }, [rota])
 
 
   async function AddStock() {
@@ -58,7 +54,7 @@ export default function UpdateStock() {
     }
 
     try {
-      await api.put(`/product/add?productID=${route.params?.productID}`, { 
+      await api.put(`/product/add?productID=${rota?.productID}`, {
         newAmount: Number(stock),
         valueResale,
         valueRetail
@@ -79,7 +75,7 @@ export default function UpdateStock() {
       <ScrollView>
 
 
-        <Input type='numeric' value={stock} setValue={setStock} title={'Nova Entrada'} info={`Estoque atual: ${Number(route.params?.stockSubtracted) + Number(stock)}`} />
+        <Input type='numeric' value={stock} setValue={setStock} title={'Nova Entrada'} info={`Estoque atual: ${Number(rota?.stockSubtracted) + Number(stock)}`} />
         <MaskOfInput title={'Valor Atacado'} value={valueResale} setValue={setValeuResale} mask={CurrencyMask} />
         <MaskOfInput title={'Valor Varejo'} value={valueRetail} setValue={setValueRetail} mask={CurrencyMask} />
         <Pressable

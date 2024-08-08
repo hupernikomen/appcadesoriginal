@@ -1,4 +1,4 @@
-import { Pressable, View, Text, ScrollView, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { Pressable, View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { useTheme } from '@react-navigation/native';
 import { useEffect, useContext, useState } from 'react';
@@ -221,9 +221,7 @@ export default function RegistraEstoque() {
       <ScrollView>
 
         <View style={{ height: 40, alignItems: "center", justifyContent: "center", marginVertical: 12 }}>
-
-          {!!codigoDeBarras ? <Animated.Text entering={FadeInDown.duration(300)} style={{ marginTop: -50, fontFamily: 'Barcode', fontSize: 85, color: '#000', alignSelf: 'center' }}>{codigoDeBarras}</Animated.Text> :
-            <Animated.Image entering={FadeInDown.duration(300)} style={{ marginTop: -20,  height: 40 }} source={require('../../../assets/images/barcode.png')} />}
+          <Animated.Text entering={FadeInDown.duration(300)} style={{ display: !!codigoDeBarras? 'flex': 'none',marginTop: -50, fontFamily: 'Barcode', fontSize: 85, color: '#000', alignSelf: 'center' }}>{codigoDeBarras}</Animated.Text> 
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap:4 }}>

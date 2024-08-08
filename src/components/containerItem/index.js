@@ -1,18 +1,20 @@
 import { Pressable } from 'react-native';
 
-export default function ContainerItem({ children, onpress }) {
+export default function ContainerItem({ children, onpress, altura = 80, largura = '100%', opacidade= 1 }) {
 
     return (
         <Pressable onPress={onpress} style={{
-            backgroundColor: '#f3f3f3',
-            elevation: 5,
+            backgroundColor: '#f1f1f1',
+            elevation: opacidade !== 1 ? 0 : 5,
             flexDirection: 'row',
-            padding: 14,
-            height: 80,
+            padding: 10,
+            height: altura,
+            width: largura,
             margin: 1,
             alignItems: 'center',
-            borderWidth: 2,
-            borderColor: '#fff',
+            borderWidth: 1,
+            borderColor: opacidade !== 1 ? '#e1e1e1' : '#fff' ,
+            opacity: opacidade
         }}>
             {children}
         </Pressable>

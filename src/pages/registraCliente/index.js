@@ -13,8 +13,8 @@ export default function RegistraCliente() {
 
   const CPF_MASK = [/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/]
   const CNPJ_MASK = [/\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "/", /\d/, /\d/, /\d/, /\d/, "-", /\d/, /\d/]
-  
-  const route = useRoute()
+
+  const { params: rota } = useRoute()
 
   const { RegistraCliente } = useContext(CrudContext)
   const { colors } = useTheme()
@@ -29,11 +29,11 @@ export default function RegistraCliente() {
 
   useEffect(() => {
 
-    if(!!route.params?.cpf_cnpj) {
-      setCpf_Cnpj(route.params?.cpf_cnpj)
+    if (!!rota?.cpf_cnpj) {
+      setCpf_Cnpj(rota?.cpf_cnpj)
     }
 
-  },[route])
+  }, [rota])
 
   return (
     <ScrollView style={{ padding: 10 }}>

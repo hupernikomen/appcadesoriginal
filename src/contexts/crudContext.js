@@ -45,15 +45,25 @@ export function CrudProvider({ children }) {
 
     try {
       const res = await api.get('/lista/ordemDeCompras')
-      setOrdemDeCompra(res.data);
 
-      // Excluir Salesform vazios
+      // Excluir ordemDeCompras vazios
       res.data?.map(async (ordemDeCompra) => {
-        if (ordemDeCompra?.itemDoPedido?.length === 0) {
-          await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${ordemDeCompra.id}`, { headers })
+        const total = ordemDeCompra.itemDoPedido.reduce((acumulador, item) => {
+          return acumulador + item.total;
+        }, 0);
+
+        try {
+          if (total === 0) {
+            await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${ordemDeCompra?.id}`, { headers })
+          }
+
+        } catch (error) {
+          console.log(error.response);
 
         }
       })
+
+      setOrdemDeCompra(res.data);
 
     } catch (error) {
       console.log(error.response);
@@ -72,11 +82,11 @@ export function CrudProvider({ children }) {
 
     try {
       const res = await api.get(`/busca/itemDoPedido?ordemDeCompraID=${ordemDeCompraID}`)
-  
+
       setItensDoPedido(res.data)
 
       setLoad(false)
-      
+
     } catch (error) {
       console.log(error.response);
       setLoad(false)

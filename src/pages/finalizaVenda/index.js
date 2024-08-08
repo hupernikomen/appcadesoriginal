@@ -24,14 +24,14 @@ export default function FinalizaVenda() {
     const {colors} = useTheme()
 
     const navigation = useNavigation()
-    const route = useRoute()
+    const {params: rota} = useRoute()
 
     const [load, setLoad] = useState(false)
 
     const [alerta, setAlerta] = useState('')
 
     const [tempoDePagamento, setTempoDePagamento] = useState('')
-    const [valorPago, setValorPago] = useState('')
+    const [valorAdiantado, setValorAdiantado] = useState('')
     const [observacao, setObservacao] = useState('')
     const [total, setTotal] = useState('')
 
@@ -48,15 +48,18 @@ export default function FinalizaVenda() {
 
     useEffect(() => {
 
-        setTotal(route.params?.total - valorPago.replace(',', '.'))
-    }, [valorPago])
+        setTotal(rota?.total - valorAdiantado.replace(',', '.'))
+    }, [valorAdiantado])
 
 
-    async function SendSales() {
+    async function EnviaVenda() {
+
+        console.log(typeof valorAdiantado , typeof rota?.total);
+        
 
         Keyboard.dismiss()
 
-        if (valorPago > route.params?.total) {
+        if (Number(valorAdiantado) > Number(rota?.total)) {
             Toast('Valor superior à compra')
             return
         }
@@ -69,13 +72,15 @@ export default function FinalizaVenda() {
         }
 
         try {
-            await api.put(`/atualiza/ordemDeCompra?ordemDeCompraID=${route.params?.ordemDeCompraID}`, {
+            await api.put(`/atualiza/estoque?ordemDeCompraID=${rota?.ordemDeCompraID}`, { headers })
+            await api.put(`/atualiza/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`, {
                 estado: 'Criado',
-                valorPago: Number(route.params?.total),
+                valorPago: Number(rota?.total),
                 tempoDePagamento: tempoDePagamento,
-                valorAdiantado: Number(valorPago.replace(',', '.')),
+                valorAdiantado: Number(valorAdiantado.replace(',', '.')),
                 observacao: observacao
             }, { headers })
+
 
             Toast('Pedido Enviado')
             navigation.navigate('Home')
@@ -85,14 +90,16 @@ export default function FinalizaVenda() {
         } finally {setLoad(false)}
     }
 
+
+
     return (
         <View style={{ padding: 10, gap: 6 }}>
 
             <View style={{ padding: 16 }}>
-                <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {route.params?.total.replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
+                <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {rota?.total.replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
             </View>
 
-            <MaskOfInput type='numeric' title={'À vista / Entrada (R$)'} value={valorPago} setValue={setValorPago} mask={CurrencyMask} />
+            <MaskOfInput type='numeric' title={'À vista / Entrada (R$)'} value={valorAdiantado} setValue={setValorAdiantado} mask={CurrencyMask} />
 
             <View>
 
@@ -113,7 +120,7 @@ export default function FinalizaVenda() {
                     padding: 14,
                     justifyContent: "center",
                     alignItems: "center" }}
-                onPress={() => SendSales()}
+                onPress={() => EnviaVenda()}
             >
                 {load ? <ActivityIndicator color={'#fff'} /> :
                     <Text style={{ color: '#fff', fontSize: 16 }}>Enviar Pedido</Text>

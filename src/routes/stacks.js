@@ -35,7 +35,7 @@ export default function RotasStack() {
             <Stack.Screen name='RegistraEstoque' component={RegistraEstoque} options={{ title: 'Cadastro de Estoque' }} />
             <Stack.Screen name='RegistraCliente' component={RegistraCliente} options={{ title: 'Cadastro de Clientes' }} />
             <Stack.Screen name='Login' component={Login} options={{ title: '' }} />
-            <Stack.Screen name='HistoricoDeVendas' component={HistoricoDeVendas} options={{ title: 'Histórico' }} />
+            <Stack.Screen name='HistoricoDeVendas' component={HistoricoDeVendas} options={{ title: 'Histórico de Vendas' }} />
             <Stack.Screen name='HomeDeVendas' component={HomeDeVendas} options={{ title: 'Vendas' }} />
             <Stack.Screen name='Orcamento' component={Orcamento} />
             <Stack.Screen name='Scanner' component={Scanner} options={{ title: 'Scanner' }} />

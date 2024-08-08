@@ -1,5 +1,6 @@
 import { View, Text, TextInput, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useRef } from 'react';
+import Texto from '../Texto';
 
 export default function Input({
   load,
@@ -26,9 +27,9 @@ export default function Input({
 
   const styles = StyleSheet.create({
     box: {
-      height: 60,
+      height: 65,
       paddingVertical: 8,
-      borderWidth: .7,
+      borderWidth: 1,
       borderColor: colorActive,
       borderRadius: 12,
       paddingHorizontal: 12,
@@ -38,19 +39,6 @@ export default function Input({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-    },
-    title: {
-      fontFamily: 'Roboto-Light',
-      color: '#000',
-      fontSize: 13,
-      fontWeight: '300',
-      marginLeft: 4
-    },
-    info: {
-      fontFamily: 'Roboto-Light',
-      color: '#000',
-      fontSize: 13,
-      fontWeight: '300'
     },
     input: {
       paddingVertical: 0,
@@ -63,10 +51,10 @@ export default function Input({
   return (
     <Pressable onPress={handlePress} style={[styles.box, styleContainer]}>
       <View style={styles.boxtop}>
-        <Text style={styles.title}>{title}</Text>
+        <Texto texto={title} tipo={'Light'} tamanho={13} />
         <View>
           {load ? <ActivityIndicator size={14} /> :
-            <Text style={styles.info}>{info}</Text>
+            <Texto texto={info} tipo={'Light'} tamanho={13} />
           }
         </View>
       </View>
