@@ -68,9 +68,6 @@ export default function RegistraEstoque() {
 
     isNaN(chave) ? setCodigoDeBarras("") : setCodigoDeBarras(ean12 + chave)
 
-    console.log(corSelecionada, "SEL");
-    
-
   }, [tamanho, corSelecionada, referencia])
 
 
@@ -174,13 +171,7 @@ export default function RegistraEstoque() {
       'Authorization': `Bearer ${credencial?.token}`
     }
 
-    console.log(itensAAdcionar);
-    
-
-
     itensAAdcionar.map(async (item) => {
-      console.log(item);
-      
       try {
 
         await api.post('/cria/produto', {

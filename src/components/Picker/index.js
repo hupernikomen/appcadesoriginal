@@ -6,10 +6,6 @@ import Texto from '../Texto';
 
 export default function Pick({ data, title, selectedValue, value, setValue, style }) {
 
-  console.log(data, "DATA");
-  console.log(selectedValue, "SELECTEDVALUE");
-  
-
   return (
     <View style={[{
       borderRadius: 12,

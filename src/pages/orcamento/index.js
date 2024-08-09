@@ -68,8 +68,6 @@ export default function Orcamento() {
 
    function ItemDaLista({ data }) {
 
-      console.log(data, "data");
-      
       return (
          <ContainerItem onpress={() => {
             rota?.ordemDeCompra?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, data.produto.id, data.quantidade, rota?.ordemDeCompra?.id)
@@ -228,8 +226,6 @@ export default function Orcamento() {
                   {[...new Set(produtoEncontrado.filter(item => item.tamanho === tamanhoSelecionado)
                      .filter(item => item.estoque > (item.reservado + item.saida))
                      .map((item, index) => {
-                        console.log(item);
-                        
                         return (
                            <Pressable onPress={() => AdicionarItemAoPedido({ produtoID: item.id, ordemDeCompraID: rota?.ordemDeCompra?.id })
                            } key={index}
