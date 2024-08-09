@@ -7,6 +7,7 @@ import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
 import { FlatList } from 'react-native-gesture-handler';
 import Texto from '../../components/Texto';
+import Load from '../../components/Load';
 
 export default function Home() {
   const navigation = useNavigation()
@@ -14,11 +15,11 @@ export default function Home() {
   const focus = useIsFocused()
 
   const { credencial } = useContext(AppContext)
-  const { clientes, ordemDeCompra, ListaOrdemDeCompras, ListaProdutos, quantidadeNoEstoque } = useContext(CrudContext)
+  const { clientes, ordemDeCompra, ListaOrdemDeCompras, ListaProdutos, quantidadeNoEstoque, ListaClientes } = useContext(CrudContext)
 
 
   useEffect(() => {
-    Promise.all([ListaOrdemDeCompras(), ListaProdutos()])
+    Promise.all([ListaOrdemDeCompras(), ListaProdutos(), ListaClientes()])
 
   }, [focus])
 
@@ -34,7 +35,7 @@ export default function Home() {
 
         <AntDesign name={icone} size={28} color={colors.black} />
 
-        {notificacao > 0 ? <Texto estilo={stl.notification} texto={notificacao} cor={colors.theme} tipo='Medium'/> : null}
+        {notificacao > 0 ? <Texto estilo={stl.notification} texto={notificacao} cor={colors.theme} tipo='Medium' /> : null}
 
         <Texto estilo={stl.textbutton} texto={nome} />
 
@@ -48,6 +49,7 @@ export default function Home() {
     { icone: 'user', nome: 'Clientes', notificacao: clientes?.length, pagina: 'RegistraCliente', desabilitado: credencial?.cargo === 'Vendedor' },
     { icone: 'skin', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'RegistraEstoque', desabilitado: credencial?.cargo === 'Vendedor' },
   ]
+
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: "center" }}>
@@ -64,7 +66,7 @@ export default function Home() {
           contentContainerStyle={{ flex: 1, alignItems: 'flex-start', justifyContent: "center", padding: 25 }}
           columnWrapperStyle={{
             gap: 5,
-            marginBottom:5
+            marginBottom: 5
           }}
           renderItem={({ item }) => {
             return (

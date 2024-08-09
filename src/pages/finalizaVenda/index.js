@@ -54,9 +54,6 @@ export default function FinalizaVenda() {
 
     async function EnviaVenda() {
 
-        console.log(typeof valorAdiantado , typeof rota?.total);
-        
-
         Keyboard.dismiss()
 
         if (Number(valorAdiantado) > Number(rota?.total)) {

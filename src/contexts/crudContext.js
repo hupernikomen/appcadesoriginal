@@ -11,14 +11,11 @@ export function CrudProvider({ children }) {
 
   const navigation = useNavigation()
 
-  const { credencial } = useContext(AppContext)
+  const { credencial, load, setLoad } = useContext(AppContext)
   const [clientes, setClientes] = useState([])
   const [ordemDeCompra, setOrdemDeCompra] = useState([])
   const [itensDoPedido, setItensDoPedido] = useState([])
   const [quantidadeNoEstoque, setQuantidadeNoEstoque] = useState('')
-
-  const [load, setLoad] = useState(false)
-
 
   useEffect(() => {
     Promise.all(ListaClientes(), ListaOrdemDeCompras(), ListaProdutos())

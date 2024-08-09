@@ -28,9 +28,6 @@ export default function HistoricoDeVendas() {
 
   const RenderItem = ({ item }) => {
 
-    console.log(item);
-
-
     return (
 
       <ContainerItem opacidade={item.estado === 'Entregue' ? .9 : 1} onpress={() => {
@@ -44,7 +41,7 @@ export default function HistoricoDeVendas() {
           Toast("Acesso Negado")
         }
       }}>
-        <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .4 : 1 }}>
+        <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .5 : 1 }}>
           <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
 
             <Text style={styles.pedidoText}>Pedido {item?.estado} - {item.id.substr(0, 6).toUpperCase()}</Text>
@@ -63,8 +60,6 @@ export default function HistoricoDeVendas() {
     const estados = { Aberto: 0, Criado: 1, Separado: 2, Entregue: 3 };
     return lista.sort((a, b) => estados[a.estado] - estados[b.estado]);
   }
-
-
 
 
   return (
@@ -103,32 +98,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto-Light',
   },
 
-  dropdownButtonStyle: {
-    width: 180,
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dropdownButtonTxtStyle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '300',
-    color: '#fff',
-    textAlign: "right"
-  },
-
-
-  dropdownItemStyle: {
-    flexDirection: 'row',
-    paddingHorizontal: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  dropdownItemTxtStyle: {
-    flex: 1,
-    fontSize: 16,
-    color: '#151E26',
-  },
 })

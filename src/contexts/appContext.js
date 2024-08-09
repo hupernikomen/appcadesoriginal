@@ -1,13 +1,16 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { ToastAndroid } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
 import { useNavigation, DrawerActions } from "@react-navigation/native";
 
+import { CrudContext } from "./crudContext";
+
 export const AppContext = createContext({})
 
 export function AppProvider({ children }) {
 
+  const [load, setLoad] = useState(false)
   const navigation = useNavigation()
 
   const [credencial, setCredencial] = useState({
@@ -20,7 +23,6 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     Promise.all(ValidaCredential())
-
   }, [])
 
 
@@ -41,6 +43,7 @@ export function AppProvider({ children }) {
 
   // Busca do storage informações do usuario logado e armazena em uma state
   async function ValidaCredential() {
+    setLoad(true)
     const credencial = await AsyncStorage.getItem('@logincades')
     let credencialStorage = await JSON.parse(credencial || '{}')
 
@@ -60,10 +63,9 @@ export function AppProvider({ children }) {
       AsyncStorage.removeItem('@logincades')
     } 
     navigation.navigate("Home")
+    setLoad(false)
 
   }
-
-
 
 
   async function signIn(nome, senha) {
@@ -82,7 +84,7 @@ export function AppProvider({ children }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setCredencial({ id, nome })
 
-      ValidaCredential()
+      await ValidaCredential()
 
     } catch (error) {
       console.log(error);
@@ -100,7 +102,7 @@ export function AppProvider({ children }) {
           token: '',
         })
         
-        navigation.reset({ index: 0, routes: [{ name: 'Home' }] })
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] })
         navigation.dispatch(DrawerActions.closeDrawer());
         Toast('Você saiu')
       })
@@ -113,8 +115,8 @@ export function AppProvider({ children }) {
       Toast,
       credencial,
       autenticado,
-      signIn,
-      signOut,
+      signIn, signOut,
+      load, setLoad
     }}>
       {children}
     </AppContext.Provider>

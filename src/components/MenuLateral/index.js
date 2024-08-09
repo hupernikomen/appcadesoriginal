@@ -16,9 +16,6 @@ export default function DrawerCustom(props) {
   return (
     <DrawerContentScrollView {...props}>
 
-
-
-
       <View>
         {!!autenticado ?
 
