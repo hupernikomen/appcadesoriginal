@@ -74,7 +74,7 @@ export function AppProvider({ children }) {
     if (!nome || !senha)  return
 
     try {
-      const res = await api.post('/login', { nome, senha })
+      const res = await api.post('/login', { nome:nome.trim(), senha: senha.trim() })
   
       const { id, token } = res.data
       const data = { ...res.data }

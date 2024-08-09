@@ -2,9 +2,7 @@ import { View, Text, Pressable, ActivityIndicator, Keyboard } from 'react-native
 
 import { useRoute, useTheme, useNavigation } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
-import Input from '../../components/Input';
-
-import { AppContext, AppProvider } from '../../contexts/appContext';
+import { AppContext } from '../../contexts/appContext';
 
 import api from '../../services/api';
 
@@ -21,10 +19,10 @@ export default function FinalizaVenda() {
         precision: 2,
     });
 
-    const {colors} = useTheme()
+    const { colors } = useTheme()
 
     const navigation = useNavigation()
-    const {params: rota} = useRoute()
+    const { params: rota } = useRoute()
 
     const [load, setLoad] = useState(false)
 
@@ -33,6 +31,7 @@ export default function FinalizaVenda() {
     const [tempoDePagamento, setTempoDePagamento] = useState('')
     const [valorAdiantado, setValorAdiantado] = useState('')
     const [observacao, setObservacao] = useState('')
+    const [desconto, setDesconto] = useState(0)
     const [total, setTotal] = useState('')
 
     const maxTimes = 6
@@ -72,7 +71,9 @@ export default function FinalizaVenda() {
             await api.put(`/atualiza/estoque?ordemDeCompraID=${rota?.ordemDeCompraID}`, { headers })
             await api.put(`/atualiza/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`, {
                 estado: 'Criado',
-                valorPago: Number(rota?.total),
+                totalDaNota: Number(rota?.total),
+                valorPago: (Number(rota?.total) - valorAdiantado) * (1 - desconto / 100),
+                desconto: Number(desconto),
                 tempoDePagamento: tempoDePagamento,
                 valorAdiantado: Number(valorAdiantado.replace(',', '.')),
                 observacao: observacao
@@ -84,9 +85,10 @@ export default function FinalizaVenda() {
 
         } catch (error) {
             console.log(error.response);
-        } finally {setLoad(false)}
+        } finally { setLoad(false) }
     }
 
+console.log((Number(rota?.total) - valorAdiantado) * (1 - desconto / 100) , 'teste');
 
 
     return (
@@ -97,26 +99,23 @@ export default function FinalizaVenda() {
             </View>
 
             <MaskOfInput type='numeric' title={'À vista / Entrada (R$)'} value={valorAdiantado} setValue={setValorAdiantado} mask={CurrencyMask} />
-
+                <MaskOfInput type='numeric' title='Desconto (%)' value={desconto} setValue={setDesconto} info={'À pagar R$ ' + ((parseFloat(rota?.total) - Number(valorAdiantado.replace(',','.'))) * (1 - desconto / 100)).toFixed(2).replace('.',',')} maxlength={2} />
             <View>
-
-                <Input type='numeric' maxlength={maxTimes.length} value={tempoDePagamento} setValue={setTempoDePagamento} title={'Nº de prestações'} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat(total / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
+                <MaskOfInput type='numeric' title='Nº de prestações' value={tempoDePagamento} setValue={setTempoDePagamento} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat((parseFloat(rota?.total) - Number(valorAdiantado.replace(',','.'))) * (1 - desconto / 100) / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
                 <Text>{alerta}</Text>
             </View>
 
-            <View>
-                <Input lines={5} styleContainer={{height: 100}} styleInput={{height: 60}} title={'Observações'} value={observacao} setValue={setObservacao} />
-            </View>
-
-
+            <MaskOfInput lines={5} multiline={true} styleMask={{ height: 60 }} style={{ height: 100 }} title='Observações' value={observacao} setValue={setObservacao} />
 
             <Pressable
-                style={{ backgroundColor: colors.theme,height: 55,
+                style={{
+                    backgroundColor: colors.theme, height: 55,
                     borderRadius: 6,
                     marginVertical: 12,
                     padding: 14,
                     justifyContent: "center",
-                    alignItems: "center" }}
+                    alignItems: "center"
+                }}
                 onPress={() => EnviaVenda()}
             >
                 {load ? <ActivityIndicator color={'#fff'} /> :

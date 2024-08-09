@@ -1,14 +1,12 @@
 import { View, Text, FlatList, Pressable } from 'react-native';
 import api from '../../services/api';
 import { useContext, useEffect, useState } from 'react';
-import Input from '../../components/Input';
-
 import { AppContext } from '../../contexts/appContext';
+import MaskOfInput from '../../components/MaskOfInput';
 
 export default function ListColors() {
 
-    const {credencial, Toast} = useContext(AppContext)
-
+    const { credencial, Toast } = useContext(AppContext)
     const [cores, setCores] = useState([])
     const [nome, setNome] = useState('')
 
@@ -21,7 +19,7 @@ export default function ListColors() {
         try {
             const res = await api.get("/listaCores")
             console.log(res.data);
-            
+
             setCores(res.data)
 
         } catch (error) {
@@ -41,14 +39,14 @@ export default function ListColors() {
 
     async function CriaCor() {
 
-        if (!nome)  return
-  
+        if (!nome) return
+
 
         const headers = {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${credencial?.token}`
         }
-        
+
         try {
             await api.post(`/criacor`, { nome, codigo: gerarCodigoAleatorio(cores) }, { headers })
             await ListaCores()
@@ -66,13 +64,13 @@ export default function ListColors() {
     return (
         <View>
 
-            <View style={{ flexDirection: "row", padding: 10 }}>
-                <Input title={'Nome da Cor'} styleContainer={{ flex: 1 }} value={nome} setValue={setNome} />
+            <View style={{ flexDirection: "row", padding: 10, marginBottom:20 }}>
+                <MaskOfInput style={{ flex: 1 }} title='Nome da Cor' value={nome} setValue={setNome} maxlength={20} info={''} />
                 <Pressable onPress={() => CriaCor()} style={{ height: 65, width: 65, alignItems: 'center', justifyContent: 'center' }}><Text>Criar</Text></Pressable>
             </View>
 
             <FlatList data={cores.sort((a, b) => a.nome.localeCompare(b.nome))}
-                contentContainerStyle={{ paddingHorizontal: 14, }}
+                contentContainerStyle={{ paddingHorizontal: 24, }}
                 ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9' }} />}
                 ListHeaderComponent={<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }}>
                     <Text style={{ fontWeight: '500', color: "#000" }}>Cor</Text>

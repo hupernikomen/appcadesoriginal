@@ -4,7 +4,7 @@ import { useState, useContext, useEffect } from 'react';
 
 import { useRoute, useTheme } from '@react-navigation/native';
 import { Masks } from 'react-native-mask-input';
-import Input from '../../components/Input';
+// import Input from '../../components/Input';
 import MaskOfInput from '../../components/MaskOfInput';
 
 import { CrudContext } from '../../contexts/crudContext';
@@ -44,14 +44,15 @@ export default function RegistraCliente() {
         } else {
           return CNPJ_MASK
         }
-      }} type='default' title='CPF/CNPJ' value={cpf_cnpj} setValue={setCpf_Cnpj} />
-      <Input type={'default'} title="Nome" value={nome} setValue={setNome} maxlength={50} info={''} />
-      <Input type={'default'} title="Endereço" value={endereco} setValue={setEndereco} maxlength={80} info={''} />
-      <Input type={'default'} title="Bairro" value={bairro} setValue={setBairro} maxlength={40} info={''} />
-      <Input type={'default'} title="Cidade" value={cidade} setValue={setCidade} maxlength={20} info={''} />
-      <Input type={'default'} title="UF" value={estado} setValue={setEstado} maxlength={2} info={''} />
-      <MaskOfInput mask={Masks.BRL_PHONE} type='default' title='Whatsapp' value={whatsapp} setValue={setWhatsapp} />
-      <MaskOfInput mask={Masks.DATE_DDMMYYYY} type='default' title='Data de Nascimento' value={dataNascimento} setValue={setDataNascimento} />
+      }} type='numeric' title='CPF/CNPJ' value={cpf_cnpj} setValue={setCpf_Cnpj} />
+
+      <MaskOfInput title='Nome' value={nome} setValue={setNome} maxlength={50} info={''}  />
+      <MaskOfInput title='Endereço' value={endereco} setValue={setEndereco} maxlength={80} info={''}  />
+      <MaskOfInput title='Bairro' value={bairro} setValue={setBairro} maxlength={40} info={''}  />
+      <MaskOfInput title='Cidade' value={cidade} setValue={setCidade} maxlength={20} info={''}  />
+      <MaskOfInput title='UF' value={estado} setValue={setEstado} maxlength={2} info={'Ex.: PI'}  />
+      <MaskOfInput mask={Masks.BRL_PHONE} type='numeric' title='Whatsapp' value={whatsapp} setValue={setWhatsapp} />
+      <MaskOfInput mask={Masks.DATE_DDMMYYYY} type='numeric' title='Data de Nascimento' value={dataNascimento} setValue={setDataNascimento} />
 
       <Pressable
         style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}
@@ -67,7 +68,7 @@ export default function RegistraCliente() {
 const style = StyleSheet.create({
   botaoCadastrar: {
     height: 55,
-    borderRadius: 6,
+    borderRadius: 12,
     marginVertical: 12,
     padding: 14,
     justifyContent: "center",

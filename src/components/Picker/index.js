@@ -1,18 +1,19 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Picker } from "@react-native-picker/picker";
-import { useTheme } from '@react-navigation/native';
 import Texto from '../Texto';
 
-export default function Pick({ data, title, selectedValue, value, setValue, style }) {
+export default function Pick({ data, title, selectedValue, setValue, style }) {
 
   return (
     <View style={[{
-      borderRadius: 12,
-      marginVertical: 2,
-      borderWidth: 1,
-      borderColor: '#777',
+      height: 65,
       paddingVertical: 8,
+      borderWidth: .5,
+      borderColor: '#777',
+      borderRadius: 18,
+      paddingHorizontal: 12,
+      marginVertical: 2
     }, style]}>
       <Texto estilo={{marginLeft: 14}} texto={title} tipo={'Light'} tamanho={13} />
       <Picker

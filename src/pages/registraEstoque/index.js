@@ -4,7 +4,6 @@ import { useTheme } from '@react-navigation/native';
 import { useEffect, useContext, useState } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import Material from 'react-native-vector-icons/MaterialCommunityIcons'
-import Input from '../../components/Input';
 import MaskOfInput from '../../components/MaskOfInput';
 import { createNumberMask } from 'react-native-mask-input';
 import { useNavigation } from '@react-navigation/native';
@@ -56,8 +55,8 @@ export default function RegistraEstoque() {
 
   useEffect(() => {
 
-    Promise.all([BuscaProdutos(referencia),ListaCores()])
-    
+    Promise.all([BuscaProdutos(referencia), ListaCores()])
+
   }, [referencia])
 
 
@@ -102,7 +101,7 @@ export default function RegistraEstoque() {
 
   async function BuscaProdutos(referencia) {
 
-    
+
     setLoadBusca(true)
 
     try {
@@ -218,27 +217,21 @@ export default function RegistraEstoque() {
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
-          <Input type='numeric' styleInput={{ width: 60 }} value={referencia} setValue={setReferencia} title={'Ref.'} maxlength={4} />
-          <Input load={loadBusca} styleContainer={{ flex: 1 }} value={nome} setValue={setNome} title={'Descrição'} maxlength={30} info={nome?.length + '/30'} />
-
+          <MaskOfInput type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
+          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Descrição' value={nome} setValue={setNome} maxlength={30} info={nome?.length + '/30'} />
         </View>
 
 
         <View style={{ flexDirection: 'row', gap: 4 }}>
-          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title={'Valor Atacado'} value={valorAtacado} setValue={setValorAtacado} mask={CurrencyMask} />
-          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title={'Valor Varejo'} value={valorVarejo} setValue={setValorVarejo} mask={CurrencyMask} />
+          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Valor Atacado' value={valorAtacado} setValue={setValorAtacado} mask={CurrencyMask} />
+          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Valor Varejo' value={valorVarejo} setValue={setValorVarejo} mask={CurrencyMask} />
         </View>
 
-        <View style={{ borderRadius: 6 }}>
+        <View >
           <View style={{ flexDirection: 'row', gap: 4 }}>
-
-            <Input styleInput={{ width: 40 }} value={tamanho} setValue={setTamanho} title={'Tam.'} maxlength={4} info={buscaCodigoDeTamanho(tamanho)} />
-            {/* <Input styleContainer={{ flex: 1 }} value={cor} setValue={setCor} title={'Cor'} maxlength={15} info={buscaCodigoDeCor(cor)} /> */}
-
+            <MaskOfInput maxlength={3} style={{ width: 70 }} title='Tam.' value={tamanho} setValue={setTamanho} />
             <Pick title={'Cor'} data={listaDeCores} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} />
-
-            <Input maxlength={3} type='numeric' title={'Qtd.'} styleInput={{ width: 40 }} value={estoque} setValue={setEstoque} />
-
+            <MaskOfInput maxlength={3} style={{ width: 60 }} title='Qtd.' value={estoque} setValue={setEstoque} />
 
             <Pressable onPress={() => {
               if (!tamanho || !corSelecionada || !estoque || !codigoDeBarras) {

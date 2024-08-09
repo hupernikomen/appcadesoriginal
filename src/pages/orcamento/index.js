@@ -1,21 +1,21 @@
-import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Alert, Modal, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet } from 'react-native';
 
-import { useRoute, useNavigation, useTheme, useFocusEffect } from '@react-navigation/native';
-import { useEffect, useState, useContext, useCallback } from 'react';
+import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
+import { useEffect, useState, useContext } from 'react';
 import api from '../../services/api';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
-import Input from '../../components/Input';
 import Texto from '../../components/Texto';
 import ContainerItem from '../../components/ContainerItem';
 import Load from '../../components/Load';
+import MaskOfInput from '../../components/MaskOfInput';
 
 export default function Orcamento() {
    const navigation = useNavigation()
    const [modalVisible, setModalVisible] = useState(false);
-   const { credencial, Toast } = useContext(AppContext)
+   const { credencial } = useContext(AppContext)
    const { BuscaItemDoPedido, itensDoPedido, load, AdicionarItemAoPedido, SubtraiUmItemDoPedido, ListaOrdemDeCompras } = useContext(CrudContext)
    const { params: rota } = useRoute()
    const { colors } = useTheme()
@@ -197,7 +197,8 @@ export default function Orcamento() {
 
          {rota?.ordemDeCompra?.estado === 'Aberto' ?
             <View style={{ gap: 6, padding: 10 }}>
-               <Input title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} setValue={setReferencia} value={referencia} type='numeric' maxlength={4} />
+
+               <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric'/>
 
                <View style={{ flexDirection: "row", gap: 6 }}>
 
@@ -257,8 +258,7 @@ export default function Orcamento() {
                <Texto cor={'#777'} tipo={'Light'} texto={`Entrada: R$ ${parseFloat(rota?.ordemDeCompra?.valorAdiantado).toFixed(2).replace('.', ',')}`} /> : null}
 
             {rota?.ordemDeCompra?.formaDePagamento === "Cartão de Crédito" || rota?.ordemDeCompra?.tempoDePagamento > 0 ?
-               <Texto cor={'#777'} tipo={'Light'} texto={`Parcelado em ${rota?.ordemDeCompra?.tempoDePagamento}x de R$ ${(parseFloat((total - rota?.ordemDeCompra?.valorAdiantado) / rota?.ordemDeCompra?.tempoDePagamento)).toFixed(2).replace('.', ',')}`} /> : null}
-
+               <Texto cor={'#777'} tipo={'Light'} texto={`Parcelado em ${rota?.ordemDeCompra?.tempoDePagamento}x de R$ ${(parseFloat((total - rota?.ordemDeCompra?.valorAdiantado) * (1 - rota?.ordemDeCompra?.desconto / 100) / rota?.ordemDeCompra?.tempoDePagamento)).toFixed(2).replace('.', ',')}`} /> : null}
 
             {!!rota?.ordemDeCompra?.observacao ?
                <Texto cor={'#777'} tipo={'Light'} texto={`Obs. ${rota?.ordemDeCompra?.observacao}`} /> : null}
