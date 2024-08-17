@@ -145,7 +145,7 @@ export default function Orcamento() {
                <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'flex-start' }}>
 
                   <Texto texto={data.quantidade > 0 ? data.quantidade + 'x' : ''} />
-                  <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${referencia} - ${nome} ${tamanho} ${cor?.nome} #${tipoSelecionado === 'Atacado' ? valorAtacado : valorVarejo}`} />
+                  <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${referencia} - ${nome} ${tamanho} ${cor?.nome} #${valorAtacado}`} />
                   {/* <Texto texto={data.total.toFixed(2).replace('.', ',')} /> */}
 
                </View>
