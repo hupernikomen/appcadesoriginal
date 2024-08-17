@@ -30,7 +30,6 @@ export default function Orcamento() {
 
    const [loadPage, setLoadPage] = useState(true)
    const listaDeTamanhos = ["PP", "P", "M", "G", "GG"];
-   const [tipoSelecionado, setTipoSelecionado] = useState('')
 
 
    useEffect(() => {
@@ -52,13 +51,6 @@ export default function Orcamento() {
       } else { setProdutoEncontrado([]) }
    }, [referencia])
 
-
-   async function PegaTipo() {
-      const tipo = await AsyncStorage.getItem('@tipoDeVenda')
-      let tipoDeVenda = await JSON.parse(tipo || '')
-
-      setTipoSelecionado(tipoDeVenda)
-   }
 
 
    async function BuscaOrdemDecompra() {
