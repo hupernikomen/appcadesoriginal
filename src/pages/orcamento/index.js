@@ -66,15 +66,7 @@ export default function Orcamento() {
             headerRight: () => (
                <View style={{ flexDirection: 'row', marginRight: -10 }}>
 
-                  <Pressable onPress={StatusButton(res.data?.estado)?.caminho} style={{
-                     alignItems: 'center',
-                     width: 40,
-                     height: 55,
-                     alignItems: 'center',
-                     justifyContent: "center"
-                  }}>
-                     <AntDesign name={StatusButton(res.data?.estado)?.icone} color='#fff' size={22} />
-                  </Pressable >
+
 
                   {estado !== 'Aberto' && estado !== 'Entregue' ?
                      <Icone onpress={() => setModalVisible(true)} nomeDoIcone={'delete'} /> : null}
@@ -215,11 +207,6 @@ export default function Orcamento() {
             {load ? <ActivityIndicator color={colors.theme} /> :
                <View style={{ alignItems: "flex-end" }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 }}>
-                     <View style={{ gap: 6, flex: 1, flexDirection: 'row', alignItems: "center", gap: 6 }}>
-                        <AntDesign name='sync' />
-                        <Texto estilo={{ flex: 1 }} tipo={'Light'} texto={`${converteData(orcamento?.atualizadoEm)}`} />
-                     </View>
-
                      <Texto texto={`Total R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2).replace('.', ',')}`} tipo={'Light'} />
                   </View>
 
@@ -233,22 +220,12 @@ export default function Orcamento() {
                      </View> : null
                   }
 
-                  {credencial.cargo === 'Socio' && orcamento?.estado !== "Entregue" &&
-                     <Pressable style={{ paddingVertical: 6 }} onPress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })}>
-                        <Texto texto={'Condições de Pagamento'} />
-                     </Pressable>}
+
 
                </View>
             }
          </View>
       )
-   }
-
-   const converteData = (date) => {
-      const data = new Date(date);
-      const formatoData = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-      return formatoData?.format(data);
-
    }
 
 
@@ -330,6 +307,33 @@ export default function Orcamento() {
             renderItem={({ item }) => <ItemDaLista data={item} />}
             ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
          />
+
+         {orcamento?.estado !== 'Aberto' ? <Pressable onPress={StatusButton(orcamento?.estado)?.caminho} style={{
+            height: 55,
+            margin: 10,
+            backgroundColor: colors.theme,
+            borderRadius: 6,
+            marginVertical: 12,
+            padding: 14,
+            justifyContent: "center",
+            alignItems: "center"
+         }}>
+            <Texto texto={StatusButton(orcamento?.estado)?.texto} cor='#fff' tamanho={16} />
+         </Pressable > : null}
+
+         {orcamento?.estado === 'Aberto' &&
+            <Pressable style={{
+               height: 55,
+               margin: 10,
+               backgroundColor: colors.theme,
+               borderRadius: 6,
+               marginVertical: 12,
+               padding: 14,
+               justifyContent: "center",
+               alignItems: "center"
+            }} onPress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })}>
+               <Texto cor='#fff' texto={'Condições de Pagamento'} />
+            </Pressable>}
 
 
          <Modal

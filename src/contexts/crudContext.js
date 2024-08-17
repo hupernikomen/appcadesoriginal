@@ -117,7 +117,8 @@ export function CrudProvider({ children }) {
 
       // Somar quantidade de itens no stock 
       let estoque = res.data.reduce((acc, current) => acc + current.estoque, 0)
-      setQuantidadeNoEstoque(estoque)
+      let saida = res.data.reduce((acc, current) => acc + current.saida, 0)
+      setQuantidadeNoEstoque(estoque - saida)
 
     } catch (error) {
       console.log(error.response);

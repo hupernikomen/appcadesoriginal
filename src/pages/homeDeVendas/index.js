@@ -31,26 +31,8 @@ export default function Sale() {
         // SE CPF/CNPJ ESTIVER INCOMPLETO MANTER DADOS APAGADOS
         cpf_cnpj.length >= 14 ? BuscaCliente(cpf_cnpj) : setCliente('')
 
-        PegaTipo()
-
     }, [cpf_cnpj])
 
-    async function PegaTipo() {
-        const tipo = await AsyncStorage.getItem('@tipoDeVenda')
-        let tipoDeVenda = await JSON.parse(tipo || '')
-
-        setTipoSelecionado(tipoDeVenda)
-    }
-
-    async function SalvaTipoDeVenda(tipo) {
-        try {
-            await AsyncStorage.setItem('@tipoDeVenda', JSON.stringify(tipo))
-            await PegaTipo()
-        } catch (error) {
-            console.log(error);
-            
-        }
-    }
 
     useEffect(() => {
 
@@ -77,10 +59,6 @@ export default function Sale() {
 
 
     async function BuscaCliente(cpf_cnpj) {
-
-        if (!tipoSelecionado) {
-            Toast('Selecione um tipo de venda')
-        }
 
         setLoad(true)
 
@@ -132,10 +110,10 @@ export default function Sale() {
         <View style={{ flex: 1, padding: 10 }}>
 
 
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'space-around', marginBottom: 12 }}>
+            {/* <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'space-around', marginBottom: 12 }}>
                 <Pressable onPress={() => SalvaTipoDeVenda('Atacado')} style={{ flex: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center', padding: 12, backgroundColor: tipoSelecionado === 'Atacado' ? colors.theme : '#f1f1f1' }}><Texto estilo={{ color: tipoSelecionado === 'Atacado' ? '#fff' : '#aaa' }} texto={'Atacado'} /></Pressable>
                 <Pressable onPress={() => SalvaTipoDeVenda('Varejo')} style={{ flex: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center', padding: 12, backgroundColor: tipoSelecionado === 'Varejo' ? colors.theme : '#f1f1f1' }}><Texto estilo={{ color: tipoSelecionado === 'Varejo' ? '#fff' : '#aaa' }} texto={'Varejo'} /></Pressable>
-            </View>
+            </View> */}
 
             <View style={{ flexDirection: "row", alignItems: 'center', gap: 6, marginBottom: 30 }}>
                 <MaskOfInput mask={tipoDeMascara(cpf_cnpj)} setValue={setCpf_Cnpj} value={cpf_cnpj} style={{ flex: 1, fontSize: 22 }} type={'numeric'} title={'CPF / CNPJ'} />
