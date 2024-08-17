@@ -44,6 +44,10 @@ export default function DrawerCustom(props) {
             label="Home"
             onPress={() => navigation.navigate("Home")}
           />
+          <DrawerItem
+            label="Colaboradores"
+            onPress={() => navigation.navigate("Home")}
+          />
 
         </View>
 

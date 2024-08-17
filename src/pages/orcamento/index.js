@@ -11,40 +11,37 @@ import Texto from '../../components/Texto';
 import ContainerItem from '../../components/ContainerItem';
 import Load from '../../components/Load';
 import MaskOfInput from '../../components/MaskOfInput';
+import Icone from '../../components/Icone';
 
 export default function Orcamento() {
    const navigation = useNavigation()
+   const { colors } = useTheme()
    const [modalVisible, setModalVisible] = useState(false);
    const { credencial } = useContext(AppContext)
    const { BuscaItemDoPedido, itensDoPedido, load, AdicionarItemAoPedido, SubtraiUmItemDoPedido, ListaOrdemDeCompras } = useContext(CrudContext)
    const { params: rota } = useRoute()
-   const { colors } = useTheme()
+
 
    const [referencia, setReferencia] = useState([])
    const [produtoEncontrado, setProdutoEncontrado] = useState([])
+   const [orcamento, setOrcamento] = useState({})
 
    const [tamanhoSelecionado, setTamanhoSelecionado] = useState("")
 
    const [loadPage, setLoadPage] = useState(true)
    const listaDeTamanhos = ["PP", "P", "M", "G", "GG"];
-
-   const [total, setTotal] = useState('')
-
-   useEffect(() => {
-      navigation.setOptions({
-         title: 'Pedido ' + rota?.ordemDeCompra?.estado + " - " + rota?.ordemDeCompra?.id?.substr(0, 6).toUpperCase(),
-      })
-   }, [rota, total])
-
-   useEffect(() => {
-      BuscaItemDoPedido(rota?.ordemDeCompra?.id)
-      setLoadPage(false)
-   }, [])
+   const [tipoSelecionado, setTipoSelecionado] = useState('')
 
 
    useEffect(() => {
-      setTotal(itensDoPedido.reduce((acc, current) => acc + current.total, 0).toFixed(2))
+      Promise.all([BuscaOrdemDecompra(), AtualizaOrdemDecompra()]).then(() => setLoadPage(false))
+
    }, [itensDoPedido])
+
+   useEffect(() => {
+      BuscaItemDoPedido(rota.ordemDeCompraID)
+   }, [rota])
+
 
    useEffect(() => {
       if (referencia.length === 4) {
@@ -56,10 +53,79 @@ export default function Orcamento() {
    }, [referencia])
 
 
+   async function PegaTipo() {
+      const tipo = await AsyncStorage.getItem('@tipoDeVenda')
+      let tipoDeVenda = await JSON.parse(tipo || '')
+
+      setTipoSelecionado(tipoDeVenda)
+   }
+
+
+   async function BuscaOrdemDecompra() {
+
+      try {
+         const res = await api.get(`/busca/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`)
+         setOrcamento(res.data)
+
+         const { estado, id } = res.data
+
+         navigation.setOptions({
+            title: 'Pedido ' + estado + " - " + id.substr(0, 6).toUpperCase(),
+            headerRight: () => (
+               <View style={{ flexDirection: 'row', marginRight: -10 }}>
+
+                  <Pressable onPress={StatusButton(res.data?.estado)?.caminho} style={{
+                     alignItems: 'center',
+                     width: 40,
+                     height: 55,
+                     alignItems: 'center',
+                     justifyContent: "center"
+                  }}>
+                     <AntDesign name={StatusButton(res.data?.estado)?.icone} color='#fff' size={22} />
+                  </Pressable >
+
+                  {estado !== 'Aberto' && estado !== 'Entregue' ?
+                     <Icone onpress={() => setModalVisible(true)} nomeDoIcone={'delete'} /> : null}
+               </View>
+            )
+         })
+
+
+      } catch (error) {
+         console.log(error.response);
+
+      }
+   }
+
+
+   async function AtualizaOrdemDecompra() {
+
+      const headers = {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${credencial?.token}`
+      }
+
+      const totalDaNota = itensDoPedido.reduce((acc, current) => {
+         return acc + (current.quantidade * current.valorUnitario);
+      }, 0);
+
+      try {
+         await api.put(`/atualiza/ordemDeCompra?ordemDeCompraID=${orcamento?.id}`, { totalDaNota }, { headers })
+         await BuscaOrdemDecompra()
+
+      } catch (error) {
+         console.log(error.response);
+
+      }
+   }
+
+
+   // BUSCA O PRODUTO DA REFERENCIA DIGITADA
    async function BuscaProduto() {
       try {
          const res = await api.get(`/busca/produto/referencia?referencia=${referencia}`)
          setProdutoEncontrado(res.data)
+
       } catch (error) {
          console.log(error.response);
 
@@ -68,17 +134,19 @@ export default function Orcamento() {
 
    function ItemDaLista({ data }) {
 
+      const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
+
       return (
          <ContainerItem onpress={() => {
-            rota?.ordemDeCompra?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, data.produto.id, data.quantidade, rota?.ordemDeCompra?.id)
+            orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)
          }}>
 
             <View style={{ marginVertical: .5, paddingHorizontal: 6, flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
                <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'flex-start' }}>
 
                   <Texto texto={data.quantidade > 0 ? data.quantidade + 'x' : ''} />
-                  <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${data.produto?.referencia} - ${data.produto?.nome} ${data.produto?.tamanho} ${data.produto?.cor?.nome} #${data.produto?.valorAtacado}`} />
-                  <Texto texto={data.total.toFixed(2).replace('.', ',')} />
+                  <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${referencia} - ${nome} ${tamanho} ${cor?.nome} #${tipoSelecionado === 'Atacado' ? valorAtacado : valorVarejo}`} />
+                  {/* <Texto texto={data.total.toFixed(2).replace('.', ',')} /> */}
 
                </View>
             </View>
@@ -90,12 +158,12 @@ export default function Orcamento() {
    function StatusButton(estado) {
 
       switch (estado) {
-         case 'Aberto':
-            return {
-               icone: 'creditcard',
-               texto: 'Pagamento',
-               caminho: () => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota?.ordemDeCompra?.id, total: total }),
-            }
+         // case 'Aberto':
+         //    return {
+         //       icone: 'creditcard',
+         //       texto: 'Pagamento',
+         //       caminho: () => navigation.navigate('FinalizaVenda', { ordemDeCompraID: orcamento?.id }),
+         //    }
          case 'Criado':
             return {
                icone: 'export',
@@ -120,8 +188,8 @@ export default function Orcamento() {
       }
 
       try {
-         await api.put(`/atualiza/estoque?ordemDeCompraID=${rota?.ordemDeCompra?.id}`, { headers })
-         navigation.goBack()
+         await api.put(`/atualiza/estoque?ordemDeCompraID=${orcamento?.id}`, { headers })
+         navigation.navigate('HistoricoDeVendas')
       }
       catch (error) { console.log(error.response) }
    }
@@ -134,7 +202,7 @@ export default function Orcamento() {
 
       try {
          await api.delete(`/cancelaCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
-         await BuscaItemDoPedido(rota?.ordemDeCompra?.id)
+         await BuscaItemDoPedido(orcamento?.id)
          await ListaOrdemDeCompras()
          navigation.goBack()
 
@@ -146,37 +214,40 @@ export default function Orcamento() {
       }
    }
 
-
    const HeaderBudget = () => {
 
       return (
-         <View style={{ gap: 12, flexDirection: "row", alignSelf: 'flex-end', justifyContent: "space-between", marginVertical: 30 }}>
+         <View style={{ justifyContent: "space-between", padding: 14, alignItems: 'flex-end' }}>
 
-            {StatusButton(rota?.ordemDeCompra?.estado)?.caminho && <Pressable onPress={StatusButton(rota?.ordemDeCompra?.estado)?.caminho} style={{
-               flexDirection: "row",
-               gap: 12,
-               alignItems: 'center',
-               borderWidth: .7,
-               borderColor: '#777',
-               padding: 18,
-               borderRadius: 6
-            }}>
-               <AntDesign name={StatusButton(rota?.ordemDeCompra?.estado)?.icone} color='#000' size={20} />
-               <Texto texto={StatusButton(rota?.ordemDeCompra?.estado)?.texto} />
-            </Pressable>}
 
-            {rota?.ordemDeCompra?.estado !== 'Aberto' && rota?.ordemDeCompra?.estado !== 'Entregue' ? <Pressable onPress={() => setModalVisible(true)} style={{
-               flexDirection: "row",
-               gap: 12,
-               alignItems: 'center',
-               borderWidth: .7,
-               borderColor: '#777',
-               padding: 18,
-               borderRadius: 6
-            }}>
-               <AntDesign name={'delete'} color='#000' size={20} />
-            </Pressable> : null}
+            {load ? <ActivityIndicator color={colors.theme} /> :
+               <View style={{ alignItems: "flex-end" }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 }}>
+                     <View style={{ gap: 6, flex: 1, flexDirection: 'row', alignItems: "center", gap: 6 }}>
+                        <AntDesign name='sync' />
+                        <Texto estilo={{ flex: 1 }} tipo={'Light'} texto={`${converteData(orcamento?.atualizadoEm)}`} />
+                     </View>
 
+                     <Texto texto={`Total R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2).replace('.', ',')}`} tipo={'Light'} />
+                  </View>
+
+                  {!!orcamento?.tempoDePagamento || !!orcamento?.desconto || !!orcamento?.valorAdiantado ?
+                     <View>
+                        <Texto
+                           texto={!!orcamento?.tempoDePagamento ? `${orcamento?.tempoDePagamento}x R$ ${(parseFloat((orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento)).toFixed(2).replace('.', ',')}` || `R$ ${((orcamento?.totalDaNota - orcamento?.valorAdiantado) * (1 - orcamento?.desconto / 100)).toFixed(2).replace('.', ',')}` : ` ${orcamento?.desconto}% à vista: R$ ${((orcamento?.totalDaNota - orcamento?.valorAdiantado) * (1 - orcamento?.desconto / 100)).toFixed(2).replace('.', ',')}`}
+                           tipo={'Regular'}
+                           tamanho={15}
+                        />
+                     </View> : null
+                  }
+
+                  {credencial.cargo === 'Socio' && orcamento?.estado !== "Entregue" &&
+                     <Pressable style={{ paddingVertical: 6 }} onPress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })}>
+                        <Texto texto={'Condições de Pagamento'} />
+                     </Pressable>}
+
+               </View>
+            }
          </View>
       )
    }
@@ -184,7 +255,7 @@ export default function Orcamento() {
    const converteData = (date) => {
       const data = new Date(date);
       const formatoData = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-      return formatoData.format(data);
+      return formatoData?.format(data);
 
    }
 
@@ -195,10 +266,10 @@ export default function Orcamento() {
    return (
       <View style={{ flex: 1 }}>
 
-         {rota?.ordemDeCompra?.estado === 'Aberto' ?
+         {orcamento?.estado === 'Aberto' ?
             <View style={{ gap: 6, padding: 10 }}>
 
-               <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric'/>
+               <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
 
                <View style={{ flexDirection: "row", gap: 6 }}>
 
@@ -208,7 +279,7 @@ export default function Orcamento() {
                         <Pressable disabled={!tamanhoExiste.includes(tamanho)} onPress={() => setTamanhoSelecionado(tamanho)} key={index}
                            style={{
                               display: tamanhoExiste.includes(tamanho) ? 'flex' : 'none',
-                              width: 50,
+                              width: 40,
                               aspectRatio: 1,
                               alignItems: "center",
                               justifyContent: "center",
@@ -228,7 +299,7 @@ export default function Orcamento() {
                      .filter(item => item.estoque > (item.reservado + item.saida))
                      .map((item, index) => {
                         return (
-                           <Pressable onPress={() => AdicionarItemAoPedido({ produtoID: item.id, ordemDeCompraID: rota?.ordemDeCompra?.id })
+                           <Pressable disabled={load} onPress={() => AdicionarItemAoPedido({ produtoID: item.id, ordemDeCompraID: orcamento?.id })
                            } key={index}
                               style={{
                                  alignItems: "center",
@@ -236,7 +307,7 @@ export default function Orcamento() {
                                  borderRadius: 12,
                                  borderColor: '#777',
                                  borderWidth: .7,
-                                 height: 50,
+                                 height: 40,
                                  paddingHorizontal: 18,
 
                               }}>
@@ -252,38 +323,19 @@ export default function Orcamento() {
 
             </View> : null}
 
-         {rota?.ordemDeCompra?.estado !== 'Entregue' ? <View style={{ paddingHorizontal: 18, marginVertical: 12 }}>
+         {orcamento?.estado !== 'Entregue' ? <View style={{ paddingHorizontal: 18, marginVertical: 12 }}>
 
-            {rota?.ordemDeCompra?.valorAdiantado > 0 ?
-               <Texto cor={'#777'} tipo={'Light'} texto={`Entrada: R$ ${parseFloat(rota?.ordemDeCompra?.valorAdiantado).toFixed(2).replace('.', ',')}`} /> : null}
-
-            {rota?.ordemDeCompra?.formaDePagamento === "Cartão de Crédito" || rota?.ordemDeCompra?.tempoDePagamento > 0 ?
-               <Texto cor={'#777'} tipo={'Light'} texto={`Parcelado em ${rota?.ordemDeCompra?.tempoDePagamento}x de R$ ${(parseFloat((total - rota?.ordemDeCompra?.valorAdiantado) * (1 - rota?.ordemDeCompra?.desconto / 100) / rota?.ordemDeCompra?.tempoDePagamento)).toFixed(2).replace('.', ',')}`} /> : null}
-
-            {!!rota?.ordemDeCompra?.observacao ?
-               <Texto cor={'#777'} tipo={'Light'} texto={`Obs. ${rota?.ordemDeCompra?.observacao}`} /> : null}
+            {!!orcamento?.observacao ?
+               <Texto cor={'#777'} tipo={'Light'} texto={`Obs. ${orcamento?.observacao}`} /> : null}
 
          </View> : null}
 
-         {rota?.ordemDeCompra?.estado !== 'Aberto' ? <View style={{ alignSelf: 'flex-end', paddingHorizontal: 18, marginVertical: 12 }}>
-            <Texto cor={'#777'} tipo={'Light'} texto={`Atualizado em ${converteData(rota?.ordemDeCompra?.atualizadoEm)}`} />
-         </View> : null}
 
 
          <FlatList
             data={itensDoPedido}
-            contentContainerStyle={{ borderTopWidth: 1, borderColor: '#ddd', padding: 10 }}
+            contentContainerStyle={{ padding: 10 }}
             renderItem={({ item }) => <ItemDaLista data={item} />}
-            ListHeaderComponent={load ?
-               <View style={{ padding: 6, flexDirection: "row", alignItems: 'center', gap: 12 }}>
-                  <ActivityIndicator color={colors.theme} />
-                  <Texto texto={'Atualizando'} tipo={'Light'} tamanho={15} />
-               </View> :
-               <View style={{ padding: 10, flexDirection: "row", justifyContent: "space-between", alignItems: 'center' }}>
-                  <Texto texto={'Orçamento'} tipo={'Medium'} tamanho={15} />
-                  <Texto texto={`Total R$ ${total.replace('.', ',')}`} tipo={'Medium'} tamanho={15} />
-               </View>
-            }
             ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
          />
 
@@ -295,13 +347,13 @@ export default function Orcamento() {
 
             <View style={styles.centeredView}>
                <View style={styles.modalView}>
-                  <Text style={{ marginBottom: 12 }}>Cancelar Pedido: {rota?.ordemDeCompra?.id?.substr(0, 6).toUpperCase()}?</Text>
+                  <Text style={{ marginBottom: 12 }}>Cancelar Pedido: {orcamento?.id?.substr(0, 6).toUpperCase()}?</Text>
 
                   <View style={{ flexDirection: "row", gap: 12, marginVertical: 12 }}>
 
                      <Pressable
                         style={[styles.button, { backgroundColor: colors.theme }]}
-                        onPress={() => CancelarCompra(rota?.ordemDeCompra?.id)}>
+                        onPress={() => CancelarCompra(orcamento?.id)}>
                         <Text style={styles.textStyle}>Sim, Cancelar</Text>
                      </Pressable>
                      <Pressable

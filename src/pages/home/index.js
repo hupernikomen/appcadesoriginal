@@ -2,26 +2,46 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useContext, useEffect } from 'react';
 import { useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
 
-import AntDesign from 'react-native-vector-icons/AntDesign'
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
 import { FlatList } from 'react-native-gesture-handler';
 import Texto from '../../components/Texto';
+import AntDesign from 'react-native-vector-icons/AntDesign'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import Load from '../../components/Load';
 
 export default function Home() {
   const navigation = useNavigation()
-  const { colors } = useTheme()
   const focus = useIsFocused()
 
-  const { credencial } = useContext(AppContext)
+  const { colors } = useTheme()
+  const { credencial, autenticado } = useContext(AppContext)
   const { clientes, ordemDeCompra, ListaOrdemDeCompras, ListaProdutos, quantidadeNoEstoque, ListaClientes } = useContext(CrudContext)
 
 
   useEffect(() => {
     Promise.all([ListaOrdemDeCompras(), ListaProdutos(), ListaClientes()])
 
+    navigation.setOptions({
+      headerRight: () => {
+        return(
+          <Pressable onPress={() => { 
+            
+            navigation.navigate(!!autenticado ?'BarrasPonto' : 'Login')}}>
+            <Ionicons name='barcode-outline' color='#fff' size={22}/>
+          </Pressable>
+        )
+      }
+    })
+
   }, [focus])
+
+  const buttonsInfo = [
+    { icone: 'swap', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas' },
+    { icone: 'profile', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas' },
+    { icone: 'user', nome: 'Clientes', notificacao: clientes?.length, pagina: 'RegistraCliente', desabilitado: credencial?.cargo === 'Vendedor' },
+    { icone: 'skin', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'RegistraEstoque', desabilitado: credencial?.cargo === 'Vendedor' },
+  ]
 
   function Button({ icone, nome, notificacao, pagina, desabilitado }) {
 
@@ -35,38 +55,29 @@ export default function Home() {
 
         <AntDesign name={icone} size={28} color={colors.black} />
 
-        {notificacao > 0 ? <Texto estilo={stl.notification} texto={notificacao} cor={colors.theme} tipo='Medium' /> : null}
+        {notificacao > 0 ? <Texto estilo={stl.notification} texto={notificacao} tamanho={12} tipo='Light' /> : null}
 
-        <Texto estilo={stl.textbutton} texto={nome} />
+        <Texto  texto={nome} tipo='Light' />
 
       </Pressable>
     )
   }
 
-  const buttonsInfo = [
-    { icone: 'swap', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas' },
-    { icone: 'profile', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas' },
-    { icone: 'user', nome: 'Clientes', notificacao: clientes?.length, pagina: 'RegistraCliente', desabilitado: credencial?.cargo === 'Vendedor' },
-    { icone: 'skin', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'RegistraEstoque', desabilitado: credencial?.cargo === 'Vendedor' },
-  ]
-
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: "center" }}>
 
-      <View style={{ height: 80, justifyContent: "center", padding: 20 }}>
-        <Texto texto={'Alerta:'} tipo={'Medium'} cor={colors.theme} />
-        <Texto texto={'Cliente Ana Paula irá aniversariar amanhã'} tipo={'Light'} />
-      </View>
+      {!!autenticado && <View style={{ width:270, marginVertical:10 }}>
+        <Texto texto={'Alerta:'} tipo={'Regular'} cor={colors.theme} />
+        {/* <Texto texto={'Cliente Ana Paula irá aniversariar amanhã'} tipo={'Light'} /> */}
+      </View>}
 
       {credencial?.token ?
         <FlatList
           data={buttonsInfo}
           numColumns={2}
-          contentContainerStyle={{ flex: 1, alignItems: 'flex-start', justifyContent: "center", padding: 25 }}
+          contentContainerStyle={{ flex: 1, alignItems: 'flex-start', justifyContent: "center" }}
           columnWrapperStyle={{
-            gap: 5,
-            marginBottom: 5
           }}
           renderItem={({ item }) => {
             return (
@@ -82,7 +93,7 @@ export default function Home() {
         /> :
         <Button
           icone={'key'}
-          nome={'Acessar o CadesSG'}
+          nome={'Entrar'}
           pagina={'Login'} />
 
       }
@@ -98,6 +109,7 @@ const stl = StyleSheet.create({
     elevation: 3,
     width: 130,
     height: 130,
+    margin:3,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -105,17 +117,12 @@ const stl = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#fff',
   },
-  textbutton: {
-    textAlign: 'center',
-    color: '#222',
-    fontWeight: '300',
-    fontFamily: 'Roboto-Light',
-  },
+
   notification: {
     textAlign: 'center',
     position: "absolute",
-    left: '50%',
-    top: 18,
+    right:6,
+    top: 6,
   }
 
 })

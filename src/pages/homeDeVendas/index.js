@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { View, Pressable, Keyboard, ActivityIndicator } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from '../../contexts/appContext';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import Feather from 'react-native-vector-icons/Feather'
@@ -23,14 +23,34 @@ export default function Sale() {
     const [cpf_cnpj, setCpf_Cnpj] = useState('')
 
     const [load, setLoad] = useState(false)
+    const [tipoSelecionado, setTipoSelecionado] = useState('')
+
 
     useEffect(() => {
 
         // SE CPF/CNPJ ESTIVER INCOMPLETO MANTER DADOS APAGADOS
         cpf_cnpj.length >= 14 ? BuscaCliente(cpf_cnpj) : setCliente('')
 
+        PegaTipo()
 
     }, [cpf_cnpj])
+
+    async function PegaTipo() {
+        const tipo = await AsyncStorage.getItem('@tipoDeVenda')
+        let tipoDeVenda = await JSON.parse(tipo || '')
+
+        setTipoSelecionado(tipoDeVenda)
+    }
+
+    async function SalvaTipoDeVenda(tipo) {
+        try {
+            await AsyncStorage.setItem('@tipoDeVenda', JSON.stringify(tipo))
+            await PegaTipo()
+        } catch (error) {
+            console.log(error);
+            
+        }
+    }
 
     useEffect(() => {
 
@@ -43,10 +63,10 @@ export default function Sale() {
                             onPress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })}>
                             <Feather name='user-plus' color='#fff' size={22} />
                         </Pressable> : null}
-                        <Pressable style={{ height: 55, width: 40, alignItems: "center", justifyContent: 'center' }}
+                        {!cliente && <Pressable style={{ height: 55, width: 40, alignItems: "center", justifyContent: 'center' }}
                             onPress={() => BuscaCliente('15.302.980/0001-54')}>
                             <AntDesign name='swap' color='#fff' size={22} />
-                        </Pressable>
+                        </Pressable>}
                     </View>
                 )
             }
@@ -57,6 +77,10 @@ export default function Sale() {
 
 
     async function BuscaCliente(cpf_cnpj) {
+
+        if (!tipoSelecionado) {
+            Toast('Selecione um tipo de venda')
+        }
 
         setLoad(true)
 
@@ -73,12 +97,12 @@ export default function Sale() {
 
         } finally {
             setLoad(false)
+            setCliente('')
         }
     }
 
 
     async function CriaOrdemDeCompra(data) {
-
 
         const headers = {
             'Content-Type': 'application/json',
@@ -87,7 +111,7 @@ export default function Sale() {
 
         try {
             const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id }, { headers })
-            navigation.navigate('Orcamento', { ordemDeCompra: response.data, cliente: data })
+            navigation.navigate('Orcamento', { ordemDeCompraID: response.data.id })
 
         } catch (error) {
             console.log(error.response);
@@ -103,11 +127,17 @@ export default function Sale() {
         }
     }
 
+
     return (
         <View style={{ flex: 1, padding: 10 }}>
 
-            <View style={{ flexDirection: "row", alignItems: 'center', gap: 6, marginBottom: 30 }}>
 
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'space-around', marginBottom: 12 }}>
+                <Pressable onPress={() => SalvaTipoDeVenda('Atacado')} style={{ flex: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center', padding: 12, backgroundColor: tipoSelecionado === 'Atacado' ? colors.theme : '#f1f1f1' }}><Texto estilo={{ color: tipoSelecionado === 'Atacado' ? '#fff' : '#aaa' }} texto={'Atacado'} /></Pressable>
+                <Pressable onPress={() => SalvaTipoDeVenda('Varejo')} style={{ flex: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center', padding: 12, backgroundColor: tipoSelecionado === 'Varejo' ? colors.theme : '#f1f1f1' }}><Texto estilo={{ color: tipoSelecionado === 'Varejo' ? '#fff' : '#aaa' }} texto={'Varejo'} /></Pressable>
+            </View>
+
+            <View style={{ flexDirection: "row", alignItems: 'center', gap: 6, marginBottom: 30 }}>
                 <MaskOfInput mask={tipoDeMascara(cpf_cnpj)} setValue={setCpf_Cnpj} value={cpf_cnpj} style={{ flex: 1, fontSize: 22 }} type={'numeric'} title={'CPF / CNPJ'} />
 
                 <View style={{
@@ -127,7 +157,10 @@ export default function Sale() {
 
             {!!cliente && cpf_cnpj.length >= 14 ?
                 <ContainerItem onpress={() => CriaOrdemDeCompra(cliente)}>
-                    <Texto texto={cliente?.nome} tamanho={16} />
+                    <View>
+                        <Texto texto={cliente?.nome} />
+                        <Texto texto={cliente?.whatsapp} tipo='Light' />
+                    </View>
                 </ContainerItem> : null}
 
         </View>

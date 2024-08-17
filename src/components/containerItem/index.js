@@ -1,6 +1,6 @@
 import { Pressable } from 'react-native';
 
-export default function ContainerItem({ children, onpress, altura = 80, largura = '100%', opacidade= 1 }) {
+export default function ContainerItem({ children, onpress, altura = 70, largura = '100%', opacidade= 1 }) {
 
     return (
         <Pressable onPress={onpress} style={{

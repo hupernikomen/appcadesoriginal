@@ -15,6 +15,7 @@ export function AppProvider({ children }) {
 
   const [credencial, setCredencial] = useState({
     id: '',
+    matricula: '',
     nome: '',
     cargo: '',
     token: '',
@@ -54,6 +55,7 @@ export function AppProvider({ children }) {
 
       setCredencial({
         id: credencialStorage.id,
+        matricula: credencialStorage.matricula,
         nome: credencialStorage.nome,
         cargo: credencialStorage.cargo,
         token: credencialStorage.token,
@@ -61,7 +63,7 @@ export function AppProvider({ children }) {
 
     } else {
       AsyncStorage.removeItem('@logincades')
-    } 
+    }
     navigation.navigate("Home")
     setLoad(false)
 
@@ -69,13 +71,12 @@ export function AppProvider({ children }) {
 
 
   async function signIn(nome, senha) {
- 
-    
-    if (!nome || !senha)  return
+
+    if (!nome || !senha) return
 
     try {
-      const res = await api.post('/login', { nome:nome.trim(), senha: senha.trim() })
-  
+      const res = await api.post('/login', { nome: nome.trim(), senha: senha.trim() })
+
       const { id, token } = res.data
       const data = { ...res.data }
 
@@ -97,11 +98,12 @@ export function AppProvider({ children }) {
       .then(() => {
         setCredencial({
           id: '',
+          matricula: '',
           nome: '',
           cargo: '',
           token: '',
         })
-        
+
         navigation.reset({ index: 0, routes: [{ name: 'Login' }] })
         navigation.dispatch(DrawerActions.closeDrawer());
         Toast('Você saiu')

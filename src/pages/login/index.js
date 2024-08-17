@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react'
 import { Text, Pressable, View, StyleSheet } from 'react-native'
-
+import Load from '../../components/Load'
 import { AppContext } from '../../contexts/appContext'
 import { useTheme } from '@react-navigation/native'
 
@@ -8,10 +8,12 @@ import MaskOfInput from '../../components/MaskOfInput';
 
 export default function Login() {
 
-    const { signIn } = useContext(AppContext)
+    const { signIn, load } = useContext(AppContext)
     const { colors } = useTheme()
     const [nome, setNome] = useState('')
     const [senha, setSenha] = useState('')
+
+    if (load) return <Load/>
 
     return (
         <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
@@ -20,7 +22,7 @@ export default function Login() {
                 <View style={{ margin: 14 }}>
 
                     <MaskOfInput value={nome} setValue={setNome} title='Usuário'/>
-                    <MaskOfInput value={senha} setValue={setSenha} title='Senha'/>
+                    <MaskOfInput type='numeric' value={senha} setValue={setSenha} title='Senha'/>
                 </View>
 
                 <Pressable

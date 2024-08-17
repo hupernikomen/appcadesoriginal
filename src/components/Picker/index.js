@@ -1,12 +1,11 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { Picker } from "@react-native-picker/picker";
 import Texto from '../Texto';
 
-export default function Pick({ data, title, selectedValue, setValue, style }) {
-
-  return (
-    <View style={[{
+export default function Pick({ data, title, selectedValue, setValue, style, info }) {
+  const styles = StyleSheet.create({
+    box: {
       height: 65,
       paddingVertical: 8,
       borderWidth: .5,
@@ -14,11 +13,31 @@ export default function Pick({ data, title, selectedValue, setValue, style }) {
       borderRadius: 18,
       paddingHorizontal: 12,
       marginVertical: 2
+    },
+    boxtop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 4
+    }
+  })
+  return (
+    <View style={[{
+      height: 60,
+      paddingVertical: 8,
+      borderWidth: .5,
+      borderColor: '#777',
+      borderRadius: 18,
+      paddingHorizontal: 12,
+      margin: 2
     }, style]}>
-      <Texto estilo={{marginLeft: 14}} texto={title} tipo={'Light'} tamanho={13} />
+      <View style={styles.boxtop}>
+        <Texto texto={title} tipo={'Light'} tamanho={13} />
+        <Texto texto={info} tipo={'Light'} tamanho={13} />
+      </View>
       <Picker
         mode="dialog"
-        style={{ marginTop: -18, height: 40 }}
+        style={{ marginTop: -18, height: 40, marginLeft:-12 }}
         selectedValue={selectedValue}
         onValueChange={(itemValue) => {
           setValue(itemValue);

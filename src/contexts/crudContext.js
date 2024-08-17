@@ -43,15 +43,16 @@ export function CrudProvider({ children }) {
     try {
       const res = await api.get('/lista/ordemDeCompras')
 
+      
+      
       // Excluir ordemDeCompras vazios
-      res.data?.map(async (ordemDeCompra) => {
-        const total = ordemDeCompra.itemDoPedido.reduce((acumulador, item) => {
-          return acumulador + item.total;
-        }, 0);
+      res.data?.map(async (item) => {
 
         try {
-          if (total === 0) {
-            await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${ordemDeCompra?.id}`, { headers })
+          if (item.totalDaNota === 0 || !item.totalDaNota) {
+            console.log(item, "BGDBDBF");
+            
+            await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${item?.id}`, { headers })
           }
 
         } catch (error) {
@@ -141,16 +142,19 @@ export function CrudProvider({ children }) {
 
   async function AdicionarItemAoPedido(data) {
 
+    setLoad(true)
+
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${credencial?.token}`
     }
 
-    const itemDoPedido = itensDoPedido.find(item => item.produto?.id === data.produtoID);
+    // SE O PRODUTO JA ESTIVER NA LISTA ...
+    const itemJaIncluso = itensDoPedido.find(item => item.produto?.id === data.produtoID);
 
     try {
-      if (itemDoPedido) {
-        await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${itemDoPedido?.id}`, { quantidade: Number(itemDoPedido.quantidade + 1), produtoID: data?.produtoID }, { headers })
+      if (itemJaIncluso) {
+        await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${itemJaIncluso?.id}`, { quantidade: Number(itemJaIncluso.quantidade + 1), produtoID: data?.produtoID }, { headers })
 
       } else {
 
@@ -165,6 +169,8 @@ export function CrudProvider({ children }) {
       }
     } catch (error) {
       Toast(error.response.data.error)
+    } finally {
+      setLoad(false)
     }
     BuscaItemDoPedido(data.ordemDeCompraID)
 
@@ -195,27 +201,6 @@ export function CrudProvider({ children }) {
 
 
 
-
-  async function StateBudget(salesformID) {
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${credencial?.token}`
-    }
-
-    try {
-      await api.put(`/putstock?salesformID=${salesformID}`, { headers })
-
-    } catch (error) {
-      console.log(error.response);
-
-    } finally {
-      navigation.navigate('Home')
-    }
-  }
-
-
-
   return (
     <CrudContext.Provider value={{
       RegistraCliente,
@@ -223,7 +208,6 @@ export function CrudProvider({ children }) {
       ListaClientes,
       ordemDeCompra,
       ListaOrdemDeCompras,
-      StateBudget,
       AdicionarItemAoPedido,
       BuscaItemDoPedido,
       itensDoPedido,

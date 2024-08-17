@@ -31,10 +31,16 @@ export default function FinalizaVenda() {
     const [tempoDePagamento, setTempoDePagamento] = useState('')
     const [valorAdiantado, setValorAdiantado] = useState('')
     const [observacao, setObservacao] = useState('')
-    const [desconto, setDesconto] = useState(0)
+    const [desconto, setDesconto] = useState('')
     const [total, setTotal] = useState('')
 
+    const [orcamento, setOrcamento] = useState([])
+
     const maxTimes = 6
+
+    useEffect(() => {
+        BuscaOrdemDecompra()
+    }, [])
 
     useEffect(() => {
 
@@ -47,15 +53,30 @@ export default function FinalizaVenda() {
 
     useEffect(() => {
 
-        setTotal(rota?.total - valorAdiantado.replace(',', '.'))
+        setTotal(orcamento?.totalDaNota - valorAdiantado.replace(',', '.'))
     }, [valorAdiantado])
+
+
+    async function BuscaOrdemDecompra() {
+
+        try {
+            const res = await api.get(`/busca/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`)
+            setOrcamento(res.data)
+
+            const { estado, id } = res.data
+
+        } catch (error) {
+            console.log(error.response);
+
+        }
+    }
 
 
     async function EnviaVenda() {
 
         Keyboard.dismiss()
 
-        if (Number(valorAdiantado) > Number(rota?.total)) {
+        if (Number(valorAdiantado) > Number(orcamento?.totalDaNota)) {
             Toast('Valor superior à compra')
             return
         }
@@ -71,39 +92,39 @@ export default function FinalizaVenda() {
             await api.put(`/atualiza/estoque?ordemDeCompraID=${rota?.ordemDeCompraID}`, { headers })
             await api.put(`/atualiza/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`, {
                 estado: 'Criado',
-                totalDaNota: Number(rota?.total),
-                valorPago: (Number(rota?.total) - valorAdiantado) * (1 - desconto / 100),
-                desconto: Number(desconto),
-                tempoDePagamento: tempoDePagamento,
-                valorAdiantado: Number(valorAdiantado.replace(',', '.')),
+                totalDaNota: Number(orcamento?.totalDaNota),
+                valorPago: (Number(orcamento?.totalDaNota) - valorAdiantado) * (1 - desconto / 100),
+                desconto: Number(desconto) || null,
+                tempoDePagamento: tempoDePagamento || null,
+                valorAdiantado: Number(valorAdiantado.replace(',', '.')) || null,
                 observacao: observacao
             }, { headers })
 
 
             Toast('Pedido Enviado')
-            navigation.navigate('Home')
+            navigation.navigate('Orcamento', { ordemDeCompraID: rota?.ordemDeCompraID })
 
         } catch (error) {
             console.log(error.response);
         } finally { setLoad(false) }
     }
 
-console.log((Number(rota?.total) - valorAdiantado) * (1 - desconto / 100) , 'teste');
 
 
     return (
         <View style={{ padding: 10, gap: 6 }}>
 
             <View style={{ padding: 16 }}>
-                <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {rota?.total.replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
+                <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {parseFloat(orcamento?.totalDaNota).toFixed(2).replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
             </View>
 
-            <MaskOfInput type='numeric' title={'À vista / Entrada (R$)'} value={valorAdiantado} setValue={setValorAdiantado} mask={CurrencyMask} />
-                <MaskOfInput type='numeric' title='Desconto (%)' value={desconto} setValue={setDesconto} info={'À pagar R$ ' + ((parseFloat(rota?.total) - Number(valorAdiantado.replace(',','.'))) * (1 - desconto / 100)).toFixed(2).replace('.',',')} maxlength={2} />
-            <View>
-                <MaskOfInput type='numeric' title='Nº de prestações' value={tempoDePagamento} setValue={setTempoDePagamento} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat((parseFloat(rota?.total) - Number(valorAdiantado.replace(',','.'))) * (1 - desconto / 100) / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
+            {!tempoDePagamento && !valorAdiantado && <MaskOfInput type='numeric' title='Desconto (%)' value={desconto} setValue={setDesconto} info={'À pagar R$ ' + ((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100)).toFixed(2).replace('.', ',')} maxlength={2} />}
+           
+            {!desconto && <View>
+                <MaskOfInput type='numeric' title={'Adiantamento (R$)'} value={valorAdiantado} setValue={setValorAdiantado} mask={CurrencyMask} />
+                <MaskOfInput type='numeric' title='Nº de prestações' value={tempoDePagamento} setValue={setTempoDePagamento} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100) / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
                 <Text>{alerta}</Text>
-            </View>
+            </View>}
 
             <MaskOfInput lines={5} multiline={true} styleMask={{ height: 60 }} style={{ height: 100 }} title='Observações' value={observacao} setValue={setObservacao} />
 

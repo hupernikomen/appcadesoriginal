@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import MaskInput from 'react-native-mask-input';
 import Texto from '../Texto';
 
-export default function MaskOfInput({ styleMask, lines,load, mask, style, colorActive = '#555', editable = true, type = 'default', title, value = 1, setValue, multiline = true, maxlength, info }) {
+export default function MaskOfInput({ styleMask, lines, load, mask, style, colorActive = '#555', editable = true, type = 'default', title, value = 1, setValue, multiline = true, maxlength, info }) {
 
   const inputRef = useRef(null);
 
@@ -14,13 +14,13 @@ export default function MaskOfInput({ styleMask, lines,load, mask, style, colorA
 
   const styles = StyleSheet.create({
     box: {
-      height: 65,
+      height: 60,
       paddingVertical: 8,
       borderWidth: .5,
       borderColor: colorActive,
       borderRadius: 18,
       paddingHorizontal: 12,
-      marginVertical: 2
+      margin: 2
     },
     boxtop: {
       flexDirection: 'row',
@@ -40,7 +40,7 @@ export default function MaskOfInput({ styleMask, lines,load, mask, style, colorA
   return (
     <Pressable onPress={handlePress} style={[styles.box, style]}>
       <View style={styles.boxtop}>
-      <Texto texto={title} tipo={'Light'} tamanho={13} />
+        <Texto texto={title} tipo={'Light'} tamanho={13} />
         <View>
           {load ? <ActivityIndicator size={14} /> :
             <Texto texto={info} tipo={'Light'} tamanho={13} />
@@ -49,7 +49,7 @@ export default function MaskOfInput({ styleMask, lines,load, mask, style, colorA
       </View>
 
       <MaskInput
-      numberOfLines={lines}
+        numberOfLines={lines}
         ref={inputRef}
         editable={editable}
         style={[styles.input, styleMask]}

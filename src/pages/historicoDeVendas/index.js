@@ -32,10 +32,10 @@ export default function HistoricoDeVendas() {
 
       <ContainerItem opacidade={item.estado === 'Entregue' ? .9 : 1} onpress={() => {
         if (credencial.cargo === 'Socio' || credencial.cargo === 'Gerente') {
-          navigation.navigate('Orcamento', { ordemDeCompra: item, estadoOrdemDeCompra: item.estado, cliente: item.cliente })
+          navigation.navigate('Orcamento', { ordemDeCompraID: item.id })
 
         } else if (credencial.cargo === 'Vendedor' && item.estado === "Aberto" || item.estado === "Criado") {
-          navigation.navigate('Orcamento', { ordemDeCompra: item })
+          navigation.navigate('Orcamento', { ordemDeCompraID: item.id })
 
         } else {
           Toast("Acesso Negado")

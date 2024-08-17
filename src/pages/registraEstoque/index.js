@@ -205,6 +205,8 @@ export default function RegistraEstoque() {
 
 
 
+
+
   if (load) return <Load />
 
   return (
@@ -212,25 +214,26 @@ export default function RegistraEstoque() {
 
       <ScrollView>
 
-        <View style={{ height: 40, alignItems: "center", justifyContent: "center", marginVertical: 12 }}>
-          <Animated.Text entering={FadeInDown.duration(300)} style={{ display: !!codigoDeBarras ? 'flex' : 'none', marginTop: -50, fontFamily: 'Barcode', fontSize: 85, color: '#000', alignSelf: 'center' }}>{codigoDeBarras}</Animated.Text>
+
+        <View style={{ height: 60, alignItems: "center", justifyContent: "center", marginVertical: 12 }}>
+          <Animated.Text entering={FadeInDown.duration(300)} style={{ display: !!codigoDeBarras ? 'flex' : 'none', marginTop: -50, fontFamily: 'Barcode', fontSize: 90, color: '#000', alignSelf: 'center' }}>{codigoDeBarras}</Animated.Text>
         </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <MaskOfInput type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
           <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Descrição' value={nome} setValue={setNome} maxlength={30} info={nome?.length + '/30'} />
         </View>
 
 
-        <View style={{ flexDirection: 'row', gap: 4 }}>
+        <View style={{ flexDirection: 'row' }}>
           <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Valor Atacado' value={valorAtacado} setValue={setValorAtacado} mask={CurrencyMask} />
           <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Valor Varejo' value={valorVarejo} setValue={setValorVarejo} mask={CurrencyMask} />
         </View>
 
         <View >
-          <View style={{ flexDirection: 'row', gap: 4 }}>
-            <MaskOfInput maxlength={3} style={{ width: 70 }} title='Tam.' value={tamanho} setValue={setTamanho} />
-            <Pick title={'Cor'} data={listaDeCores} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} />
+          <View style={{ flexDirection: 'row' }}>
+            <MaskOfInput maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
+            <Pick title={'Cor'} data={listaDeCores} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
             <MaskOfInput maxlength={3} style={{ width: 60 }} title='Qtd.' value={estoque} setValue={setEstoque} />
 
             <Pressable onPress={() => {
@@ -288,11 +291,13 @@ export default function RegistraEstoque() {
 
 
             {itensAAdcionar.map((item, index) => {
+              console.log(item);
+              
               return (
 
 
                 <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flexDirection: 'row', justifyContent: "space-between", paddingVertical: 4 }}>
-                  <Text style={{ fontWeight: '300', color: '#000' }}>{item.referencia} - {item.nome} {item.tamanho} {item.cor}</Text>
+                  <Text style={{ fontWeight: '300', color: '#000' }}>{item.referencia} - {item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
                   <Text>{item.estoque}</Text>
                 </Animated.View>
 
