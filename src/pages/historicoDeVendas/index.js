@@ -41,6 +41,7 @@ export default function HistoricoDeVendas() {
           Toast("Acesso Negado")
         }
       }}>
+        
         <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .5 : 1 }}>
           <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
 

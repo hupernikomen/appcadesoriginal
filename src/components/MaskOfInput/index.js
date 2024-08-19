@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import MaskInput from 'react-native-mask-input';
 import Texto from '../Texto';
 
-export default function MaskOfInput({ styleMask, lines, load, mask, style, colorActive = '#555', editable = true, type = 'default', title, value = 1, setValue, multiline = true, maxlength, info }) {
+export default function MaskOfInput({ styleMask, lines, load, mask, style,  editable = true, type = 'default', title, value = 1, setValue, multiline = true, maxlength, info }) {
 
   const inputRef = useRef(null);
 
@@ -16,11 +16,10 @@ export default function MaskOfInput({ styleMask, lines, load, mask, style, color
     box: {
       height: 60,
       paddingVertical: 8,
-      borderWidth: .5,
-      borderColor: colorActive,
-      borderRadius: 18,
+      borderRadius: 12,
       paddingHorizontal: 12,
-      margin: 2
+      margin: 2,
+      backgroundColor:"#e9e9e9"
     },
     boxtop: {
       flexDirection: 'row',

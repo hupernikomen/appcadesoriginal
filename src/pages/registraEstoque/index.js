@@ -14,6 +14,7 @@ import { AppContext } from '../../contexts/appContext';
 import api from '../../services/api';
 import Load from '../../components/Load';
 import Pick from '../../components/Picker';
+import Texto from '../../components/Texto';
 
 export default function RegistraEstoque() {
 
@@ -44,11 +45,23 @@ export default function RegistraEstoque() {
   const [corSelecionada, setCorSelecionada] = useState({})
 
   const listaTamanhos = [
-    { codigo: '1', tamanho: 'PP' || 'Pp' || 'pp' },
-    { codigo: '2', tamanho: 'P' || 'p' },
-    { codigo: '3', tamanho: 'M' || 'm' },
-    { codigo: '4', tamanho: 'G' || 'g' },
-    { codigo: '5', tamanho: 'GG' || 'Gg' || 'gg' },
+    { codigo: '01', tamanho: 'PP' || 'Pp' || 'pp' },
+    { codigo: '02', tamanho: 'P' || 'p' },
+    { codigo: '03', tamanho: 'M' || 'm' },
+    { codigo: '04', tamanho: 'G' || 'g' },
+    { codigo: '05', tamanho: 'GG' || 'Gg' || 'gg' },
+    { codigo: '06', tamanho: 'G1' },
+    { codigo: '07', tamanho: 'G2' },
+    { codigo: '08', tamanho: 'G3' },
+    { codigo: '09', tamanho: 'G4' },
+    { codigo: '10', tamanho: 'G5' },
+    { codigo: '11', tamanho: '2' },
+    { codigo: '12', tamanho: '4' },
+    { codigo: '13', tamanho: '6' },
+    { codigo: '14', tamanho: '8' },
+    { codigo: '15', tamanho: '10' },
+    { codigo: '16', tamanho: '12' },
+    { codigo: '17', tamanho: '14' },
   ]
 
 
@@ -62,7 +75,7 @@ export default function RegistraEstoque() {
 
   useEffect(() => {
 
-    const ean12 = `7890${buscaCodigoDeTamanho(tamanho)}${corSelecionada?.codigo}0${referencia}`
+    const ean12 = `789${buscaCodigoDeTamanho(tamanho)}${corSelecionada?.codigo}0${referencia}`
     const chave = codigoDeVerificacaoEAN13(ean12)
 
     isNaN(chave) ? setCodigoDeBarras("") : setCodigoDeBarras(ean12 + chave)
@@ -193,7 +206,6 @@ export default function RegistraEstoque() {
         setCodigoDeBarras('')
         setReferencia('')
         setNome('')
-        setTamanho('')
         setCorSelecionada({})
         setEstoque('')
         setValorAtacado('')
@@ -214,10 +226,7 @@ export default function RegistraEstoque() {
 
       <ScrollView>
 
-
-        <View style={{ height: 60, alignItems: "center", justifyContent: "center", marginVertical: 12 }}>
-          <Animated.Text entering={FadeInDown.duration(300)} style={{ display: !!codigoDeBarras ? 'flex' : 'none', marginTop: -50, fontFamily: 'Barcode', fontSize: 90, color: '#000', alignSelf: 'center' }}>{codigoDeBarras}</Animated.Text>
-        </View>
+        <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <MaskOfInput type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
@@ -234,9 +243,21 @@ export default function RegistraEstoque() {
           <View style={{ flexDirection: 'row' }}>
             <MaskOfInput maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
             <Pick title={'Cor'} data={listaDeCores} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
-            <MaskOfInput maxlength={3} style={{ width: 60 }} title='Qtd.' value={estoque} setValue={setEstoque} />
+            <MaskOfInput maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
 
-            <Pressable onPress={() => {
+          </View>
+
+          <Pressable
+            style={{
+              alignItems: "center",
+              justifyContent: 'center',
+              padding: 18,
+              backgroundColor: "#f5f5f5",
+              flexDirection: 'row',
+              gap: 6
+
+            }}
+            onPress={() => {
               if (!tamanho || !corSelecionada || !estoque || !codigoDeBarras) {
                 Toast('Preenchimento incompleto')
                 return
@@ -258,49 +279,39 @@ export default function RegistraEstoque() {
                 corSelecionada,
                 estoque
               }])
-              setTamanho('')
               setCorSelecionada('')
               setEstoque('')
               setCodigoDeBarras('')
             }
 
-            } style={{ flex: .3, alignItems: 'center', justifyContent: 'center', borderRadius: 6, }}>
-              <AntDesign name='enter' color={colors.black} size={26} />
-            </Pressable>
-
-          </View>
+            }>
+            <Texto texto={'Adicionar à lista'} />
+            <AntDesign name='enter' size={18} />
+          </Pressable>
         </View>
 
         {itensAAdcionar.length ?
           <View style={{
             paddingVertical: 8,
-            borderWidth: .7,
-            borderColor: '#777',
-            borderRadius: 12,
             paddingHorizontal: 18,
-            marginVertical: 12
+            marginVertical: 18,
+            borderTopWidth: .7,
+            borderColor: '#aaa',
+
           }}>
 
-            <View style={{ flexDirection: 'row', justifyContent: "space-between", }}>
-              <View style={{ flexDirection: 'row' }}>
-
-                <Text style={{ fontSize: 13, fontWeight: '400', color: '#000' }}>Descrição</Text>
-              </View>
-              <Text style={{ fontSize: 13, fontWeight: '400', color: '#000' }}>Qtd.</Text>
+            <View style={{ flexDirection: 'row', justifyContent: "space-between" }}>
+              <Texto texto={'Descrição'} tipo='Medium' />
+              <Texto texto={'Qtd.'} tipo='Medium' />
             </View>
 
 
             {itensAAdcionar.map((item, index) => {
-              console.log(item);
-              
               return (
-
-
-                <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flexDirection: 'row', justifyContent: "space-between", paddingVertical: 4 }}>
-                  <Text style={{ fontWeight: '300', color: '#000' }}>{item.referencia} - {item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
-                  <Text>{item.estoque}</Text>
+                <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flexDirection: 'row', justifyContent: "space-between", borderBottomColor: '#ddd', borderBottomWidth: .7, paddingVertical: 6 }}>
+                  <Text style={{ fontWeight: '300', color: '#000', flex: 1 }}>{item.referencia} - {item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
+                  <Text style={{ width: 30, textAlign: 'right' }}>{item.estoque}</Text>
                 </Animated.View>
-
               )
             })}
 
@@ -323,7 +334,7 @@ export default function RegistraEstoque() {
 
 const styles = StyleSheet.create({
   botaoCadastrar: {
-    height: 55,
+    height: 60,
     borderRadius: 6,
     marginVertical: 12,
     padding: 14,

@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet, ScrollView } from 'react-native';
 
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
@@ -29,7 +29,7 @@ export default function Orcamento() {
    const [tamanhoSelecionado, setTamanhoSelecionado] = useState("")
 
    const [loadPage, setLoadPage] = useState(true)
-   const listaDeTamanhos = ["PP", "P", "M", "G", "GG"];
+   const listaDeTamanhos = ["PP", "P", "M", "G", "GG", "G1", "G2", "G3", "G4", "G5", "2", "4", "6", "8", "10", "12", "14"];
 
 
    useEffect(() => {
@@ -236,12 +236,14 @@ export default function Orcamento() {
       <View style={{ flex: 1 }}>
 
          {orcamento?.estado === 'Aberto' ?
-            <View style={{ gap: 6, padding: 10 }}>
+            <View style={{ gap: 6 }}>
+               <View style={{ padding: 10 }}>
+                  <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
+               </View>
 
-               <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
-
-               <View style={{ flexDirection: "row", gap: 6 }}>
-
+               <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 12 }}>
+                  {console.log(listaDeTamanhos)
+                  }
                   {listaDeTamanhos.map((tamanho, index) => {
                      const tamanhoExiste = [...new Set(produtoEncontrado.filter(item => (item.estoque - (item.reservado + item.saida)) > 0).map(item => item.tamanho))]
                      return (
@@ -263,7 +265,7 @@ export default function Orcamento() {
 
                </View>
 
-               <View style={{ flexDirection: "row", marginVertical: 6 }}>
+               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", margin: 6, paddingHorizontal: 6 }}>
                   {[...new Set(produtoEncontrado.filter(item => item.tamanho === tamanhoSelecionado)
                      .filter(item => item.estoque > (item.reservado + item.saida))
                      .map((item, index) => {
@@ -278,7 +280,8 @@ export default function Orcamento() {
                                  borderWidth: .7,
                                  height: 40,
                                  paddingHorizontal: 18,
-
+                                 marginRight: 5,
+                                 marginVertical: 4
                               }}>
 
                               <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
@@ -288,7 +291,7 @@ export default function Orcamento() {
                            </Pressable>
                         )
                      }))]}
-               </View>
+               </ScrollView>
 
             </View> : null}
 

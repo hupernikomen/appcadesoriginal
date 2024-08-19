@@ -60,12 +60,15 @@ export default function Sale() {
 
     async function BuscaCliente(cpf_cnpj) {
 
+
+
         setLoad(true)
 
         try {
             const response = await api.get(`/busca/cliente?cpf_cnpj=${cpf_cnpj}`)
-            if (response.data?.cpf_cnpj === "15.302.980/0001-54")
+            if (response.data?.cpf_cnpj === "15.302.980/0001-54") {
                 CriaOrdemDeCompra(response.data)
+            }
 
             setCliente(response.data)
             !!response.data && Keyboard.dismiss()
@@ -75,7 +78,6 @@ export default function Sale() {
 
         } finally {
             setLoad(false)
-            setCliente('')
         }
     }
 
@@ -133,13 +135,20 @@ export default function Sale() {
             </View>
 
 
-            {!!cliente && cpf_cnpj.length >= 14 ?
-                <ContainerItem onpress={() => CriaOrdemDeCompra(cliente)}>
-                    <View>
-                        <Texto texto={cliente?.nome} />
-                        <Texto texto={cliente?.whatsapp} tipo='Light' />
+            {!!cliente && cpf_cnpj.length >= 11 ?
+                <Pressable onPress={() => CriaOrdemDeCompra(cliente)} style={{ padding: 18 }}>
+                    <Texto texto={cliente.nome} />
+                    <View style={{ flexDirection: 'row', alignItems: "center", gap: 4 }}>
+                        <AntDesign name='idcard' />
+                        <Texto texto={cliente.cpf_cnpj} tipo='Light' />
                     </View>
-                </ContainerItem> : null}
+                    <View style={{ flexDirection: 'row', alignItems: "center", gap: 4 }}>
+                        <AntDesign name='phone' />
+                        <Texto texto={cliente.whatsapp} tipo='Light' />
+                    </View>
+                </Pressable>
+
+                : null}
 
         </View>
     )

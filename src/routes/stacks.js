@@ -15,7 +15,7 @@ import Scanner from '../pages/scanner';
 // import AtualizaEstoque from '../pages/atualizaEstoque';
 // import Analytics from '../pages/analytics';
 import ListaDeCores from '../pages/listaDeCores';
-import ListaDeClientes from '../pages/listClients';
+import ListaDeClientes from '../pages/listaClientes';
 import FinalizaVenda from '../pages/finalizaVenda';
 import BarrasPonto from '../pages/barrasPonto';
 

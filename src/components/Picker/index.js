@@ -24,10 +24,9 @@ export default function Pick({ data, title, selectedValue, setValue, style, info
   return (
     <View style={[{
       height: 60,
+      backgroundColor:'#e9e9e9',
       paddingVertical: 8,
-      borderWidth: .5,
-      borderColor: '#777',
-      borderRadius: 18,
+      borderRadius: 12,
       paddingHorizontal: 12,
       margin: 2
     }, style]}>
