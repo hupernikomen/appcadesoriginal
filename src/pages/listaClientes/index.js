@@ -28,19 +28,17 @@ export default function ListaDeClientes() {
       <View style={{ padding: 18 }}>
         <Texto texto={data.nome} />
         <View style={{ flexDirection: 'row', alignItems: "center", gap: 4 }}>
-          <AntDesign name='idcard' />
-          <Texto texto={data.cpf_cnpj} tipo='Light' />
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: "center", gap: 4 }}>
           <AntDesign name='phone' />
           <Texto texto={data.whatsapp} tipo='Light' />
         </View>
+
       </View>
     )
   }
 
   return (
     <View>
+
       <FlatList
         data={clientes}
         renderItem={({ item }) => <Cliente data={item} />}

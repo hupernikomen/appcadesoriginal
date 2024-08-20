@@ -43,6 +43,7 @@ export default function RegistraEstoque() {
 
   const [listaDeCores, setListaDeCores] = useState([])
   const [corSelecionada, setCorSelecionada] = useState({})
+  const [finalizarLista, setFinalizarLista] = useState(true)
 
   const listaTamanhos = [
     { codigo: '01', tamanho: 'PP' || 'Pp' || 'pp' },
@@ -206,6 +207,7 @@ export default function RegistraEstoque() {
         setCodigoDeBarras('')
         setReferencia('')
         setNome('')
+        setTamanho('')
         setCorSelecionada({})
         setEstoque('')
         setValorAtacado('')
@@ -247,7 +249,7 @@ export default function RegistraEstoque() {
 
           </View>
 
-          <Pressable
+          {!!codigoDeBarras ? <Pressable
             style={{
               alignItems: "center",
               justifyContent: 'center',
@@ -287,7 +289,7 @@ export default function RegistraEstoque() {
             }>
             <Texto texto={'Adicionar à lista'} />
             <AntDesign name='enter' size={18} />
-          </Pressable>
+          </Pressable> : null}
         </View>
 
         {itensAAdcionar.length ?
@@ -315,11 +317,37 @@ export default function RegistraEstoque() {
               )
             })}
 
+            <Pressable style={{
+              alignItems: "center",
+              justifyContent: 'center',
+              padding: 18,
+              backgroundColor: "#f5f5f5",
+
+            }} onPress={() => setFinalizarLista(!finalizarLista)}>
+              {finalizarLista ?
+                <View style={{
+                  flexDirection: 'row',
+                  gap: 6
+                }}>
+                  <Texto texto={'Finalizar Lista'} />
+                  <AntDesign name='check' size={18} />
+                </View>
+                :
+                <View style={{
+                  flexDirection: 'row',
+                  gap: 6
+                }}>
+                  <AntDesign name='back' size={18} />
+                  <Texto texto={'Continuar adicionando...'} />
+                </View>
+              }
+            </Pressable>
+
           </View> : null
         }
 
       </ScrollView>
-      {itensAAdcionar.length ? <Pressable
+      {itensAAdcionar.length && !finalizarLista ? <Pressable
         style={[styles.botaoCadastrar, { backgroundColor: colors.theme }]}
         onPress={() => RegistraProduto()}
       >
