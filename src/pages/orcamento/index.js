@@ -3,7 +3,6 @@ import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, St
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
 import api from '../../services/api';
-import AntDesign from 'react-native-vector-icons/AntDesign'
 
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
@@ -12,6 +11,10 @@ import ContainerItem from '../../components/ContainerItem';
 import Load from '../../components/Load';
 import MaskOfInput from '../../components/MaskOfInput';
 import Icone from '../../components/Icone';
+
+
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import Share from 'react-native-share';
 
 export default function Orcamento() {
    const navigation = useNavigation()
@@ -24,12 +27,13 @@ export default function Orcamento() {
 
    const [referencia, setReferencia] = useState([])
    const [produtoEncontrado, setProdutoEncontrado] = useState([])
-   const [orcamento, setOrcamento] = useState({})
+   const [orcamento, setOrcamento] = useState([])
 
    const [tamanhoSelecionado, setTamanhoSelecionado] = useState("")
 
    const [loadPage, setLoadPage] = useState(true)
    const listaDeTamanhos = ["PP", "P", "M", "G", "GG", "G1", "G2", "G3", "G4", "G5", "2", "4", "6", "8", "10", "12", "14"];
+
 
 
    useEffect(() => {
@@ -39,6 +43,8 @@ export default function Orcamento() {
 
    useEffect(() => {
       BuscaItemDoPedido(rota.ordemDeCompraID)
+
+
    }, [rota])
 
 
@@ -63,15 +69,7 @@ export default function Orcamento() {
 
          navigation.setOptions({
             title: 'Pedido ' + estado + " - " + id.substr(0, 6).toUpperCase(),
-            headerRight: () => (
-               <View style={{ flexDirection: 'row', marginRight: -10 }}>
 
-
-
-                  {estado !== 'Aberto' && estado !== 'Entregue' ?
-                     <Icone onpress={() => setModalVisible(true)} nomeDoIcone={'delete'} /> : null}
-               </View>
-            )
          })
 
 
@@ -143,7 +141,7 @@ export default function Orcamento() {
       switch (estado) {
          case 'Criado':
             return {
-               icone: 'export',
+               icone: 'like2',
                texto: 'Separado',
                caminho: () => StateBudget()
             }
@@ -191,32 +189,51 @@ export default function Orcamento() {
       }
    }
 
+
+   const gerarPDF = async () => {
+      const options = {
+         html: htmlDoc,
+         fileName: 'CadesOriginal_',
+      };
+
+      const file = await RNHTMLtoPDF.convert(options);
+      const shareOptions = {
+         message: 'Compartilhar PDF',
+         url: `file://${file.filePath}`,
+         subject: 'PDF gerado',
+      };
+
+      try {
+         await Share.open(shareOptions);
+      } catch (error) {
+         if (error.code === 'E_SHARE_CANCELLED') {
+            console.log('Usuário cancelou a compartilhagem');
+         } else {
+            console.log('Erro ao compartilhar PDF:', error);
+         }
+      }
+
+   };
+
    const HeaderBudget = () => {
 
       return (
-         <View style={{ justifyContent: "space-between", padding: 14, alignItems: 'flex-end' }}>
-
+         <View style={{ marginTop: 30 }}>
 
             {load ? <ActivityIndicator color={colors.theme} /> :
-               <View style={{ alignItems: "flex-end" }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 }}>
-                     <Texto texto={`Total R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2).replace('.', ',')}`} tipo={'Light'} />
-                  </View>
+               <View style={{ alignItems: "flex-end",  borderTopWidth: 1, borderColor: '#e9e9e9',padding:10 }}>
+                  {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} />: null}
 
-                  {!!orcamento?.tempoDePagamento || !!orcamento?.desconto || !!orcamento?.valorAdiantado ?
-                     <View>
-                        <Texto
-                           texto={!!orcamento?.tempoDePagamento ? `${orcamento?.tempoDePagamento}x R$ ${(parseFloat((orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento)).toFixed(2).replace('.', ',')}` || `R$ ${((orcamento?.totalDaNota - orcamento?.valorAdiantado) * (1 - orcamento?.desconto / 100)).toFixed(2).replace('.', ',')}` : ` ${orcamento?.desconto}% à vista: R$ ${((orcamento?.totalDaNota - orcamento?.valorAdiantado) * (1 - orcamento?.desconto / 100)).toFixed(2).replace('.', ',')}`}
-                           tipo={'Regular'}
-                           tamanho={15}
-                        />
-                     </View> : null
-                  }
-
-
+                  {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
+                  {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
+                  {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
+                  <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}`} />
 
                </View>
             }
+
+
+
          </View>
       )
    }
@@ -224,6 +241,93 @@ export default function Orcamento() {
 
    if (loadPage) return <Load />
 
+
+   const htmlDoc = `
+<div style="display: flex; flex-direction: column; padding: 30px">
+  <div style="display: flex; align-items: center; justify-content: center; flex-direction: column; margin-bottom: 20px">
+    <div style="display: flex; align-self: center; font-size: 1em; font-weight: 600;">Cades Original</div>
+    <div style="display: flex; align-self: center; font-weight: 300; font-size: 13px;">Rua Lourival Mesquita, 3328 - Santa Maria da Codipe - Teresina - Piaui</div>
+    <div style="display: flex; align-self: center; font-weight: 300; font-size: 13px;">CNPJ: 15.302.980/0001-54 - Contato: (86) 99491-8984</div>
+  </div>
+
+  <div style="display: flex; align-self: center; font-weight: 400; padding: 20px;">Ordem de Compra nº ${orcamento?.id.slice(0, 6).toUpperCase()} - ${orcamento?.tipo}</div>
+
+  <div style="border-color: #eee; border-bottom: 1px solid #eee; padding: 10px;">
+
+    <div style="font-size: 13px; display: flex; justify-content: space-between;">
+      <div style="display: flex; gap: 6px;">Cliente: <div style="font-weight: 300;">${orcamento?.cliente?.nome}</div></div>
+      <div style="display: flex; gap: 6px;">Data Nasc.: <div style="font-weight: 300;">${orcamento?.cliente?.dataNascimento}</div></div>
+      <div style="display: flex; gap: 6px;">CPF/CNPJ: <div style="font-weight: 300;">${orcamento?.cliente?.cpf_cnpj}</div></div>
+    </div>
+    <div style="font-size: 13px; display: flex; gap: 6px;">Contato: <div style="font-weight: 300;">${orcamento?.cliente?.whatsapp}</div></div>
+    <div style="font-size: 13px; display: flex; gap: 6px;">Endereço: <div style="font-weight: 300;">${orcamento?.cliente?.endereco} - ${orcamento?.cliente?.bairro} - ${orcamento?.cliente?.cidade} - ${orcamento?.cliente?.estado} - CEP: ${orcamento?.cliente?.CEP}</div></div>
+  </div>
+
+  <div style="padding: 10px; border-color: #eee; border-bottom: 1px solid #eee;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="flex: 1; font-size: 13px">Qtd.</div>
+      <div style="flex: 1; font-size: 13px">Ref.</div>
+      <div style="flex: 7; font-size: 13px">Descrição</div>
+      <div style="flex: 1; font-size: 13px">Tam.</div>
+      <div style="flex: 3; font-size: 13px">Cor</div>
+      <div style="flex: 1; font-size: 13px">Unid.</div>
+      <div style="flex: 1; text-align: end; font-size: 13px">Total</div>
+    </div>
+
+
+
+           ${orcamento?.itemDoPedido?.map((item, index) => {
+
+      return (
+         `<div key={index} style="display: flex; align-items: center; justify-content: space-between">
+
+              <div style="flex: 1; font-weight: 300; font-size: 13px">${item?.quantidade}</div>
+              <div style="flex: 1; font-weight: 300; font-size: 13px">${item?.produto?.referencia}</div>
+              <div style="flex: 7; font-weight: 300; font-size: 13px">${item?.produto?.nome}</div>
+              <div style="flex: 1; font-weight: 300; font-size: 13px">${item?.produto?.tamanho}</div>
+              <div style="flex: 3; font-weight: 300; font-size: 13px">${item?.produto?.cor?.nome}</div>
+              <div style="flex: 1; font-weight: 300; font-size: 13px">${parseFloat(item?.valorUnitario).toFixed(2)}</div>
+              <div style="flex: 1; text-align: end; font-weight: 300; font-size: 13px">${parseFloat(item?.quantidade * item?.valorUnitario).toFixed(2)}</div>
+            </div>`
+      )
+   }).join("")}
+      </div>
+
+      <div style=" margin-top: 20px; flex-direction: row; display: flex; justify-content: space-between ">
+
+
+        <div style="padding-left: 10px; color: '#333' ">
+
+          <div style="font-size: 10px; font-weight: 500; marginBottom: 6 ">Atenção</div>
+          <div style="font-size: 10px; font-weight: 300 ">* Não aceitamos cheque</div>
+          <div style="font-size: 10px; font-weight: 300 ">* Confira a nota na entrega não aceitaremos reclamações posteriores</div>
+        </div>
+
+        <div style="align-items: end; display: flex; flex-direction: column; padding-right: 10px">
+          <div style="font-weight: 300; display: flex; font-size: 13px; text-align: end ">Valor da Nota:
+            <div style="width: 80px">R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}</div>
+          </div>
+
+          ${!!orcamento?.desconto ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end ">Desconto de ${orcamento?.desconto}%
+            <div style="width: 80px ">-R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}</div>
+          </div>` : ''}
+
+          ${!!orcamento?.valorAdiantado ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end">Adiantamento:
+            <div style="width: 80px">R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}</div>
+          </div>` : ''}
+
+          ${!!orcamento?.tempoDePagamento ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end ">Parcelado em ${orcamento?.tempoDePagamento}x
+            <div style="width: 80px ">R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}</div>
+          </div>` : ''}
+
+          <div style="font-size: 13px; display: flex; text-align: end; margin-top:10px ">Total a pagar:
+            <div style="width: 80px ">R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
 
    return (
       <View style={{ flex: 1 }}>
@@ -278,7 +382,7 @@ export default function Orcamento() {
                               <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
                                  <Texto texto={item.estoque - (item.reservado + item.saida)} tipo={'Light'} tamanho={10} />
                               </View>
-                              <Texto texto={item.cor.nome} tipo={'Regular'} />
+                              <Texto texto={item?.cor?.nome} tipo={'Regular'} />
                            </Pressable>
                         )
                      }))]}
@@ -286,7 +390,7 @@ export default function Orcamento() {
 
             </View> : null}
 
-         {orcamento?.estado !== 'Entregue' ? <View style={{ paddingHorizontal: 18, marginVertical: 12 }}>
+         {orcamento?.estado !== 'Entregue' && !!orcamento?.observacao ? <View style={{ paddingHorizontal: 18, marginVertical: 12 }}>
 
             {!!orcamento?.observacao ?
                <Texto cor={'#777'} tipo={'Light'} texto={`Obs. ${orcamento?.observacao}`} /> : null}
@@ -297,11 +401,20 @@ export default function Orcamento() {
 
          <FlatList
             data={itensDoPedido}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
+            contentContainerStyle={{ padding: 10 }}
             renderItem={({ item }) => <ItemDaLista data={item} />}
             ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
+            ListHeaderComponent={
+               
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around',  gap: 6,marginBottom:6 }}>
+            <Icone label='CONDIÇÕES' tamanhoDoIcone={20} disable={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado'} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ccc':'#222'} />
+            {orcamento?.estado !== 'Aberto' && <Icone label='STATUS' tamanhoDoIcone={20} disable={orcamento?.estado === 'Entregue'} onpress={StatusButton(orcamento?.estado)?.caminho} nomeDoIcone={'sync'} corDoIcone={orcamento?.estado === 'Entregue'? '#ccc':'#222'} />}
+            <Icone label='PDF' tamanhoDoIcone={20} disable={orcamento?.estado === 'Aberto'} onpress={() => gerarPDF()} nomeDoIcone={'sharealt'} corDoIcone={orcamento?.estado === 'Aberto' ? '#ccc': '#222'} />
+            <Icone  label='EXCLUIR' tamanhoDoIcone={20} disable={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue'} onpress={() => setModalVisible(true)} nomeDoIcone={'delete'} corDoIcone={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue'? '#ccc':'#222'} />
+         </View>
+            }
          />
-
+         {/* 
          {orcamento?.estado !== 'Aberto' ? <Pressable onPress={StatusButton(orcamento?.estado)?.caminho} style={{
             height: 55,
             margin: 10,
@@ -327,7 +440,7 @@ export default function Orcamento() {
                alignItems: "center"
             }} onPress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })}>
                <Texto cor='#fff' texto={'Condições de Pagamento'} />
-            </Pressable>}
+            </Pressable>} */}
 
 
          <Modal

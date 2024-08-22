@@ -40,7 +40,9 @@ export default function RegistraCliente() {
   return (
     <ScrollView style={{ padding: 10 }}>
 
-      <MaskOfInput mask={(text) => {
+<View style={{ flexDirection: 'row', }}>
+
+      <MaskOfInput style={{ flex: 1 }}  mask={(text) => {
         if (text?.replace(/\D+/g, "")?.length <= 11) {
           return CPF_MASK
         } else {
@@ -48,7 +50,8 @@ export default function RegistraCliente() {
         }
       }} type='numeric' title='CPF/CNPJ' value={cpf_cnpj} setValue={setCpf_Cnpj} />
 
-      {cpf_cnpj.length > 14 ? <MaskOfInput title='Inscrição Estadual / RG' value={inscricaoEstadualRg} setValue={setInscricaoEstadualRg} maxlength={50} /> : null}
+      {cpf_cnpj.length > 14 ? <MaskOfInput style={{ flex: 1 }}  title='Inscrição Estadual / RG' value={inscricaoEstadualRg} setValue={setInscricaoEstadualRg} maxlength={50} /> : null}
+      </View>
 
 
       <MaskOfInput title='Nome' value={nome} setValue={setNome} maxlength={50} />

@@ -72,6 +72,8 @@ export default function Home() {
         {/* <Texto texto={'Cliente Ana Paula irá aniversariar amanhã'} tipo={'Light'} /> */}
       </View>}
 
+
+
       {credencial?.token ?
         <FlatList
           data={buttonsInfo}

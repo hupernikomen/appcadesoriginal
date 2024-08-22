@@ -102,7 +102,8 @@ export default function FinalizaVenda() {
 
 
             Toast('Pedido Enviado')
-            navigation.navigate('Orcamento', { ordemDeCompraID: rota?.ordemDeCompraID })
+            navigation.navigate('HistoricoDeVendas')
+            // navigation.navigate('Orcamento', { ordemDeCompraID: rota?.ordemDeCompraID })
 
         } catch (error) {
             console.log(error.response);
