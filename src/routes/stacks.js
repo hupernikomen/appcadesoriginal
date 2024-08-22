@@ -12,8 +12,6 @@ import HistoricoDeVendas from '../pages/historicoDeVendas';
 import HomeDeVendas from '../pages/homeDeVendas';
 import Orcamento from '../pages/orcamento';
 import Scanner from '../pages/scanner';
-// import AtualizaEstoque from '../pages/atualizaEstoque';
-// import Analytics from '../pages/analytics';
 import ListaDeCores from '../pages/listaDeCores';
 import ListaDeClientes from '../pages/listaClientes';
 import FinalizaVenda from '../pages/finalizaVenda';
@@ -41,13 +39,11 @@ export default function RotasStack() {
             <Stack.Screen name='HomeDeVendas' component={HomeDeVendas} options={{ title: 'Vendas' }} />
             <Stack.Screen name='Orcamento' component={Orcamento} />
             <Stack.Screen name='Scanner' component={Scanner} options={{ title: 'Scanner' }} />
-            {/* <Stack.Screen name='AtualizaEstoque' component={AtualizaEstoque} options={{ title: 'Atualiza Estoque' }} /> */}
-            {/* <Stack.Screen name='Analytics' component={Analytics} /> */}
             <Stack.Screen name='ListaDeCores' component={ListaDeCores} options={{ title: 'Lista de Cores' }} />
             <Stack.Screen name='ListaDeClientes' component={ListaDeClientes} options={{ title: 'Clientes Cadastrados' }} />
             <Stack.Screen name='FinalizaVenda' component={FinalizaVenda} options={{ title: '' }} />
             <Stack.Screen name='BarrasPonto' component={BarrasPonto} options={{ title: '' }} />
-            <Stack.Screen name='ListaEstoque' component={ListaEstoque} options={{ title: 'Estoque Cadastrado' }} />
+            <Stack.Screen name='ListaEstoque' component={ListaEstoque} options={{ title: 'Estoque' }} />
 
 
 

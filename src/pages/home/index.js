@@ -68,7 +68,7 @@ export default function Home() {
     <View style={{ flex: 1, alignItems: 'center', justifyContent: "center" }}>
 
       {!!autenticado && <View style={{ width:270, marginVertical:10 }}>
-        <Texto texto={'Alerta:'} tipo={'Regular'} cor={colors.theme} />
+        {/* <Texto texto={'Alerta:'} tipo={'Regular'} cor={colors.theme} /> */}
         {/* <Texto texto={'Cliente Ana Paula irá aniversariar amanhã'} tipo={'Light'} /> */}
       </View>}
 
