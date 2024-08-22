@@ -40,7 +40,7 @@ export default function Home() {
     { icone: 'swap', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas' },
     { icone: 'profile', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas' },
     { icone: 'user', nome: 'Clientes', notificacao: clientes?.length, pagina: 'ListaDeClientes', desabilitado: credencial?.cargo === 'Vendedor' },
-    { icone: 'skin', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'RegistraEstoque', desabilitado: credencial?.cargo === 'Vendedor' },
+    { icone: 'skin', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'ListaEstoque', desabilitado: credencial?.cargo === 'Vendedor' },
   ]
 
   function Button({ icone, nome, notificacao, pagina, desabilitado }) {

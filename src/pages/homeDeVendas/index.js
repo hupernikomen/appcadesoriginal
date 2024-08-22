@@ -1,21 +1,19 @@
 import { useContext, useEffect, useState } from 'react';
 import { View, Pressable, Keyboard, ActivityIndicator } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from '../../contexts/appContext';
+import Material from 'react-native-vector-icons/MaterialCommunityIcons'
 import AntDesign from 'react-native-vector-icons/AntDesign'
-import Feather from 'react-native-vector-icons/Feather'
 
 import api from '../../services/api';
 import MaskOfInput from '../../components/MaskOfInput';
 import Texto from '../../components/Texto';
-import ContainerItem from '../../components/ContainerItem';
 
 export default function Sale() {
-    const CPF_MASK = [/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/]
+    const CPF_MASK = [/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/, /\d/];
     const CNPJ_MASK = [/\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "/", /\d/, /\d/, /\d/, /\d/, "-", /\d/, /\d/]
 
-    const { credencial, Toast } = useContext(AppContext)
+    const { credencial } = useContext(AppContext)
     const navigation = useNavigation()
     const { colors } = useTheme()
 
@@ -23,44 +21,21 @@ export default function Sale() {
     const [cpf_cnpj, setCpf_Cnpj] = useState('')
 
     const [load, setLoad] = useState(false)
-    const [tipoSelecionado, setTipoSelecionado] = useState('')
+    const [tipoSelecionado, setTipoSelecionado] = useState('Atacado')
 
 
     useEffect(() => {
 
-        // SE CPF/CNPJ ESTIVER INCOMPLETO MANTER DADOS APAGADOS
-        cpf_cnpj.length >= 14 ? BuscaCliente(cpf_cnpj) : setCliente('')
+        if (cpf_cnpj.length > 11) {
+            BuscaCliente(cpf_cnpj);
+        }
 
     }, [cpf_cnpj])
 
 
-    useEffect(() => {
-
-        navigation.setOptions({
-            headerRight: () => {
-                return (
-                    <View style={{ flexDirection: 'row', }}>
-
-                        {!cliente && cpf_cnpj.length >= 14 ? <Pressable style={{ height: 55, width: 40, alignItems: "center", justifyContent: 'center' }}
-                            onPress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })}>
-                            <Feather name='user-plus' color='#fff' size={22} />
-                        </Pressable> : null}
-                        {!cliente && <Pressable style={{ height: 55, width: 40, alignItems: "center", justifyContent: 'center' }}
-                            onPress={() => BuscaCliente('15.302.980/0001-54')}>
-                            <AntDesign name='swap' color='#fff' size={22} />
-                        </Pressable>}
-                    </View>
-                )
-            }
-        })
-
-
-    }, [cliente])
 
 
     async function BuscaCliente(cpf_cnpj) {
-
-
 
         setLoad(true)
 
@@ -90,35 +65,46 @@ export default function Sale() {
         }
 
         try {
-            const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id }, { headers })
+            const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id, tipo: tipoSelecionado }, { headers })
             navigation.navigate('Orcamento', { ordemDeCompraID: response.data.id })
 
         } catch (error) {
             console.log(error.response);
 
+        } finally {
+            setCliente("")
         }
     }
 
     function tipoDeMascara(text) {
+
         if (text?.replace(/\D+/g, "").length <= 11) {
-            return CPF_MASK
+            return CPF_MASK;
         } else {
-            return CNPJ_MASK
+            return CNPJ_MASK;
         }
     }
 
-
     return (
-        <View style={{ flex: 1, padding: 10 }}>
+        <View style={{ flex: 1, padding: 10, gap: 6 }}>
+
+            <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'space-around', gap: 6 }}>
+                <Pressable onPress={() => setTipoSelecionado('Atacado')} style={{ borderRadius: 12, backgroundColor: '#e9e9e9', flexDirection: 'row', gap: 6, height: 40, flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Material style={{ marginLeft: -26 }} name='check' size={20} color={tipoSelecionado === 'Atacado' ? colors.theme : '#ddd'} />
+                    <Texto texto={'Atacado'} cor={tipoSelecionado === 'Atacado' ? '#222' : '#aaa'} />
+                </Pressable>
+
+                <Pressable onPress={() => setTipoSelecionado('Varejo')} style={{ borderRadius: 12, backgroundColor: '#e9e9e9', flexDirection: 'row', gap: 6, height: 40, flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Material style={{ marginLeft: -26 }} name='check' size={20} color={tipoSelecionado === 'Varejo' ? colors.theme : '#ddd'} />
+                    <Texto texto={'Varejo'} cor={tipoSelecionado === 'Varejo' ? '#222' : '#aaa'} />
+                </Pressable>
+            </View>
 
 
-            {/* <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'space-around', marginBottom: 12 }}>
-                <Pressable onPress={() => SalvaTipoDeVenda('Atacado')} style={{ flex: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center', padding: 12, backgroundColor: tipoSelecionado === 'Atacado' ? colors.theme : '#f1f1f1' }}><Texto estilo={{ color: tipoSelecionado === 'Atacado' ? '#fff' : '#aaa' }} texto={'Atacado'} /></Pressable>
-                <Pressable onPress={() => SalvaTipoDeVenda('Varejo')} style={{ flex: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center', padding: 12, backgroundColor: tipoSelecionado === 'Varejo' ? colors.theme : '#f1f1f1' }}><Texto estilo={{ color: tipoSelecionado === 'Varejo' ? '#fff' : '#aaa' }} texto={'Varejo'} /></Pressable>
-            </View> */}
 
-            <View style={{ flexDirection: "row", alignItems: 'center', gap: 6, marginBottom: 30 }}>
-                <MaskOfInput mask={tipoDeMascara(cpf_cnpj)} setValue={setCpf_Cnpj} value={cpf_cnpj} style={{ flex: 1, fontSize: 22 }} type={'numeric'} title={'CPF / CNPJ'} />
+
+            <View style={{ flexDirection: "row", alignItems: 'center', gap: 2 }}>
+                <MaskOfInput mask={tipoDeMascara(cpf_cnpj)} setValue={setCpf_Cnpj} value={cpf_cnpj} style={{ flex: 1, fontSize: 22 }} type={'numeric'} title={!!cliente ? cliente.nome : 'CPF / CNPJ'} />
 
                 <View style={{
                     alignItems: "center",
@@ -127,31 +113,21 @@ export default function Sale() {
                     right: 5,
                     position: 'absolute'
                 }}>
-                    {load ?
-                        <ActivityIndicator color={'#222'} /> :
-                        <Feather name={'search'} size={20} color={'#222'} />
-                    }
+                    {load ? <ActivityIndicator color={'#222'} /> : null}
                 </View>
+                {!!cliente ? <Pressable onPress={() => CriaOrdemDeCompra(cliente)} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+                    <AntDesign name='solution1' size={20} color={'#222'} />
+                </Pressable> : null}
+                {!cpf_cnpj ? <Pressable onPress={() => BuscaCliente("15.302.980/0001-54")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+                    <AntDesign name='swap' size={20} color={'#222'} />
+                </Pressable> : null}
+                {!cliente && cpf_cnpj.length >= 14 ? <Pressable onPress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+                    <AntDesign name='adduser' size={20} color={'#222'} />
+                </Pressable> : null}
             </View>
 
 
-            {!!cliente && cpf_cnpj.length >= 11 ?
-                <Pressable onPress={() => CriaOrdemDeCompra(cliente)} style={{ padding: 18 }}>
-                    <Texto texto={cliente.nome} />
-                    <View style={{ flexDirection: 'row', alignItems: "center", gap: 4 }}>
-                        <AntDesign name='idcard' />
-                        <Texto texto={cliente.cpf_cnpj} tipo='Light' />
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: "center", gap: 4 }}>
-                        <AntDesign name='phone' />
-                        <Texto texto={cliente.whatsapp} tipo='Light' />
-                    </View>
-                </Pressable>
-
-                : null}
-
         </View>
     )
-
 }
 

@@ -182,7 +182,7 @@ export function CrudProvider({ children }) {
 
 
 
-  async function RegistraCliente(cpf_cnpj, nome, endereco, bairro, cidade, estado, whatsapp, dataNascimento) {
+  async function RegistraCliente(cpf_cnpj, nome, endereco, bairro, cidade, estado, whatsapp, dataNascimento, CEP, inscricaoEstadualRg) {
 
     const headers = {
       'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ export function CrudProvider({ children }) {
     }
 
     try {
-      await api.post('/registra/cliente', { cpf_cnpj, nome, endereco, bairro, cidade, estado, whatsapp, dataNascimento }, { headers })
+      await api.post('/registra/cliente', { cpf_cnpj, nome, endereco, bairro, cidade, estado, whatsapp, dataNascimento, CEP, inscricaoEstadualRg }, { headers })
       ListaClientes()
       navigation.goBack()
     } catch (error) {

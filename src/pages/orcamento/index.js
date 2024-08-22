@@ -121,7 +121,7 @@ export default function Orcamento() {
       const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
 
       return (
-         <ContainerItem onpress={() => {
+         <ContainerItem altura={55} onpress={() => {
             orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)
          }}>
 
@@ -129,8 +129,7 @@ export default function Orcamento() {
                <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'flex-start' }}>
 
                   <Texto texto={data.quantidade > 0 ? data.quantidade + 'x' : ''} />
-                  <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${referencia} - ${nome} ${tamanho} ${cor?.nome} #${valorAtacado}`} />
-                  {/* <Texto texto={data.total.toFixed(2).replace('.', ',')} /> */}
+                  <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${referencia} - ${nome} ${tamanho} ${cor?.nome} #${orcamento.tipo === 'Atacado' ? valorAtacado : valorVarejo}`} />
 
                </View>
             </View>
@@ -142,12 +141,6 @@ export default function Orcamento() {
    function StatusButton(estado) {
 
       switch (estado) {
-         // case 'Aberto':
-         //    return {
-         //       icone: 'creditcard',
-         //       texto: 'Pagamento',
-         //       caminho: () => navigation.navigate('FinalizaVenda', { ordemDeCompraID: orcamento?.id }),
-         //    }
          case 'Criado':
             return {
                icone: 'export',
@@ -242,8 +235,6 @@ export default function Orcamento() {
                </View>
 
                <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 12 }}>
-                  {console.log(listaDeTamanhos)
-                  }
                   {listaDeTamanhos.map((tamanho, index) => {
                      const tamanhoExiste = [...new Set(produtoEncontrado.filter(item => (item.estoque - (item.reservado + item.saida)) > 0).map(item => item.tamanho))]
                      return (
@@ -256,7 +247,7 @@ export default function Orcamento() {
                               justifyContent: "center",
                               borderRadius: 12,
                               borderColor: tamanhoSelecionado === tamanho ? colors.theme : "#777",
-                              borderWidth: tamanhoSelecionado.includes(tamanho) ? 2 : .7,
+                              borderWidth: 1,
                            }}>
                            <Texto texto={tamanho} cor={tamanhoSelecionado === tamanho ? colors.theme : "#222"} />
                         </Pressable>
@@ -265,7 +256,7 @@ export default function Orcamento() {
 
                </View>
 
-               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", margin: 6, paddingHorizontal: 6 }}>
+               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", marginHorizontal: 6, paddingHorizontal: 6 }}>
                   {[...new Set(produtoEncontrado.filter(item => item.tamanho === tamanhoSelecionado)
                      .filter(item => item.estoque > (item.reservado + item.saida))
                      .map((item, index) => {
@@ -306,7 +297,7 @@ export default function Orcamento() {
 
          <FlatList
             data={itensDoPedido}
-            contentContainerStyle={{ padding: 10 }}
+            contentContainerStyle={{ paddingHorizontal: 10 }}
             renderItem={({ item }) => <ItemDaLista data={item} />}
             ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
          />

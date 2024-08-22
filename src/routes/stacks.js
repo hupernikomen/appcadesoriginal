@@ -18,6 +18,7 @@ import ListaDeCores from '../pages/listaDeCores';
 import ListaDeClientes from '../pages/listaClientes';
 import FinalizaVenda from '../pages/finalizaVenda';
 import BarrasPonto from '../pages/barrasPonto';
+import ListaEstoque from '../pages/listaEstoque';
 
 export default function RotasStack() {
     const { colors } = useTheme()
@@ -46,6 +47,7 @@ export default function RotasStack() {
             <Stack.Screen name='ListaDeClientes' component={ListaDeClientes} options={{ title: 'Clientes Cadastrados' }} />
             <Stack.Screen name='FinalizaVenda' component={FinalizaVenda} options={{ title: '' }} />
             <Stack.Screen name='BarrasPonto' component={BarrasPonto} options={{ title: '' }} />
+            <Stack.Screen name='ListaEstoque' component={ListaEstoque} options={{ title: 'Estoque Cadastrado' }} />
 
 
 

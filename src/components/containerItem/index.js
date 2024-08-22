@@ -4,16 +4,14 @@ export default function ContainerItem({ children, onpress, altura = 70, largura 
 
     return (
         <Pressable onPress={onpress} style={{
-            backgroundColor: '#f1f1f1',
-            elevation: opacidade !== 1 ? 0 : 5,
+            backgroundColor: '#e9e9e9',
             flexDirection: 'row',
-            padding: 10,
+            paddingHorizontal: 10,
             height: altura,
             width: largura,
-            margin: 1,
+            borderRadius:12,
+            margin: .5,
             alignItems: 'center',
-            borderWidth: 1,
-            borderColor: opacidade !== 1 ? '#e1e1e1' : '#fff' ,
             opacity: opacidade
         }}>
             {children}

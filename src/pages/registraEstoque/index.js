@@ -84,23 +84,6 @@ export default function RegistraEstoque() {
   }, [tamanho, corSelecionada, referencia])
 
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => {
-        return (
-          <View style={{ flexDirection: 'row', gap: 6, marginRight: -10 }}>
-            <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ height: 55, width: 40, alignItems: 'center', justifyContent: 'center' }}>
-              <Material name='invert-colors' size={22} color={colors.text} />
-            </Pressable>
-          </View>
-        )
-      }
-    })
-  }, [])
-
-
-
-
 
   async function ListaCores() {
     try {
@@ -228,7 +211,20 @@ export default function RegistraEstoque() {
 
       <ScrollView>
 
-        <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+
+          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
+          
+          <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
+            <Material name='invert-colors' size={22} color={colors.theme} />
+            <Texto texto={'Cores'} tipo='Light' tamanho={12}/>
+          </Pressable>
+{/* 
+          <Pressable style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
+            <Material name='invert-colors' size={22} color={colors.text} />
+          </Pressable> */}
+
+        </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <MaskOfInput type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
@@ -244,7 +240,7 @@ export default function RegistraEstoque() {
         <View >
           <View style={{ flexDirection: 'row' }}>
             <MaskOfInput maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
-            <Pick title={'Cor'} data={listaDeCores} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
+            <Pick itemTopo={''} title={'Cor'} data={listaDeCores} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
             <MaskOfInput maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
 
           </View>

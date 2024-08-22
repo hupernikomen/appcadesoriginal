@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-nati
 import { Picker } from "@react-native-picker/picker";
 import Texto from '../Texto';
 
-export default function Pick({ data, title, selectedValue, setValue, style, info }) {
+export default function Pick({ data, title, selectedValue, setValue, style, info, itemTopo, valorItemTopo }) {
   const styles = StyleSheet.create({
     box: {
       height: 65,
@@ -42,7 +42,8 @@ export default function Pick({ data, title, selectedValue, setValue, style, info
           setValue(itemValue);
         }}>
         <Picker.Item
-          label=''
+          label={itemTopo}
+          value={valorItemTopo}
           style={{
             color: '#aaa',
             fontSize: 15

@@ -18,8 +18,6 @@ export default function ListColors() {
     async function ListaCores() {
         try {
             const res = await api.get("/listaCores")
-            console.log(res.data);
-
             setCores(res.data)
 
         } catch (error) {
@@ -59,30 +57,57 @@ export default function ListColors() {
         }
     }
 
+    function calcularEstoque(arr) {
+        return arr?.reduce((acc, current) => {
+            acc.estoque += current.estoque;
+            acc.saida += current.saida;
+            return acc;
+        }, { estoque: 0, saida: 0 }).estoque - arr?.reduce((acc, current) => acc + current.saida, 0);
+    }
+
+
+    const Cores = ({ data }) => {
+
+        return (
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text style={{ fontWeight: '300', color: "#000" }}>{data.nome}</Text>
+                <View style={{ flexDirection: "row" }}>
+
+                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 60, textAlign: 'right' }}>{calcularEstoque(data.produto)} </Text>
+                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 60, textAlign: 'right' }}>{data.produto[0]?.saida} </Text>
+                </View>
+            </View>
+        )
+    }
+
+    const CoresCabecalho = () => {
+        return (
+            <View>
+                <View style={{ flexDirection: "row", paddingVertical: 10, marginBottom: 20, borderBottomColor: '#e9e9e9', borderBottomWidth: 1 }}>
+                    <MaskOfInput style={{ flex: 1 }} title='Nome da Cor' value={nome} setValue={setNome} maxlength={20} />
+                    <Pressable onPress={() => CriaCor()} style={{ height: 65, width: 65, alignItems: 'center', justifyContent: 'center' }}><Text>Criar</Text></Pressable>
+                </View>
+                <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between", marginBottom:18 }}>
+
+                    <Text style={{ fontWeight: '500', color: "#000" }}>Cor</Text>
+
+                    <View style={{ flexDirection: "row" }}>
+                        <Text style={{ fontWeight: '500', color: "#000", width: 60, textAlign: 'right' }}>E</Text>
+                        <Text style={{ fontWeight: '500', color: "#000", width: 60, textAlign: 'right' }}>V</Text>
+
+                    </View>
+                </View>
+            </View>
+        )
+    }
 
 
     return (
-        <View>
-
-            <View style={{ flexDirection: "row", padding: 10, marginBottom:20 }}>
-                <MaskOfInput style={{ flex: 1 }} title='Nome da Cor' value={nome} setValue={setNome} maxlength={20} info={''} />
-                <Pressable onPress={() => CriaCor()} style={{ height: 65, width: 65, alignItems: 'center', justifyContent: 'center' }}><Text>Criar</Text></Pressable>
-            </View>
-
-            <FlatList data={cores.sort((a, b) => a.nome.localeCompare(b.nome))}
-                contentContainerStyle={{ paddingHorizontal: 24, }}
-                ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9' }} />}
-                ListHeaderComponent={<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }}>
-                    <Text style={{ fontWeight: '500', color: "#000" }}>Cor</Text>
-                    <Text style={{ fontWeight: '500', color: "#000" }}>Código</Text>
-                </View>}
-                renderItem={({ item }) => (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }}>
-                        <Text style={{ fontWeight: '300', color: "#000" }}>{item.nome}</Text>
-                        <Text style={{ fontWeight: '300', color: "#000" }}>{item.codigo}</Text>
-                    </View>
-                )}
-            />
-        </View>
+        <FlatList data={cores?.sort((a, b) => a.nome.localeCompare(b.nome))}
+            contentContainerStyle={{ paddingHorizontal: 10, paddingBottom:20 }}
+            ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical:18 }} />}
+            ListHeaderComponent={<CoresCabecalho />}
+            renderItem={({ item }) => <Cores data={item} />}
+        />
     );
 }
