@@ -240,7 +240,7 @@ export default function RegistraEstoque() {
         <View >
           <View style={{ flexDirection: 'row' }}>
             <MaskOfInput maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
-            <Pick itemTopo={''} title={'Cor'} data={listaDeCores} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
+            <Pick itemTopo={''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
             <MaskOfInput maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
 
           </View>
