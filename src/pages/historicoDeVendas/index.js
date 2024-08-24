@@ -21,6 +21,9 @@ export default function HistoricoDeVendas() {
   }, [focus])
 
 
+  
+
+
   const converteData = (date) => {
     const data = new Date(date);
     const formatoData = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -29,6 +32,8 @@ export default function HistoricoDeVendas() {
   }
 
   const RenderItem = ({ item }) => {
+
+    const tipoC = item.tipo?.substr(0,1)
 
     return (
 
@@ -46,8 +51,7 @@ export default function HistoricoDeVendas() {
 
         <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .5 : 1 }}>
           <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
-
-            <Text style={styles.pedidoText}>Pedido {item?.estado} - {item.id.substr(0, 6).toUpperCase()}</Text>
+            <Text style={styles.pedidoText}>Pedido {item?.estado} {tipoC}-{item.id.substr(0, 6).toUpperCase()}</Text>
             <Text numberOfLines={1} style={[styles.pedidoText]}>{converteData(item?.criadoEm)}</Text>
           </View>
           <Text numberOfLines={1} style={[styles.pedidoText]}>Cliente: {item?.cliente?.nome}</Text>

@@ -112,9 +112,6 @@ export function AppProvider({ children }) {
       })
   }
 
-
-
-
   return (
     <AppContext.Provider value={{
       Toast,

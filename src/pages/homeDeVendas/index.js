@@ -137,7 +137,7 @@ export default function Sale() {
                     </View>
 
                     {!!cliente ? <Pressable onPress={() => CriaOrdemDeCompra(cliente)} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 60, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-                        <Icone label='COMPRAS' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='bag-handle-outline' onpress={() => CriaOrdemDeCompra(cliente)}/>
+                        <Icone label='SACOLA' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='bag-handle-outline' onpress={() => CriaOrdemDeCompra(cliente)}/>
                     </Pressable> : null}
 
                     {!cpf_cnpj && isEnabled ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>

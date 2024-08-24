@@ -58,7 +58,7 @@ export default function ListaDeClientes() {
         posicao='left'
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
         iconeRight={{ nome: 'add-sharp', acao: () => navigation.navigate('RegistraCliente') }}
-        titulo='Clientes Cadastrados' />
+        titulo='Clientes' />
       <Tela>
         <FlatList
           ItemSeparatorComponent={<View style={{ marginVertical: 6, borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}

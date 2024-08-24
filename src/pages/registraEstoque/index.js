@@ -259,7 +259,7 @@ export default function RegistraEstoque() {
       <Topo
         posicao='left'
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-        titulo='Cadastro de Produtos' />
+        titulo='Produto' />
       <Tela>
 
         <ScrollView style={{ marginTop: 10 }}>

@@ -5,12 +5,15 @@ import { AppContext } from '../../contexts/appContext';
 import MaskOfInput from '../../components/MaskOfInput';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ListColors() {
 
     const { credencial, Toast } = useContext(AppContext)
     const [cores, setCores] = useState([])
     const [nome, setNome] = useState('')
+
+    const navigation = useNavigation()
 
     useEffect(() => {
         ListaCores()
@@ -71,12 +74,13 @@ export default function ListColors() {
     const Cores = ({ data }) => {
 
         return (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
-                <Text style={{ fontWeight: '300', color: "#000" }}>{data.nome}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                
+                <Text style={{ fontWeight: '300', color: "#000" }}>{data?.nome}</Text>
+                
                 <View style={{ flexDirection: "row" }}>
-
-                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 60, textAlign: 'right' }}>{calcularEstoque(data.produto)} </Text>
-                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 60, textAlign: 'right' }}>{data.produto[0]?.saida} </Text>
+                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 60, textAlign: 'right' }}>{calcularEstoque(data?.produto)} </Text>
+                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 60, textAlign: 'right' }}>{data?.produto[0]?.saida} </Text>
                 </View>
             </View>
         )
@@ -90,6 +94,7 @@ export default function ListColors() {
                     <MaskOfInput style={{ flex: 1 }} title='Nome da Cor' value={nome} setValue={setNome} maxlength={20} />
                     <Pressable onPress={() => CriaCor()} style={{ height: 65, width: 65, alignItems: 'center', justifyContent: 'center' }}><Text>Criar</Text></Pressable>
                 </View>
+
                 <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between", marginBottom: 18 }}>
 
                     <Text style={{ fontWeight: '500', color: "#000" }}>Cor</Text>
@@ -115,7 +120,6 @@ export default function ListColors() {
                 titulo='Cores' />
 
             <Tela>
-
                 <FlatList data={cores?.sort((a, b) => a.nome.localeCompare(b.nome))}
                     ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 6 }} />}
                     ListHeaderComponent={<CoresCabecalho />}

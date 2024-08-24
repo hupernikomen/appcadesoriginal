@@ -42,16 +42,10 @@ export function CrudProvider({ children }) {
 
     try {
       const res = await api.get('/lista/ordemDeCompras')
-
-      
-      
-      // Excluir ordemDeCompras vazios
       res.data?.map(async (item) => {
 
         try {
-          if (item.totalDaNota === 0 || !item.totalDaNota) {
-            console.log(item, "BGDBDBF");
-            
+          if (item?.totalDaNota === 0 || !item?.totalDaNota) {
             await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${item?.id}`, { headers })
           }
 
@@ -80,9 +74,7 @@ export function CrudProvider({ children }) {
 
     try {
       const res = await api.get(`/busca/itemDoPedido?ordemDeCompraID=${ordemDeCompraID}`)
-
       setItensDoPedido(res.data)
-
       setLoad(false)
 
     } catch (error) {
@@ -103,9 +95,10 @@ export function CrudProvider({ children }) {
     try {
       await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${itemDoPedidoID}`, { quantidade: Number(quantidade - 1), produtoID: produtoID }, { headers })
       BuscaItemDoPedido(ordemDeCompraID)
+    
+    } catch (error) {
+      console.log(error.response)
     }
-
-    catch (error) { console.log(error.response) }
 
   }
 
@@ -114,8 +107,6 @@ export function CrudProvider({ children }) {
   async function ListaProdutos() {
     try {
       const res = await api.get('/lista/produtos')
-
-      // Somar quantidade de itens no stock 
       let estoque = res.data.reduce((acc, current) => acc + current.estoque, 0)
       let saida = res.data.reduce((acc, current) => acc + current.saida, 0)
       setQuantidadeNoEstoque(estoque - saida)

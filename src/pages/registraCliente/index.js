@@ -100,7 +100,7 @@ export default function RegistraCliente() {
       <Topo
         posicao='left'
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-        titulo='Cadastro de Clientes' />
+        titulo='Cliente' />
       <Tela>
 
         <ScrollView style={{ paddingVertical: 12 }}>

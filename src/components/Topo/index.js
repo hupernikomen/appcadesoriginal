@@ -2,8 +2,9 @@ import { View } from 'react-native';
 import Icone from '../Icone';
 import Texto from '../Texto';
 import { useTheme } from '@react-navigation/native';
+import { mkdir } from 'react-native-fs';
 
-export default function Topo({ children, iconeLeft, iconeRight, titulo, posicao }) {
+export default function Topo({ children, iconeLeft, iconeRight, right, titulo, posicao }) {
 
     const { colors } = useTheme()
 

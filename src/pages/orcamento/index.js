@@ -51,13 +51,13 @@ export default function Orcamento() {
       } else { setProdutoEncontrado([]) }
    }, [referencia])
 
+   const tipoC = orcamento?.tipo?.substr(0,1)
+   
+
    async function BuscaOrdemDecompra() {
       try {
          const res = await api.get(`/busca/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`)
-         const { estado, id } = res.data
          setOrcamento(res.data)
-
-         navigation.setOptions({ title: 'Pedido ' + estado + " - " + id.substr(0, 6).toUpperCase() })
 
       } catch (error) {
          console.log(error.response);
@@ -216,7 +216,7 @@ export default function Orcamento() {
     <div style="display: flex; align-self: center; font-weight: 300; font-size: 13px;">CNPJ: 15.302.980/0001-54 - Contato: (86) 99491-8984</div>
   </div>
 
-  <div style="display: flex; align-self: center; font-weight: 400; padding: 20px;">Ordem de Compra nº ${orcamento?.id.slice(0, 6).toUpperCase()} - ${orcamento?.tipo}</div>
+  <div style="display: flex; align-self: center; font-weight: 400; padding: 20px;">Ordem de Compra nº ${tipoC}-${orcamento?.id.slice(0, 6).toUpperCase()}</div>
 
   <div style="border-color: #eee; border-bottom: 1px solid #eee; padding: 10px;">
 
@@ -297,9 +297,9 @@ export default function Orcamento() {
          <Topo
             posicao='left'
             iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-            titulo={'Pedido ' + orcamento?.estado + " - " + orcamento?.id.substr(0, 6).toUpperCase()} >
-               
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 6, backgroundColor: '#333' }}>
+            titulo={`Pedido ${orcamento?.estado}  ${tipoC}-${orcamento?.id.substr(0, 6).toUpperCase()}`} >
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 6, backgroundColor: '#292929' }}>
 
                {orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? null :
                   <Icone disabled={!itensDoPedido.length > 0} label='CONDIÇÕES' tamanhoDoIcone={18} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet-outline'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ffffff99' : '#fff'} />}
