@@ -7,7 +7,7 @@ export default function Icone({ label = '', disable, onpress, nomeDoIcone, corDo
    return (
       <Pressable disabled={disable} onPress={onpress} style={{
          alignItems: 'center',
-         width: 55,
+         width: 50,
          height: 55,
          alignItems: 'center',
          justifyContent: "center"

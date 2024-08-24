@@ -8,7 +8,9 @@ import MaskOfInput from '../../components/MaskOfInput';
 import Tela from '../../components/Tela';
 
 import { CrudContext } from '../../contexts/crudContext';
+import { AppContext } from '../../contexts/appContext';
 import Topo from '../../components/Topo';
+import api from '../../services/api';
 
 export default function RegistraCliente() {
 
@@ -20,6 +22,8 @@ export default function RegistraCliente() {
   const navigation = useNavigation()
 
   const { RegistraCliente } = useContext(CrudContext)
+  const { credencial, Toast } = useContext(AppContext)
+
   const { colors } = useTheme()
   const [cpf_cnpj, setCpf_Cnpj] = useState("")
   const [nome, setNome] = useState("")
@@ -38,7 +42,61 @@ export default function RegistraCliente() {
       setCpf_Cnpj(rota?.cpf_cnpj)
     }
 
+    if (!!rota?.id) {
+      setEndereco(rota?.endereco)
+      setNome(rota?.nome)
+      setBairro(rota?.bairro)
+      setCidade(rota?.cidade)
+      setEstado(rota?.estado)
+      setCEP(rota?.CEP)
+      setWhatsapp(rota?.whatsapp)
+      setDataNascimento(rota?.dataNascimento)
+    }
+
   }, [rota])
+
+  async function AtualizaCliente(
+    cpf_cnpj,
+    nome,
+    endereco,
+    bairro,
+    cidade,
+    estado,
+    whatsapp,
+    dataNascimento,
+    CEP,
+    inscricaoEstadualRg) {
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${credencial?.token}`
+    }
+
+    try {
+      await api.put(`/atualiza/cliente?clienteID=${rota?.id}`, {
+        cpf_cnpj,
+        nome,
+        endereco,
+        bairro,
+        cidade,
+        estado,
+        whatsapp,
+        dataNascimento,
+        CEP,
+        inscricaoEstadualRg
+      }, { headers })
+
+      Toast('Cliente Atualizado')
+    } catch (error) {
+      console.log(error.response);
+
+    } finally { 
+      navigation.navigate('Home')
+    }
+
+
+
+  }
 
   return (
     <>
@@ -48,7 +106,7 @@ export default function RegistraCliente() {
         titulo='Cadastro de Clientes' />
       <Tela>
 
-        <ScrollView style={{paddingVertical:12}}>
+        <ScrollView style={{ paddingVertical: 12 }}>
 
           <View style={{ flexDirection: 'row', }}>
 
@@ -85,21 +143,38 @@ export default function RegistraCliente() {
             <MaskOfInput mask={Masks.DATE_DDMMYYYY} type='numeric' title='Data de Nascimento' value={dataNascimento} setValue={setDataNascimento} style={{ flex: 1 }} />
           </View>
 
-          <Pressable onPress={() => RegistraCliente(
-            cpf_cnpj,
-            nome,
-            endereco,
-            bairro,
-            cidade,
-            estado,
-            whatsapp,
-            dataNascimento,
-            CEP,
-            inscricaoEstadualRg
-          )}
-            style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}>
-            <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>
-          </Pressable>
+          {!!rota?.id ?
+            <Pressable onPress={() => AtualizaCliente(
+              cpf_cnpj,
+              nome,
+              endereco,
+              bairro,
+              cidade,
+              estado,
+              whatsapp,
+              dataNascimento,
+              CEP,
+              inscricaoEstadualRg
+            )}
+              style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}>
+              <Text style={{ color: '#fff', fontSize: 16 }}>Atualiza</Text>
+            </Pressable>
+            :
+            <Pressable onPress={() => RegistraCliente(
+              cpf_cnpj,
+              nome,
+              endereco,
+              bairro,
+              cidade,
+              estado,
+              whatsapp,
+              dataNascimento,
+              CEP,
+              inscricaoEstadualRg
+            )}
+              style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}>
+              <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>
+            </Pressable>}
 
         </ScrollView>
       </Tela>

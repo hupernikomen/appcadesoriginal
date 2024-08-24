@@ -143,7 +143,7 @@ export default function Sale() {
                     </Pressable> : null}
 
                     {!cpf_cnpj && isEnabled ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-                        <Icone label='VENDA LIVRE' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("000.000.000-00")}/>
+                        <Icone label='S/ CAD.' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("000.000.000-00")}/>
                         </Pressable> : null}
 
                     {!cliente && cpf_cnpj.length >= 14 ? <Pressable onPress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 60, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>

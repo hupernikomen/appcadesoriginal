@@ -16,7 +16,6 @@ import Icone from '../../components/Icone';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
 import Topo from '../../components/Topo';
-import Tela from '../../components/Tela';
 
 
 export default function Orcamento() {
@@ -91,13 +90,9 @@ export default function Orcamento() {
          setProdutoEncontrado(res.data)
 
       } catch (error) {
-         console.log(error.response);
-
+         console.log(error.response)
       }
    }
-
-
-   
 
    function ItemDaLista({ data }) {
 
@@ -111,31 +106,23 @@ export default function Orcamento() {
 
                <View style={{ flexDirection: 'row', alignItems: "center" }}>
 
-                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={{ elevation: 3, borderRadius: 6, alignItems: "center", justifyContent: 'center', width: 25, height: 30, backgroundColor: '#fff' }}
-                     onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}><Texto texto='-' /></Pressable>
+                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? 1 : .5 }]}
+                     onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
+                     <Texto texto='-' />
+                  </Pressable>
+
                   <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
-                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={{ elevation: 3, borderRadius: 6, alignItems: "center", justifyContent: 'center', width: 25, height: 30, backgroundColor: '#fff' }} onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}><Texto texto='+' /></Pressable>
+
+                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? 1 : .5 }]}
+                     onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
+                     <Texto texto='+' />
+                  </Pressable>
+
                </View>
             </View>
          </ContainerItem>
       )
    }
-
-
-   function StatusButton(estado) {
-
-      switch (estado) {
-         case 'Criado':
-            return {
-               caminho: () => StateBudget()
-            }
-         case 'Separado':
-            return {
-               caminho: () => StateBudget()
-            }
-      }
-   }
-
 
    async function StateBudget() {
 
@@ -253,8 +240,6 @@ export default function Orcamento() {
       <div style="flex: 1; text-align: end; font-size: 13px">Total</div>
     </div>
 
-
-
            ${orcamento?.itemDoPedido?.map((item, index) => {
 
       return (
@@ -308,8 +293,6 @@ export default function Orcamento() {
   `
    return (
       <>
-
-
          <Topo
             posicao='left'
             iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
@@ -319,12 +302,11 @@ export default function Orcamento() {
          <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 6, backgroundColor: colors.theme }}>
 
             <Icone label='CONDIÇÕES' tamanhoDoIcone={18} disable={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado'} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet-outline'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ffffff99' : '#fff'} />
-            {orcamento?.estado !== 'Aberto' && <Icone label='STATUS' tamanhoDoIcone={18} disable={orcamento?.estado === 'Entregue'} onpress={StatusButton(orcamento?.estado)?.caminho} nomeDoIcone={'sync'} corDoIcone={orcamento?.estado === 'Entregue' ? '#ffffff99' : '#fff'} />}
+            {orcamento?.estado !== 'Aberto' && <Icone label='STATUS' tamanhoDoIcone={18} disable={orcamento?.estado === 'Entregue'} onpress={() => StateBudget()} nomeDoIcone={'sync'} corDoIcone={orcamento?.estado === 'Entregue' ? '#ffffff99' : '#fff'} />}
             <Icone label='PDF' tamanhoDoIcone={18} disable={orcamento?.estado === 'Aberto'} onpress={() => gerarPDF()} nomeDoIcone={'share-social-outline'} corDoIcone={orcamento?.estado === 'Aberto' ? '#ffffff99' : '#fff'} />
             <Icone label='EXCLUIR' tamanhoDoIcone={18} disable={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue'} onpress={() => setModalVisible(true)} nomeDoIcone={'trash-outline'} corDoIcone={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue' ? '#ffffff99' : '#fff'} />
 
          </View>
-
 
          {orcamento?.estado === 'Aberto' ?
             <View style={{ gap: 6, marginBottom: 20 }}>
@@ -355,7 +337,6 @@ export default function Orcamento() {
 
                </View>
 
-
                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", marginHorizontal: 6, paddingHorizontal: 6 }} >
                   {[...new Set(produtoEncontrado.filter(item => item.tamanho === tamanhoSelecionado)
                      .filter(item => item.estoque > (item.reservado + item.saida))
@@ -373,7 +354,6 @@ export default function Orcamento() {
                                  paddingHorizontal: 18,
                                  marginRight: 5,
                                  marginVertical: 4,
-
                               }}>
 
                               <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
@@ -384,8 +364,6 @@ export default function Orcamento() {
                         )
                      }))]}
                </ScrollView>
-
-
             </View> : null}
 
 
@@ -418,11 +396,13 @@ export default function Orcamento() {
                         onPress={() => CancelarCompra(orcamento?.id)}>
                         <Text style={styles.textStyle}>Sim, Cancelar</Text>
                      </Pressable>
+
                      <Pressable
                         style={[styles.button, { backgroundColor: '#fff' }]}
                         onPress={() => setModalVisible(!modalVisible)}>
                         <Text style={{ color: '#222' }}>Desistir</Text>
                      </Pressable>
+
                   </View>
 
                </View>
@@ -451,4 +431,13 @@ const styles = StyleSheet.create({
       borderRadius: 12,
       padding: 10,
    },
+   btnQtd: {
+      elevation: 3,
+      borderRadius: 6,
+      alignItems: "center",
+      justifyContent: 'center',
+      width: 25,
+      height: 30,
+      backgroundColor: '#fff'
+   }
 });

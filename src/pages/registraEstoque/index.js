@@ -17,6 +17,7 @@ import Pick from '../../components/Picker';
 import Texto from '../../components/Texto';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
+import Icone from '../../components/Icone';
 
 export default function RegistraEstoque() {
 
@@ -220,8 +221,7 @@ export default function RegistraEstoque() {
             <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
 
             <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
-              <Material name='invert-colors' size={22} color={colors.theme} />
-              <Texto texto={'Cores'} tipo='Light' tamanho={12} />
+              <Icone nomeDoIcone='contrast' label='CORES' corDoIcone='#222'/>
             </Pressable>
 
           </View>
