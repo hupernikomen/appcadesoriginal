@@ -298,16 +298,16 @@ export default function Orcamento() {
             posicao='left'
             iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
             titulo={'Pedido ' + orcamento?.estado + " - " + orcamento?.id.substr(0, 6).toUpperCase()} >
-
+               
             <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 6, backgroundColor: '#333' }}>
 
                {orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? null :
-                  <Icone label='CONDIÇÕES' tamanhoDoIcone={18} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet-outline'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ffffff99' : '#fff'} />}
+                  <Icone disabled={!itensDoPedido.length > 0} label='CONDIÇÕES' tamanhoDoIcone={18} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet-outline'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ffffff99' : '#fff'} />}
 
                {orcamento?.estado === 'Aberto' ? null :
                   <Icone label='PDF' tamanhoDoIcone={18} onpress={() => gerarPDF()} nomeDoIcone={'share-social-outline'} corDoIcone={'#fff'} />}
 
-               {orcamento?.estado === 'Aberto' ? null :
+               {orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue' ? null  :
                   <Icone label='STATUS' tamanhoDoIcone={18} onpress={() => StateBudget()} nomeDoIcone={'arrow-redo-outline'} corDoIcone={'#fff'} />}
 
                {orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue' ? null :
