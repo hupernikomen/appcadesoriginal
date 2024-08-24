@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../../contexts/appContext';
 import MaskOfInput from '../../components/MaskOfInput';
 import Tela from '../../components/Tela';
+import Topo from '../../components/Topo';
 
 export default function ListColors() {
 
@@ -83,6 +84,7 @@ export default function ListColors() {
 
     const CoresCabecalho = () => {
         return (
+
             <View>
                 <View style={{ flexDirection: "row", paddingVertical: 10, marginBottom: 20, borderBottomColor: '#e9e9e9', borderBottomWidth: 1 }}>
                     <MaskOfInput style={{ flex: 1 }} title='Nome da Cor' value={nome} setValue={setNome} maxlength={20} />
@@ -99,18 +101,27 @@ export default function ListColors() {
                     </View>
                 </View>
             </View>
+
+
         )
     }
 
 
     return (
-        <Tela>
+        <>
+            <Topo
+                posicao='left'
+                iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+                titulo='Cores' />
 
-            <FlatList data={cores?.sort((a, b) => a.nome.localeCompare(b.nome))}
-                ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 6 }} />}
-                ListHeaderComponent={<CoresCabecalho />}
-                renderItem={({ item }) => <Cores data={item} />}
-            />
-        </Tela>
+            <Tela>
+
+                <FlatList data={cores?.sort((a, b) => a.nome.localeCompare(b.nome))}
+                    ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 6 }} />}
+                    ListHeaderComponent={<CoresCabecalho />}
+                    renderItem={({ item }) => <Cores data={item} />}
+                />
+            </Tela>
+        </ >
     );
 }

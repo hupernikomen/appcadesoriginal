@@ -99,21 +99,22 @@ export default function Orcamento() {
       const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
 
       return (
-         <ContainerItem altura={60}>
+         <ContainerItem altura={50}>
             <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
 
-               <Texto estilo={{ flex: 1, paddingRight: 18 }} tipo={'Light'} texto={`${referencia} - ${nome} Tam. ${tamanho} ${cor?.nome} #${orcamento?.tipo === 'Atacado' ? valorAtacado : valorVarejo}`} />
+               <Texto texto={`${referencia} `} />
+               <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${nome} T. ${tamanho} ${cor?.nome} `} />
 
                <View style={{ flexDirection: 'row', alignItems: "center" }}>
 
-                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? 1 : .5 }]}
+                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
                      onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
                      <Texto texto='-' />
                   </Pressable>
 
                   <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
 
-                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? 1 : .5 }]}
+                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
                      onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
                      <Texto texto='+' />
                   </Pressable>
@@ -296,17 +297,26 @@ export default function Orcamento() {
          <Topo
             posicao='left'
             iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-            titulo={'Pedido ' + orcamento?.estado + " - " + orcamento?.id.substr(0, 6).toUpperCase()} />
+            titulo={'Pedido ' + orcamento?.estado + " - " + orcamento?.id.substr(0, 6).toUpperCase()} >
 
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 6, backgroundColor: '#333' }}>
 
-         <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 6, backgroundColor: colors.theme }}>
+               {orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? null :
+                  <Icone label='CONDIÇÕES' tamanhoDoIcone={18} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet-outline'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ffffff99' : '#fff'} />}
 
-            <Icone label='CONDIÇÕES' tamanhoDoIcone={18} disable={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado'} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet-outline'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ffffff99' : '#fff'} />
-            {orcamento?.estado !== 'Aberto' && <Icone label='STATUS' tamanhoDoIcone={18} disable={orcamento?.estado === 'Entregue'} onpress={() => StateBudget()} nomeDoIcone={'sync'} corDoIcone={orcamento?.estado === 'Entregue' ? '#ffffff99' : '#fff'} />}
-            <Icone label='PDF' tamanhoDoIcone={18} disable={orcamento?.estado === 'Aberto'} onpress={() => gerarPDF()} nomeDoIcone={'share-social-outline'} corDoIcone={orcamento?.estado === 'Aberto' ? '#ffffff99' : '#fff'} />
-            <Icone label='EXCLUIR' tamanhoDoIcone={18} disable={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue'} onpress={() => setModalVisible(true)} nomeDoIcone={'trash-outline'} corDoIcone={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue' ? '#ffffff99' : '#fff'} />
+               {orcamento?.estado === 'Aberto' ? null :
+                  <Icone label='PDF' tamanhoDoIcone={18} onpress={() => gerarPDF()} nomeDoIcone={'share-social-outline'} corDoIcone={'#fff'} />}
 
-         </View>
+               {orcamento?.estado === 'Aberto' ? null :
+                  <Icone label='STATUS' tamanhoDoIcone={18} onpress={() => StateBudget()} nomeDoIcone={'arrow-redo-outline'} corDoIcone={'#fff'} />}
+
+               {orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue' ? null :
+                  <Icone label='EXCLUIR' tamanhoDoIcone={18} onpress={() => setModalVisible(true)} nomeDoIcone={'trash-outline'} corDoIcone={'#fff'} />}
+
+            </View>
+
+         </Topo>
+
 
          {orcamento?.estado === 'Aberto' ?
             <View style={{ gap: 6, marginBottom: 20 }}>
@@ -376,7 +386,7 @@ export default function Orcamento() {
 
          <FlatList
             data={itensDoPedido}
-            contentContainerStyle={{ paddingHorizontal: 14 }}
+            contentContainerStyle={{ padding: 14 }}
             renderItem={({ item }) => <ItemDaLista data={item} />}
             ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
          />
@@ -404,7 +414,6 @@ export default function Orcamento() {
                      </Pressable>
 
                   </View>
-
                </View>
             </View>
          </Modal>
@@ -437,7 +446,7 @@ const styles = StyleSheet.create({
       alignItems: "center",
       justifyContent: 'center',
       width: 25,
-      height: 30,
+      height: 35,
       backgroundColor: '#fff'
    }
 });

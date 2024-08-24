@@ -93,9 +93,6 @@ export default function RegistraCliente() {
     } finally { 
       navigation.navigate('Home')
     }
-
-
-
   }
 
   return (
@@ -157,7 +154,7 @@ export default function RegistraCliente() {
               inscricaoEstadualRg
             )}
               style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}>
-              <Text style={{ color: '#fff', fontSize: 16 }}>Atualiza</Text>
+              <Text style={{ color: '#fff', fontSize: 16 }}>Atualizar</Text>
             </Pressable>
             :
             <Pressable onPress={() => RegistraCliente(

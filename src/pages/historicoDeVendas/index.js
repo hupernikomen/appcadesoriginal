@@ -75,6 +75,7 @@ export default function HistoricoDeVendas() {
 
         <FlatList
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{paddingVertical:14}}
           data={ordenarListaPorEstado(ordemDeCompra)}
           renderItem={({ item }) => <RenderItem item={item} />}
         />

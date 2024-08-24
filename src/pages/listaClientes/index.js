@@ -62,6 +62,7 @@ export default function ListaDeClientes() {
       <Tela>
         <FlatList
           ItemSeparatorComponent={<View style={{ marginVertical: 6, borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}
+          contentContainerStyle={{ paddingVertical: 14 }}
           data={clientes.sort((a, b) => a.nome.localeCompare(b.nome))}
           renderItem={({ item }) => <Cliente data={item} />}
         />

@@ -1,9 +1,8 @@
-import { Pressable, View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { Pressable, View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 
-import { useTheme } from '@react-navigation/native';
+import { useTheme, useRoute } from '@react-navigation/native';
 import { useEffect, useContext, useState } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign'
-import Material from 'react-native-vector-icons/MaterialCommunityIcons'
 import MaskOfInput from '../../components/MaskOfInput';
 import { createNumberMask } from 'react-native-mask-input';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +21,7 @@ import Icone from '../../components/Icone';
 export default function RegistraEstoque() {
 
   const navigation = useNavigation()
+  const { params: rota } = useRoute()
 
   const CurrencyMask = createNumberMask({
     delimiter: '.',
@@ -68,11 +68,14 @@ export default function RegistraEstoque() {
     { codigo: '17', tamanho: '14' },
   ]
 
+  useEffect(() => {
 
+    if (!!rota) BuscaProdutosPorCodigo(rota?.codigoDeBarras)
+  }, [])
 
   useEffect(() => {
 
-    Promise.all([BuscaProdutos(referencia), ListaCores()])
+    if (!rota) Promise.all([BuscaProdutos(referencia), ListaCores()])
 
   }, [referencia])
 
@@ -99,7 +102,37 @@ export default function RegistraEstoque() {
     }
   }
 
+  async function BuscaProdutosPorCodigo(codigoDeBarras) {
+
+    setLoadBusca(true)
+
+    try {
+      const res = await api.get(`/busca/produto/codigo?codigoDeBarras${codigoDeBarras}`)
+      const produto = res.data.find((item) => item.codigoDeBarras === codigoDeBarras)
+
+      setReferencia(produto?.referencia)
+      setNome(produto?.nome)
+      setValorAtacado(String(produto?.valorAtacado))
+      setValorVarejo(String(produto?.valorVarejo))
+      setTamanho(produto?.tamanho)
+      setEstoque(String(produto?.estoque))
+      setCorSelecionada(produto?.cor)
+
+    } catch (error) {
+      console.log(error.response);
+
+    } finally {
+      setLoadBusca(false)
+    }
+
+  }
+
+
   async function BuscaProdutos(referencia) {
+
+    if (!!rota) {
+      return
+    }
 
     setLoadBusca(true)
 
@@ -111,11 +144,6 @@ export default function RegistraEstoque() {
         setNome(produto.nome)
         setValorAtacado(produto.valorAtacado)
         setValorVarejo(produto.valorVarejo)
-
-      } else {
-        setNome('')
-        setValorAtacado('')
-        setValorVarejo('')
 
       }
     } catch (error) {
@@ -129,7 +157,7 @@ export default function RegistraEstoque() {
 
   const buscaCodigoDeTamanho = (tamanho) => {
     for (let i = 0; i < listaTamanhos.length; i++) {
-      if (listaTamanhos[i].tamanho.toUpperCase() === tamanho.toUpperCase()) {
+      if (listaTamanhos[i].tamanho?.toUpperCase() === tamanho?.toUpperCase()) {
         return listaTamanhos[i].codigo;
       }
     }
@@ -153,7 +181,28 @@ export default function RegistraEstoque() {
     return checksum;
   }
 
+  async function AtualizaProduto() {
 
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${credencial?.token}`
+    }
+
+    try {
+      await api.put(`/atualiza/produto?produtoID=${rota?.id}`, {
+        nome, valorAtacado, valorVarejo
+      }, { headers })
+
+      navigation.navigate('ListaEstoque')
+
+    } catch (error) {
+      console.log(error.response);
+
+    } finally {
+      Toast('Produto Atualizado')
+    }
+
+  }
 
   async function RegistraProduto() {
 
@@ -207,7 +256,6 @@ export default function RegistraEstoque() {
   return (
 
     <>
-
       <Topo
         posicao='left'
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
@@ -220,27 +268,26 @@ export default function RegistraEstoque() {
 
             <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
 
-            <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
-              <Icone nomeDoIcone='contrast' label='CORES' corDoIcone='#222'/>
-            </Pressable>
+            {!!rota ? null : <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
+              <Icone onpress={() => navigation.navigate('ListaDeCores')} nomeDoIcone='contrast' label='CORES' corDoIcone='#222' />
+            </Pressable>}
 
           </View>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <MaskOfInput type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
+            <MaskOfInput editable={!rota} type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
             <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Descrição' value={nome} setValue={setNome} maxlength={30} info={nome?.length + '/30'} />
           </View>
-
 
           <View style={{ flexDirection: 'row' }}>
             <MaskOfInput type='numeric' load={loadBusca} style={{ flex: 1 }} title='Valor Atacado' value={valorAtacado} setValue={setValorAtacado} mask={CurrencyMask} />
             <MaskOfInput type='numeric' load={loadBusca} style={{ flex: 1 }} title='Valor Varejo' value={valorVarejo} setValue={setValorVarejo} mask={CurrencyMask} />
           </View>
 
-          <View >
+          {!!rota ? null : <View >
             <View style={{ flexDirection: 'row' }}>
               <MaskOfInput maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
-              <Pick itemTopo={''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
+              <Pick itemTopo={corSelecionada?.nome || ''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
               <MaskOfInput maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
 
             </View>
@@ -286,30 +333,95 @@ export default function RegistraEstoque() {
               <Texto texto={'Adicionar à lista'} />
               <AntDesign name='enter' size={18} />
             </Pressable> : null}
-          </View>
+          </View>}
 
           {itensAAdcionar.length ?
             <View style={{
               paddingVertical: 8,
-              paddingHorizontal: 18,
+              paddingHorizontal: 14,
               marginVertical: 18,
               borderTopWidth: .7,
               borderColor: '#aaa',
             }}>
 
-              <View style={{ flexDirection: 'row', justifyContent: "space-between" }}>
+              <View style={{ flexDirection: 'row', justifyContent: "space-between", marginBottom: 14 }}>
                 <Texto texto={'Descrição'} tipo='Medium' />
                 <Texto texto={'Qtd.'} tipo='Medium' />
               </View>
 
               {itensAAdcionar.map((item, index) => {
+                const filteredProdutos = itensAAdcionar.filter(produto => produto.codigoDeBarras !== item.codigoDeBarras);
                 return (
-                  <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flexDirection: 'row', justifyContent: "space-between", borderBottomColor: '#ddd', borderBottomWidth: .7, paddingVertical: 6 }}>
-                    <Text style={{ fontWeight: '300', color: '#000', flex: 1 }}>{item.referencia} - {item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
-                    <Text style={{ width: 30, textAlign: 'right' }}>{item.estoque}</Text>
-                  </Animated.View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+                    <Pressable style={{ flex: 1, }} onPress={() => {
+                      Alert.alert(
+                        '',
+                        `Excluir o item: ${item.nome}?`,
+                        [
+                          {
+                            text: 'Cancelar',
+                            onPress: () => console.log('Cancel Pressed'),
+                            style: 'cancel',
+                          },
+                          {
+                            text: 'Excluir',
+                            onPress: () => {
+                              setItensAAdicionar(filteredProdutos);
+                            },
+                          },
+                        ],
+                        { cancelable: false }
+                      );
+                    }}>
+                      <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flex: 1, flexDirection: 'row', justifyContent: "space-between", alignItems: 'center' }}>
+                        <Text style={{ fontWeight: '300', color: '#000', paddingVertical: 6 }}>{item.referencia}</Text>
+                        <Text style={{ fontWeight: '300', color: '#000', flex: 1, marginLeft: 6 }}>{item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
+                        <Text style={{ width: 30, textAlign: 'right' }}>{item.estoque}</Text>
+                      </Animated.View>
+                    </Pressable>
+                  </View>
                 )
               })}
+              {/* 
+              <FlatList data={itensAAdcionar}
+                ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
+                renderItem={({ item, index }) => {
+                  return (
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+                      <Pressable style={{ flex: 1, }} onPress={() => {
+                        Alert.alert(
+                          '',
+                          `Excluir o item: ${item.nome}?`,
+                          [
+                            {
+                              text: 'Cancelar',
+                              onPress: () => console.log('Cancel Pressed'),
+                              style: 'cancel',
+                            },
+                            {
+                              text: 'Excluir',
+                              onPress: () => {
+                                setItensAAdicionar(filteredProdutos);
+                              },
+                            },
+                          ],
+                          { cancelable: false }
+                        );
+                      }}>
+                        <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flex: 1, flexDirection: 'row', justifyContent: "space-between" }}>
+                          <Text style={{ fontWeight: '300', color: '#000' }}>{item.referencia}</Text>
+                          <Text style={{ fontWeight: '300', color: '#000', flex: 1, marginLeft: 6 }}>{item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
+                          <Text style={{ width: 30, textAlign: 'right' }}>{item.estoque}</Text>
+                        </Animated.View>
+                      </Pressable>
+                    </View>
+                  )
+                }}
+              /> */}
+
+
 
               <Pressable style={{
                 alignItems: "center",
@@ -342,6 +454,7 @@ export default function RegistraEstoque() {
 
         </ScrollView>
         {itensAAdcionar.length && !finalizarLista ?
+
           <Pressable onPress={() => RegistraProduto()}
             style={[styles.botaoCadastrar, { backgroundColor: colors.theme }]}>
 
@@ -349,6 +462,15 @@ export default function RegistraEstoque() {
 
           </Pressable>
           : null
+        }
+
+        {!!rota &&
+          <Pressable onPress={() => AtualizaProduto()}
+            style={[styles.botaoCadastrar, { backgroundColor: colors.theme }]}>
+
+            {load ? <ActivityIndicator color={'#fff'} /> : <Text style={{ color: '#fff', fontSize: 16 }}>Atualizar</Text>}
+
+          </Pressable>
         }
       </Tela>
     </>

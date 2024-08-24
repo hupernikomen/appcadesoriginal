@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import MaskInput from 'react-native-mask-input';
 import Texto from '../Texto';
 
-export default function MaskOfInput({ styleMask, lines, load, mask, style,  editable = true, type = 'default', title, value = 1, setValue, multiline = true, maxlength, info }) {
+export default function MaskOfInput({ styleMask, lines, load, mask, style,  editable, type = 'default', title, value = 1, setValue, multiline = true, maxlength, info }) {
 
   const inputRef = useRef(null);
 

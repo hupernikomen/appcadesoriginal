@@ -2,8 +2,6 @@ import { useContext, useEffect, useState } from 'react';
 import { View, Pressable, Keyboard, ActivityIndicator, Switch } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { AppContext } from '../../contexts/appContext';
-import Material from 'react-native-vector-icons/MaterialCommunityIcons'
-import AntDesign from 'react-native-vector-icons/AntDesign'
 
 import api from '../../services/api';
 import MaskOfInput from '../../components/MaskOfInput';
@@ -151,9 +149,6 @@ export default function Sale() {
                     </Pressable> : null}
 
                 </View>
-
-
-
             </Tela>
         </>
     )
