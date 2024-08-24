@@ -3,6 +3,7 @@ import api from '../../services/api';
 import { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../../contexts/appContext';
 import MaskOfInput from '../../components/MaskOfInput';
+import Tela from '../../components/Tela';
 
 export default function ListColors() {
 
@@ -69,7 +70,7 @@ export default function ListColors() {
     const Cores = ({ data }) => {
 
         return (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                 <Text style={{ fontWeight: '300', color: "#000" }}>{data.nome}</Text>
                 <View style={{ flexDirection: "row" }}>
 
@@ -87,7 +88,7 @@ export default function ListColors() {
                     <MaskOfInput style={{ flex: 1 }} title='Nome da Cor' value={nome} setValue={setNome} maxlength={20} />
                     <Pressable onPress={() => CriaCor()} style={{ height: 65, width: 65, alignItems: 'center', justifyContent: 'center' }}><Text>Criar</Text></Pressable>
                 </View>
-                <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between", marginBottom:18 }}>
+                <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between", marginBottom: 18 }}>
 
                     <Text style={{ fontWeight: '500', color: "#000" }}>Cor</Text>
 
@@ -103,11 +104,13 @@ export default function ListColors() {
 
 
     return (
-        <FlatList data={cores?.sort((a, b) => a.nome.localeCompare(b.nome))}
-            contentContainerStyle={{ paddingHorizontal: 10, paddingBottom:20 }}
-            ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical:18 }} />}
-            ListHeaderComponent={<CoresCabecalho />}
-            renderItem={({ item }) => <Cores data={item} />}
-        />
+        <Tela>
+
+            <FlatList data={cores?.sort((a, b) => a.nome.localeCompare(b.nome))}
+                ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 6 }} />}
+                ListHeaderComponent={<CoresCabecalho />}
+                renderItem={({ item }) => <Cores data={item} />}
+            />
+        </Tela>
     );
 }

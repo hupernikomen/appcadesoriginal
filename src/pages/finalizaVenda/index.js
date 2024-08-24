@@ -8,6 +8,7 @@ import api from '../../services/api';
 
 import { createNumberMask } from 'react-native-mask-input';
 import MaskOfInput from '../../components/MaskOfInput';
+import Tela from '../../components/Tela';
 
 export default function FinalizaVenda() {
 
@@ -102,7 +103,7 @@ export default function FinalizaVenda() {
 
 
             Toast('Pedido Enviado')
-            navigation.navigate('HistoricoDeVendas')
+            navigation.navigate('Home')
             // navigation.navigate('Orcamento', { ordemDeCompraID: rota?.ordemDeCompraID })
 
         } catch (error) {
@@ -113,7 +114,7 @@ export default function FinalizaVenda() {
 
 
     return (
-        <View style={{ padding: 10, gap: 6 }}>
+        <Tela>
 
             <View style={{ padding: 16 }}>
                 <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {parseFloat(orcamento?.totalDaNota).toFixed(2).replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
@@ -145,6 +146,6 @@ export default function FinalizaVenda() {
                 }
 
             </Pressable>
-        </View>
+        </Tela>
     );
 }

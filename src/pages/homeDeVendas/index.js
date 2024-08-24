@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { View, Pressable, Keyboard, ActivityIndicator } from 'react-native';
+import { View, Pressable, Keyboard, ActivityIndicator, Switch } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { AppContext } from '../../contexts/appContext';
 import Material from 'react-native-vector-icons/MaterialCommunityIcons'
@@ -8,6 +8,9 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import api from '../../services/api';
 import MaskOfInput from '../../components/MaskOfInput';
 import Texto from '../../components/Texto';
+import Tela from '../../components/Tela';
+import Topo from '../../components/Topo';
+import Icone from '../../components/Icone';
 
 export default function Sale() {
     const CPF_MASK = [/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/, /\d/];
@@ -23,11 +26,14 @@ export default function Sale() {
     const [load, setLoad] = useState(false)
     const [tipoSelecionado, setTipoSelecionado] = useState('Atacado')
 
+    const [isEnabled, setIsEnabled] = useState(false);
+    const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
     useEffect(() => {
 
         if (cpf_cnpj.length > 11) {
             BuscaCliente(cpf_cnpj);
+
         }
 
     }, [cpf_cnpj])
@@ -86,48 +92,70 @@ export default function Sale() {
     }
 
     return (
-        <View style={{ flex: 1, padding: 10, gap: 6 }}>
+        <>
+            <Topo
+                posicao='left'
+                iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+                titulo='Ordem de Compra' />
 
-            <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'space-around', gap: 6 }}>
-                <Pressable onPress={() => setTipoSelecionado('Atacado')} style={{ borderRadius: 12, backgroundColor: '#e9e9e9', flexDirection: 'row', gap: 6, height: 40, flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Material style={{ marginLeft: -26 }} name='check' size={20} color={tipoSelecionado === 'Atacado' ? colors.theme : '#ddd'} />
-                    <Texto texto={'Atacado'} cor={tipoSelecionado === 'Atacado' ? '#222' : '#aaa'} />
-                </Pressable>
-
-                <Pressable onPress={() => setTipoSelecionado('Varejo')} style={{ borderRadius: 12, backgroundColor: '#e9e9e9', flexDirection: 'row', gap: 6, height: 40, flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Material style={{ marginLeft: -26 }} name='check' size={20} color={tipoSelecionado === 'Varejo' ? colors.theme : '#ddd'} />
-                    <Texto texto={'Varejo'} cor={tipoSelecionado === 'Varejo' ? '#222' : '#aaa'} />
-                </Pressable>
-            </View>
+            <Tela>
 
 
+                <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 20, marginBottom:20, borderBottomWidth:.7, borderColor:'#ccc' }}>
+                    <Pressable onPress={() => {
+                        setTipoSelecionado('Atacado')
+                        setIsEnabled(false)
+                    }} style={{ flex: 1,alignItems:'center', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}>
 
+                        <Texto texto={'Venda Atacado'} cor={!isEnabled ? colors.theme : '#bbb'} />
+                    </Pressable>
 
-            <View style={{ flexDirection: "row", alignItems: 'center', gap: 2 }}>
-                <MaskOfInput mask={tipoDeMascara(cpf_cnpj)} setValue={setCpf_Cnpj} value={cpf_cnpj} style={{ flex: 1, fontSize: 22 }} type={'numeric'} title={!!cliente ? cliente.nome : 'CPF / CNPJ'} />
+                    <Switch
+                        trackColor={{ false: '#ccc', true: '#ccc' }}
+                        thumbColor={colors.theme}
+                        onValueChange={toggleSwitch}
+                        value={isEnabled}
+                    />
 
-                <View style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 45,
-                    right: 5,
-                    position: 'absolute'
-                }}>
-                    {load ? <ActivityIndicator color={'#222'} /> : null}
+                    <Pressable onPress={() => {
+                        setTipoSelecionado('Varejo')
+                        setIsEnabled(true)
+                    }} style={{ flex: 1,alignItems:'center', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}>
+                        <Texto texto={'Venda Varejo'} cor={isEnabled ? colors.theme : '#bbb'} />
+                    </Pressable>
                 </View>
-                {!!cliente ? <Pressable onPress={() => CriaOrdemDeCompra(cliente)} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-                    <AntDesign name='solution1' size={20} color={'#222'} />
-                </Pressable> : null}
-                {!cpf_cnpj ? <Pressable onPress={() => BuscaCliente("15.302.980/0001-54")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-                    <AntDesign name='swap' size={20} color={'#222'} />
-                </Pressable> : null}
-                {!cliente && cpf_cnpj.length >= 14 ? <Pressable onPress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-                    <AntDesign name='adduser' size={20} color={'#222'} />
-                </Pressable> : null}
-            </View>
+
+                <View style={{ flexDirection: "row", alignItems: 'center', gap: 2 }}>
+                    <MaskOfInput mask={tipoDeMascara(cpf_cnpj)} setValue={setCpf_Cnpj} value={cpf_cnpj} style={{ flex: 1, fontSize: 22 }} type={'numeric'} title={!!cliente ? cliente.nome : 'CPF / CNPJ'} />
+
+                    <View style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 45,
+                        right: 5,
+                        position: 'absolute'
+                    }}>
+                        {load ? <ActivityIndicator color={'#222'} /> : null}
+                    </View>
+
+                    {!!cliente ? <Pressable onPress={() => CriaOrdemDeCompra(cliente)} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 60, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+                        <Icone label='COMPRAS' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='bag-handle-outline' onpress={() => CriaOrdemDeCompra(cliente)}/>
+                    </Pressable> : null}
+
+                    {!cpf_cnpj && isEnabled ? <Pressable onPress={() => BuscaCliente("15.302.980/0001-54")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+                        <Icone label='VENDA LIVRE' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("15.302.980/0001-54")}/>
+                        </Pressable> : null}
+
+                    {!cliente && cpf_cnpj.length >= 14 ? <Pressable onPress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 60, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+                        <Icone label='NOVO' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='person-add-outline' onpress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })}/>
+                    </Pressable> : null}
+
+                </View>
 
 
-        </View>
+
+            </Tela>
+        </>
     )
 }
 

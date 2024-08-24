@@ -15,6 +15,8 @@ import api from '../../services/api';
 import Load from '../../components/Load';
 import Pick from '../../components/Picker';
 import Texto from '../../components/Texto';
+import Tela from '../../components/Tela';
+import Topo from '../../components/Topo';
 
 export default function RegistraEstoque() {
 
@@ -98,12 +100,11 @@ export default function RegistraEstoque() {
 
   async function BuscaProdutos(referencia) {
 
-
     setLoadBusca(true)
 
     try {
-      const response = await api.get(`/busca/produto/referencia?referencia${referencia}`)
-      const produto = response.data.find((item) => item.referencia === referencia)
+      const res = await api.get(`/busca/produto/referencia?referencia${referencia}`)
+      const produto = res.data.find((item) => item.referencia === referencia)
 
       if (!!produto) {
         setNome(produto.nome)
@@ -200,159 +201,157 @@ export default function RegistraEstoque() {
     })
   }
 
-
-
-
-
   if (load) return <Load />
 
   return (
-    <View style={{ flex: 1, padding: 10 }}>
 
-      <ScrollView>
+    <>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Topo
+        posicao='left'
+        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+        titulo='Cadastro de Produtos' />
+      <Tela>
 
-          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
-          
-          <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
-            <Material name='invert-colors' size={22} color={colors.theme} />
-            <Texto texto={'Cores'} tipo='Light' tamanho={12}/>
-          </Pressable>
-{/* 
-          <Pressable style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
-            <Material name='invert-colors' size={22} color={colors.text} />
-          </Pressable> */}
+        <ScrollView style={{ marginTop: 10 }}>
 
-        </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <MaskOfInput type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
-          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Descrição' value={nome} setValue={setNome} maxlength={30} info={nome?.length + '/30'} />
-        </View>
+            <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
 
-
-        <View style={{ flexDirection: 'row' }}>
-          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Valor Atacado' value={valorAtacado} setValue={setValorAtacado} mask={CurrencyMask} />
-          <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Valor Varejo' value={valorVarejo} setValue={setValorVarejo} mask={CurrencyMask} />
-        </View>
-
-        <View >
-          <View style={{ flexDirection: 'row' }}>
-            <MaskOfInput maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
-            <Pick itemTopo={''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
-            <MaskOfInput maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
+            <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
+              <Material name='invert-colors' size={22} color={colors.theme} />
+              <Texto texto={'Cores'} tipo='Light' tamanho={12} />
+            </Pressable>
 
           </View>
 
-          {!!codigoDeBarras ? <Pressable
-            style={{
-              alignItems: "center",
-              justifyContent: 'center',
-              padding: 18,
-              backgroundColor: "#f5f5f5",
-              flexDirection: 'row',
-              gap: 6
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <MaskOfInput type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
+            <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Descrição' value={nome} setValue={setNome} maxlength={30} info={nome?.length + '/30'} />
+          </View>
 
-            }}
-            onPress={() => {
-              if (!tamanho || !corSelecionada || !estoque || !codigoDeBarras) {
-                Toast('Preenchimento incompleto')
-                return
-              }
 
-              if (!listaTamanhos.find((item) => item.tamanho === tamanho.toUpperCase())?.codigo || !listaDeCores.find((item) => item.nome === corSelecionada.nome)?.codigo) {
-                Toast('Tamanho ou cor invalida')
-                return
+          <View style={{ flexDirection: 'row' }}>
+            <MaskOfInput type='numeric' load={loadBusca} style={{ flex: 1 }} title='Valor Atacado' value={valorAtacado} setValue={setValorAtacado} mask={CurrencyMask} />
+            <MaskOfInput type='numeric' load={loadBusca} style={{ flex: 1 }} title='Valor Varejo' value={valorVarejo} setValue={setValorVarejo} mask={CurrencyMask} />
+          </View>
 
-              }
+          <View >
+            <View style={{ flexDirection: 'row' }}>
+              <MaskOfInput maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
+              <Pick itemTopo={''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
+              <MaskOfInput maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
 
-              setItensAAdicionar(arr => [...arr, {
-                referencia,
-                codigoDeBarras,
-                nome,
-                valorAtacado,
-                valorVarejo,
-                tamanho: tamanho.toUpperCase(),
-                corSelecionada,
-                estoque
-              }])
-              setCorSelecionada('')
-              setEstoque('')
-              setCodigoDeBarras('')
-            }
-
-            }>
-            <Texto texto={'Adicionar à lista'} />
-            <AntDesign name='enter' size={18} />
-          </Pressable> : null}
-        </View>
-
-        {itensAAdcionar.length ?
-          <View style={{
-            paddingVertical: 8,
-            paddingHorizontal: 18,
-            marginVertical: 18,
-            borderTopWidth: .7,
-            borderColor: '#aaa',
-
-          }}>
-
-            <View style={{ flexDirection: 'row', justifyContent: "space-between" }}>
-              <Texto texto={'Descrição'} tipo='Medium' />
-              <Texto texto={'Qtd.'} tipo='Medium' />
             </View>
 
+            {!!codigoDeBarras ? <Pressable
+              style={{
+                alignItems: "center",
+                justifyContent: 'center',
+                padding: 18,
+                backgroundColor: "#f5f5f5",
+                flexDirection: 'row',
+                gap: 6
 
-            {itensAAdcionar.map((item, index) => {
-              return (
-                <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flexDirection: 'row', justifyContent: "space-between", borderBottomColor: '#ddd', borderBottomWidth: .7, paddingVertical: 6 }}>
-                  <Text style={{ fontWeight: '300', color: '#000', flex: 1 }}>{item.referencia} - {item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
-                  <Text style={{ width: 30, textAlign: 'right' }}>{item.estoque}</Text>
-                </Animated.View>
-              )
-            })}
+              }}
+              onPress={() => {
+                if (!tamanho || !corSelecionada || !estoque || !codigoDeBarras) {
+                  Toast('Preenchimento incompleto')
+                  return
+                }
 
-            <Pressable style={{
-              alignItems: "center",
-              justifyContent: 'center',
-              padding: 18,
-              backgroundColor: "#f5f5f5",
+                if (!listaTamanhos.find((item) => item.tamanho === tamanho.toUpperCase())?.codigo || !listaDeCores.find((item) => item.nome === corSelecionada.nome)?.codigo) {
+                  Toast('Tamanho ou cor invalida')
+                  return
 
-            }} onPress={() => setFinalizarLista(!finalizarLista)}>
-              {finalizarLista ?
-                <View style={{
-                  flexDirection: 'row',
-                  gap: 6
-                }}>
-                  <Texto texto={'Finalizar Lista'} />
-                  <AntDesign name='check' size={18} />
-                </View>
-                :
-                <View style={{
-                  flexDirection: 'row',
-                  gap: 6
-                }}>
-                  <AntDesign name='back' size={18} />
-                  <Texto texto={'Continuar adicionando...'} />
-                </View>
+                }
+
+                setItensAAdicionar(arr => [...arr, {
+                  referencia,
+                  codigoDeBarras,
+                  nome,
+                  valorAtacado,
+                  valorVarejo,
+                  tamanho: tamanho.toUpperCase(),
+                  corSelecionada,
+                  estoque
+                }])
+                setCorSelecionada('')
+                setEstoque('')
+                setCodigoDeBarras('')
               }
-            </Pressable>
 
-          </View> : null
+              }>
+              <Texto texto={'Adicionar à lista'} />
+              <AntDesign name='enter' size={18} />
+            </Pressable> : null}
+          </View>
+
+          {itensAAdcionar.length ?
+            <View style={{
+              paddingVertical: 8,
+              paddingHorizontal: 18,
+              marginVertical: 18,
+              borderTopWidth: .7,
+              borderColor: '#aaa',
+            }}>
+
+              <View style={{ flexDirection: 'row', justifyContent: "space-between" }}>
+                <Texto texto={'Descrição'} tipo='Medium' />
+                <Texto texto={'Qtd.'} tipo='Medium' />
+              </View>
+
+              {itensAAdcionar.map((item, index) => {
+                return (
+                  <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flexDirection: 'row', justifyContent: "space-between", borderBottomColor: '#ddd', borderBottomWidth: .7, paddingVertical: 6 }}>
+                    <Text style={{ fontWeight: '300', color: '#000', flex: 1 }}>{item.referencia} - {item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
+                    <Text style={{ width: 30, textAlign: 'right' }}>{item.estoque}</Text>
+                  </Animated.View>
+                )
+              })}
+
+              <Pressable style={{
+                alignItems: "center",
+                justifyContent: 'center',
+                padding: 18,
+                backgroundColor: "#f5f5f5",
+
+              }} onPress={() => setFinalizarLista(!finalizarLista)}>
+                {finalizarLista ?
+                  <View style={{
+                    flexDirection: 'row',
+                    gap: 6
+                  }}>
+                    <Texto texto={'Finalizar Lista'} />
+                    <AntDesign name='check' size={18} />
+                  </View>
+                  :
+                  <View style={{
+                    flexDirection: 'row',
+                    gap: 6
+                  }}>
+                    <AntDesign name='back' size={18} />
+                    <Texto texto={'Continuar adicionando...'} />
+                  </View>
+                }
+              </Pressable>
+
+            </View> : null
+          }
+
+        </ScrollView>
+        {itensAAdcionar.length && !finalizarLista ?
+          <Pressable onPress={() => RegistraProduto()}
+            style={[styles.botaoCadastrar, { backgroundColor: colors.theme }]}>
+
+            {load ? <ActivityIndicator color={'#fff'} /> : <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>}
+
+          </Pressable>
+          : null
         }
-
-      </ScrollView>
-      {itensAAdcionar.length && !finalizarLista ? <Pressable
-        style={[styles.botaoCadastrar, { backgroundColor: colors.theme }]}
-        onPress={() => RegistraProduto()}
-      >
-        {load ? <ActivityIndicator color={'#fff'} /> :
-          <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>
-        }
-
-      </Pressable> : null}
-    </View>
+      </Tela>
+    </>
   );
 }
 

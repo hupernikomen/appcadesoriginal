@@ -19,7 +19,7 @@ export default function MaskOfInput({ styleMask, lines, load, mask, style,  edit
       borderRadius: 12,
       paddingHorizontal: 10,
       margin: 2,
-      backgroundColor:"#e9e9e9"
+      backgroundColor:"#e9e9e9",
     },
     boxtop: {
       flexDirection: 'row',

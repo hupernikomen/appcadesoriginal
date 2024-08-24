@@ -10,7 +10,7 @@ export default function ContainerItem({ children, onpress, altura = 70, largura 
             height: altura,
             width: largura,
             borderRadius:12,
-            margin: .5,
+            marginVertical: .8,
             alignItems: 'center',
             opacity: opacidade
         }}>

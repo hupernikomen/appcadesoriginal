@@ -13,6 +13,8 @@ export function AppProvider({ children }) {
   const [load, setLoad] = useState(false)
   const navigation = useNavigation()
 
+  const listaDeTamanhos = ["PP", "P", "M", "G", "GG", "G1", "G2", "G3", "G4", "G5", "2", "4", "6", "8", "10", "12", "14"];
+
   const [credencial, setCredencial] = useState({
     id: '',
     matricula: '',
@@ -112,13 +114,15 @@ export function AppProvider({ children }) {
 
 
 
+
   return (
     <AppContext.Provider value={{
       Toast,
       credencial,
       autenticado,
       signIn, signOut,
-      load, setLoad
+      load, setLoad,
+      listaDeTamanhos
     }}>
       {children}
     </AppContext.Provider>

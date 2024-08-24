@@ -1,50 +1,45 @@
-import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet, ScrollView, TextBase } from 'react-native';
 
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
-import api from '../../services/api';
-
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
+
+import api from '../../services/api';
+
 import Texto from '../../components/Texto';
 import ContainerItem from '../../components/ContainerItem';
 import Load from '../../components/Load';
 import MaskOfInput from '../../components/MaskOfInput';
 import Icone from '../../components/Icone';
 
-
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
+import Topo from '../../components/Topo';
+import Tela from '../../components/Tela';
+
 
 export default function Orcamento() {
-   const navigation = useNavigation()
    const { colors } = useTheme()
-   const [modalVisible, setModalVisible] = useState(false);
-   const { credencial } = useContext(AppContext)
+   const { credencial, listaDeTamanhos } = useContext(AppContext)
    const { BuscaItemDoPedido, itensDoPedido, load, AdicionarItemAoPedido, SubtraiUmItemDoPedido, ListaOrdemDeCompras } = useContext(CrudContext)
+
+   const navigation = useNavigation()
    const { params: rota } = useRoute()
 
-
+   const [modalVisible, setModalVisible] = useState(false);
    const [referencia, setReferencia] = useState([])
    const [produtoEncontrado, setProdutoEncontrado] = useState([])
    const [orcamento, setOrcamento] = useState([])
-
    const [tamanhoSelecionado, setTamanhoSelecionado] = useState("")
-
    const [loadPage, setLoadPage] = useState(true)
-   const listaDeTamanhos = ["PP", "P", "M", "G", "GG", "G1", "G2", "G3", "G4", "G5", "2", "4", "6", "8", "10", "12", "14"];
-
-
 
    useEffect(() => {
       Promise.all([BuscaOrdemDecompra(), AtualizaOrdemDecompra()]).then(() => setLoadPage(false))
-
    }, [itensDoPedido])
 
    useEffect(() => {
       BuscaItemDoPedido(rota.ordemDeCompraID)
-
-
    }, [rota])
 
 
@@ -52,36 +47,25 @@ export default function Orcamento() {
       if (referencia.length === 4) {
          BuscaProduto()
          setTamanhoSelecionado('')
-
          Keyboard.dismiss()
+
       } else { setProdutoEncontrado([]) }
    }, [referencia])
 
-
-
    async function BuscaOrdemDecompra() {
-
       try {
          const res = await api.get(`/busca/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`)
+         const { estado, id } = res.data
          setOrcamento(res.data)
 
-         const { estado, id } = res.data
-
-         navigation.setOptions({
-            title: 'Pedido ' + estado + " - " + id.substr(0, 6).toUpperCase(),
-
-         })
-
+         navigation.setOptions({ title: 'Pedido ' + estado + " - " + id.substr(0, 6).toUpperCase() })
 
       } catch (error) {
          console.log(error.response);
-
       }
    }
 
-
    async function AtualizaOrdemDecompra() {
-
       const headers = {
          'Content-Type': 'application/json',
          'Authorization': `Bearer ${credencial?.token}`
@@ -97,10 +81,8 @@ export default function Orcamento() {
 
       } catch (error) {
          console.log(error.response);
-
       }
    }
-
 
    // BUSCA O PRODUTO DA REFERENCIA DIGITADA
    async function BuscaProduto() {
@@ -119,16 +101,17 @@ export default function Orcamento() {
       const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
 
       return (
-         <ContainerItem altura={55} onpress={() => {
-            orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)
-         }}>
+         <ContainerItem altura={60}>
+            <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
 
-            <View style={{ marginVertical: .5, paddingHorizontal: 6, flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
-               <View style={{ flexDirection: 'row', gap: 6, flex: 1, alignItems: 'flex-start' }}>
+               <Texto estilo={{ flex: 1, paddingRight: 18 }} tipo={'Light'} texto={`${referencia} - ${nome} Tam. ${tamanho} ${cor?.nome} #${orcamento?.tipo === 'Atacado' ? valorAtacado : valorVarejo}`} />
 
-                  <Texto texto={data.quantidade > 0 ? data.quantidade + 'x' : ''} />
-                  <Texto estilo={{ paddingHorizontal: 10, flex: 1 }} tipo={'Light'} texto={`${referencia} - ${nome} ${tamanho} ${cor?.nome} #${orcamento.tipo === 'Atacado' ? valorAtacado : valorVarejo}`} />
+               <View style={{ flexDirection: 'row', alignItems: "center" }}>
 
+                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={{ elevation: 3, borderRadius: 6, alignItems: "center", justifyContent: 'center', width: 25, height: 30, backgroundColor: '#fff' }}
+                     onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}><Texto texto='-' /></Pressable>
+                  <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
+                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={{ elevation: 3, borderRadius: 6, alignItems: "center", justifyContent: 'center', width: 25, height: 30, backgroundColor: '#fff' }} onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}><Texto texto='+' /></Pressable>
                </View>
             </View>
          </ContainerItem>
@@ -141,14 +124,10 @@ export default function Orcamento() {
       switch (estado) {
          case 'Criado':
             return {
-               icone: 'like2',
-               texto: 'Separado',
                caminho: () => StateBudget()
             }
          case 'Separado':
             return {
-               icone: 'swap',
-               texto: 'Entregue',
                caminho: () => StateBudget()
             }
       }
@@ -166,10 +145,12 @@ export default function Orcamento() {
          await api.put(`/atualiza/estoque?ordemDeCompraID=${orcamento?.id}`, { headers })
          navigation.navigate('HistoricoDeVendas')
       }
+
       catch (error) { console.log(error.response) }
    }
 
    async function CancelarCompra(ordemDeCompraID) {
+
       const headers = {
          'Content-Type': 'application/json',
          'Authorization': `Bearer ${credencial?.token}`
@@ -191,6 +172,7 @@ export default function Orcamento() {
 
 
    const gerarPDF = async () => {
+
       const options = {
          html: htmlDoc,
          fileName: 'CadesOriginal_',
@@ -207,23 +189,21 @@ export default function Orcamento() {
          await Share.open(shareOptions);
       } catch (error) {
          if (error.code === 'E_SHARE_CANCELLED') {
-            console.log('Usuário cancelou a compartilhagem');
+            console.log('Usuário cancelou o compartilhamento');
          } else {
             console.log('Erro ao compartilhar PDF:', error);
          }
       }
-
    };
 
    const HeaderBudget = () => {
 
       return (
-         <View style={{ marginTop: 30 }}>
-
+         <View style={{ marginTop: 20 }}>
             {load ? <ActivityIndicator color={colors.theme} /> :
-               <View style={{ alignItems: "flex-end",  borderTopWidth: 1, borderColor: '#e9e9e9',padding:10 }}>
-                  {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} />: null}
+               <View style={{ alignItems: "flex-end", borderTopWidth: 1, borderColor: '#e9e9e9', padding: 10 }}>
 
+                  {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} /> : null}
                   {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
                   {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
                   {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
@@ -231,16 +211,11 @@ export default function Orcamento() {
 
                </View>
             }
-
-
-
          </View>
       )
    }
 
-
    if (loadPage) return <Load />
-
 
    const htmlDoc = `
 <div style="display: flex; flex-direction: column; padding: 30px">
@@ -328,17 +303,34 @@ export default function Orcamento() {
       </div>
     </div>
   `
-
    return (
-      <View style={{ flex: 1 }}>
+      <>
+
+
+         <Topo
+            posicao='left'
+            iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+            titulo={'Pedido ' + orcamento?.estado + " - " + orcamento?.id.substr(0, 6).toUpperCase()} />
+
+
+         <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 6, backgroundColor: colors.theme }}>
+
+            <Icone label='CONDIÇÕES' tamanhoDoIcone={18} disable={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado'} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet-outline'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ffffff99' : '#fff'} />
+            {orcamento?.estado !== 'Aberto' && <Icone label='STATUS' tamanhoDoIcone={18} disable={orcamento?.estado === 'Entregue'} onpress={StatusButton(orcamento?.estado)?.caminho} nomeDoIcone={'sync'} corDoIcone={orcamento?.estado === 'Entregue' ? '#ffffff99' : '#fff'} />}
+            <Icone label='PDF' tamanhoDoIcone={18} disable={orcamento?.estado === 'Aberto'} onpress={() => gerarPDF()} nomeDoIcone={'share-social-outline'} corDoIcone={orcamento?.estado === 'Aberto' ? '#ffffff99' : '#fff'} />
+            <Icone label='EXCLUIR' tamanhoDoIcone={18} disable={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue'} onpress={() => setModalVisible(true)} nomeDoIcone={'trash-outline'} corDoIcone={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue' ? '#ffffff99' : '#fff'} />
+
+         </View>
+
 
          {orcamento?.estado === 'Aberto' ?
-            <View style={{ gap: 6 }}>
-               <View style={{ padding: 10 }}>
+            <View style={{ gap: 6, marginBottom: 20 }}>
+               <View style={{ paddingHorizontal: 14, paddingTop: 10, marginBottom: 20 }}>
+
                   <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
                </View>
 
-               <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 12 }}>
+               <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 14 }}>
                   {listaDeTamanhos.map((tamanho, index) => {
                      const tamanhoExiste = [...new Set(produtoEncontrado.filter(item => (item.estoque - (item.reservado + item.saida)) > 0).map(item => item.tamanho))]
                      return (
@@ -350,17 +342,18 @@ export default function Orcamento() {
                               alignItems: "center",
                               justifyContent: "center",
                               borderRadius: 12,
-                              borderColor: tamanhoSelecionado === tamanho ? colors.theme : "#777",
+                              borderColor: tamanhoSelecionado === tamanho ? colors.detail : "#777",
                               borderWidth: 1,
                            }}>
-                           <Texto texto={tamanho} cor={tamanhoSelecionado === tamanho ? colors.theme : "#222"} />
+                           <Texto texto={tamanho} cor={tamanhoSelecionado === tamanho ? colors.detail : "#222"} />
                         </Pressable>
                      )
                   })}
 
                </View>
 
-               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", marginHorizontal: 6, paddingHorizontal: 6 }}>
+
+               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", marginHorizontal: 6, paddingHorizontal: 6 }} >
                   {[...new Set(produtoEncontrado.filter(item => item.tamanho === tamanhoSelecionado)
                      .filter(item => item.estoque > (item.reservado + item.saida))
                      .map((item, index) => {
@@ -376,7 +369,8 @@ export default function Orcamento() {
                                  height: 40,
                                  paddingHorizontal: 18,
                                  marginRight: 5,
-                                 marginVertical: 4
+                                 marginVertical: 4,
+
                               }}>
 
                               <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
@@ -388,7 +382,9 @@ export default function Orcamento() {
                      }))]}
                </ScrollView>
 
+
             </View> : null}
+
 
          {orcamento?.estado !== 'Entregue' && !!orcamento?.observacao ? <View style={{ paddingHorizontal: 18, marginVertical: 12 }}>
 
@@ -397,51 +393,12 @@ export default function Orcamento() {
 
          </View> : null}
 
-
-
          <FlatList
             data={itensDoPedido}
-            contentContainerStyle={{ padding: 10 }}
+            contentContainerStyle={{ paddingHorizontal: 14 }}
             renderItem={({ item }) => <ItemDaLista data={item} />}
             ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
-            ListHeaderComponent={
-               
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around',  gap: 6,marginBottom:6 }}>
-            <Icone label='CONDIÇÕES' tamanhoDoIcone={20} disable={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado'} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ccc':'#222'} />
-            {orcamento?.estado !== 'Aberto' && <Icone label='STATUS' tamanhoDoIcone={20} disable={orcamento?.estado === 'Entregue'} onpress={StatusButton(orcamento?.estado)?.caminho} nomeDoIcone={'sync'} corDoIcone={orcamento?.estado === 'Entregue'? '#ccc':'#222'} />}
-            <Icone label='PDF' tamanhoDoIcone={20} disable={orcamento?.estado === 'Aberto'} onpress={() => gerarPDF()} nomeDoIcone={'sharealt'} corDoIcone={orcamento?.estado === 'Aberto' ? '#ccc': '#222'} />
-            <Icone  label='EXCLUIR' tamanhoDoIcone={20} disable={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue'} onpress={() => setModalVisible(true)} nomeDoIcone={'delete'} corDoIcone={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue'? '#ccc':'#222'} />
-         </View>
-            }
          />
-         {/* 
-         {orcamento?.estado !== 'Aberto' ? <Pressable onPress={StatusButton(orcamento?.estado)?.caminho} style={{
-            height: 55,
-            margin: 10,
-            backgroundColor: colors.theme,
-            borderRadius: 6,
-            marginVertical: 12,
-            padding: 14,
-            justifyContent: "center",
-            alignItems: "center"
-         }}>
-            <Texto texto={StatusButton(orcamento?.estado)?.texto} cor='#fff' tamanho={16} />
-         </Pressable > : null}
-
-         {orcamento?.estado === 'Aberto' &&
-            <Pressable style={{
-               height: 55,
-               margin: 10,
-               backgroundColor: colors.theme,
-               borderRadius: 6,
-               marginVertical: 12,
-               padding: 14,
-               justifyContent: "center",
-               alignItems: "center"
-            }} onPress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })}>
-               <Texto cor='#fff' texto={'Condições de Pagamento'} />
-            </Pressable>} */}
-
 
          <Modal
             animationType="none"
@@ -453,7 +410,6 @@ export default function Orcamento() {
                   <Text style={{ marginBottom: 12 }}>Cancelar Pedido: {orcamento?.id?.substr(0, 6).toUpperCase()}?</Text>
 
                   <View style={{ flexDirection: "row", gap: 12, marginVertical: 12 }}>
-
                      <Pressable
                         style={[styles.button, { backgroundColor: colors.theme }]}
                         onPress={() => CancelarCompra(orcamento?.id)}>
@@ -465,14 +421,13 @@ export default function Orcamento() {
                         <Text style={{ color: '#222' }}>Desistir</Text>
                      </Pressable>
                   </View>
+
                </View>
             </View>
          </Modal>
-
-      </View >
+      </>
    );
 }
-
 
 const styles = StyleSheet.create({
    centeredView: {
@@ -493,5 +448,4 @@ const styles = StyleSheet.create({
       borderRadius: 12,
       padding: 10,
    },
-
 });

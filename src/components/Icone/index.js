@@ -1,5 +1,6 @@
 import { Pressable, Text } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import Texto from '../Texto';
 
 export default function Icone({ label = '', disable, onpress, nomeDoIcone, corDoIcone = '#fff', tamanhoDoIcone = 22 }) {
@@ -11,8 +12,9 @@ export default function Icone({ label = '', disable, onpress, nomeDoIcone, corDo
          alignItems: 'center',
          justifyContent: "center"
       }}>
-         <AntDesign name={nomeDoIcone} color={corDoIcone} size={tamanhoDoIcone} />
-         <Texto texto={label} tipo='Light' tamanho={9} estilo={{ marginTop: 4 }} cor={corDoIcone}/>
+         
+         <Ionicons name={nomeDoIcone} color={corDoIcone} size={tamanhoDoIcone} />
+         {!!label ? <Texto texto={label} tipo='Light' tamanho={9} estilo={{ marginTop: 4 }} cor={corDoIcone}/> : null}
       </Pressable>
    );
 }

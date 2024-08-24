@@ -6,26 +6,17 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 
 import { CrudContext } from '../../contexts/crudContext';
 import Texto from '../../components/Texto';
+import Tela from '../../components/Tela';
+import Topo from '../../components/Topo';
 
 export default function ListaDeClientes() {
 
   const { clientes } = useContext(CrudContext)
   const navigation = useNavigation()
 
-  useEffect(() => {
-
-    navigation.setOptions({
-      headerRight: () => (
-        <Pressable style={{ width: 45, height: 50, alignItems: "center", justifyContent: "center", marginRight: -10 }} onPress={() => navigation.navigate('RegistraCliente')}>
-          <AntDesign name='plus' color='#fff' size={22} />
-        </Pressable>
-      )
-    })
-  }, [])
-
   const Cliente = ({ data }) => {
     return (
-      <View style={{ padding: 18 }}>
+      <View>
         <Texto texto={data.nome} />
         <View style={{ flexDirection: 'row', alignItems: "center", gap: 4 }}>
           <AntDesign name='idcard' />
@@ -40,11 +31,20 @@ export default function ListaDeClientes() {
   }
 
   return (
-    <View>
-      <FlatList
-        data={clientes}
-        renderItem={({ item }) => <Cliente data={item} />}
-      />
-    </View>
+    <>
+      <Topo
+        posicao='left'
+        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+        iconeRight={{ nome: 'add-sharp', acao: () => navigation.navigate('RegistraCliente') }}
+        titulo='Clientes Cadastrados' />
+      <Tela>
+        <FlatList
+          contentContainerStyle={{ paddingVertical: 12 }}
+          ItemSeparatorComponent={<View style={{ marginVertical: 12 }} />}
+          data={clientes}
+          renderItem={({ item }) => <Cliente data={item} />}
+        />
+      </Tela>
+    </>
   );
 }

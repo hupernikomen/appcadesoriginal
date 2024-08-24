@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../../contexts/appContext';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import Texto from '../../components/Texto';
+import Topo from '../../components/Topo';
 
 export default function BarrasPonto() {
 
@@ -27,16 +28,6 @@ export default function BarrasPonto() {
 
 
     useEffect(() => {
-
-        navigation.setOptions({
-            headerRight: () => {
-                return (
-                    <Pressable onPress={() => MontaCodigo()}>
-                        <AntDesign name='sync' color='#fff' size={20} />
-                    </Pressable>
-                )
-            }
-        })
 
         MontaCodigo()
 
@@ -71,16 +62,21 @@ export default function BarrasPonto() {
 
 
     return (
-
+<>
+<Topo
+        posicao='left'
+        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+        titulo='Crachá Digital' />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
 
             <Texto texto={`${credencial?.nome}`} tipo='Regular' tamanho={18} estilo={{ alignSelf: 'center' }} />
-            <Texto texto={`Crachá digital - Matrícula: ${credencial?.matricula}`} tipo='Light' estilo={{ alignSelf: 'center', marginBottom: 20 }} />
+            <Texto texto={`Matrícula: ${credencial?.matricula}`} tipo='Light' estilo={{ alignSelf: 'center', marginBottom: 20 }} />
             <Texto texto={`${registro}`} tipo='Light' estilo={{ alignSelf: 'center', marginVertical: 20, }} />
 
             <View style={{ alignItems: "center", justifyContent: "center", height: 120 }}>
                 <Text style={{ fontFamily: 'Barcode', fontSize: 250, color: '#222' }}>{codigoDeBarras}</Text>
             </View>
         </View>
+</>
     );
 }

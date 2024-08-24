@@ -5,6 +5,8 @@ import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
 
 import ContainerItem from '../../components/ContainerItem';
+import Tela from '../../components/Tela';
+import Topo from '../../components/Topo';
 
 
 export default function HistoricoDeVendas() {
@@ -41,7 +43,7 @@ export default function HistoricoDeVendas() {
           Toast("Acesso Negado")
         }
       }}>
-        
+
         <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .5 : 1 }}>
           <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
 
@@ -64,25 +66,27 @@ export default function HistoricoDeVendas() {
 
 
   return (
-    <View style={{ flex: 1 }}>
+    <>
+      <Topo
+        posicao='left'
+        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+        titulo='Histórico' />
+      <Tela>
 
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 10 }}
-        data={ordenarListaPorEstado(ordemDeCompra)}
-        renderItem={({ item }) => <RenderItem item={item} />}
-      />
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={ordenarListaPorEstado(ordemDeCompra)}
+          renderItem={({ item }) => <RenderItem item={item} />}
+        />
 
-    </View>
+      </Tela>
+    </>
   )
 
 }
 
 const styles = StyleSheet.create({
 
-  containerPedido: {
-    borderLeftWidth: 1.5,
-  },
   marcadorDoPedido: {
     width: 10,
     aspectRatio: 1,
