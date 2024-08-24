@@ -96,6 +96,9 @@ export default function Orcamento() {
       }
    }
 
+
+   
+
    function ItemDaLista({ data }) {
 
       const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto

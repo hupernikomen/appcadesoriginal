@@ -9,6 +9,7 @@ import api from '../../services/api';
 import { createNumberMask } from 'react-native-mask-input';
 import MaskOfInput from '../../components/MaskOfInput';
 import Tela from '../../components/Tela';
+import Topo from '../../components/Topo';
 
 export default function FinalizaVenda() {
 
@@ -114,38 +115,45 @@ export default function FinalizaVenda() {
 
 
     return (
-        <Tela>
+        <>
+            <Topo
+                posicao='left'
+                iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+                titulo='Condições de Pagamento' />
 
-            <View style={{ padding: 16 }}>
-                <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {parseFloat(orcamento?.totalDaNota).toFixed(2).replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
-            </View>
+            <Tela>
 
-            {!tempoDePagamento && !valorAdiantado && <MaskOfInput type='numeric' title='Desconto (%)' value={desconto} setValue={setDesconto} info={'À pagar R$ ' + ((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100)).toFixed(2).replace('.', ',')} maxlength={2} />}
-           
-            {!desconto && <View>
-                <MaskOfInput type='numeric' title={'Adiantamento (R$)'} value={valorAdiantado} setValue={setValorAdiantado} mask={CurrencyMask} />
-                <MaskOfInput type='numeric' title='Nº de prestações' value={tempoDePagamento} setValue={setTempoDePagamento} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100) / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
-                <Text>{alerta}</Text>
-            </View>}
+                <View style={{ padding: 16 }}>
+                    <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {parseFloat(orcamento?.totalDaNota).toFixed(2).replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
+                </View>
 
-            <MaskOfInput lines={5} multiline={true} styleMask={{ height: 60 }} style={{ height: 100 }} title='Observações' value={observacao} setValue={setObservacao} />
+                {!tempoDePagamento && !valorAdiantado && <MaskOfInput type='numeric' title='Desconto (%)' value={desconto} setValue={setDesconto} info={'À pagar R$ ' + ((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100)).toFixed(2).replace('.', ',')} maxlength={2} />}
 
-            <Pressable
-                style={{
-                    backgroundColor: colors.theme, height: 55,
-                    borderRadius: 6,
-                    marginVertical: 12,
-                    padding: 14,
-                    justifyContent: "center",
-                    alignItems: "center"
-                }}
-                onPress={() => EnviaVenda()}
-            >
-                {load ? <ActivityIndicator color={'#fff'} /> :
-                    <Text style={{ color: '#fff', fontSize: 16 }}>Enviar Pedido</Text>
-                }
+                {!desconto && <View>
+                    <MaskOfInput type='numeric' title={'Adiantamento (R$)'} value={valorAdiantado} setValue={setValorAdiantado} mask={CurrencyMask} />
+                    <MaskOfInput type='numeric' title='Nº de prestações' value={tempoDePagamento} setValue={setTempoDePagamento} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100) / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
+                    <Text>{alerta}</Text>
+                </View>}
 
-            </Pressable>
-        </Tela>
+                <MaskOfInput lines={5} multiline={true} styleMask={{ height: 60 }} style={{ height: 100 }} title='Observações' value={observacao} setValue={setObservacao} />
+
+                <Pressable
+                    style={{
+                        backgroundColor: colors.theme, height: 55,
+                        borderRadius: 6,
+                        marginVertical: 12,
+                        padding: 14,
+                        justifyContent: "center",
+                        alignItems: "center"
+                    }}
+                    onPress={() => EnviaVenda()}
+                >
+                    {load ? <ActivityIndicator color={'#fff'} /> :
+                        <Text style={{ color: '#fff', fontSize: 16 }}>Enviar Pedido</Text>
+                    }
+
+                </Pressable>
+            </Tela>
+        </>
     );
 }

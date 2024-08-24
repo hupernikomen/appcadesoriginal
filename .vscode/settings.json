@@ -1,0 +1,13 @@
+{
+    "thunder-client.defaultHeaders": [
+
+        {
+            "name": "Accept",
+            "value": "*/*"
+        },
+        {
+            "name": "User-Agent",
+            "value": "Thunder Client (https://www.thunderclient.com)"
+        }
+    ]
+}

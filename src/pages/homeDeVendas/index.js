@@ -47,7 +47,7 @@ export default function Sale() {
 
         try {
             const response = await api.get(`/busca/cliente?cpf_cnpj=${cpf_cnpj}`)
-            if (response.data?.cpf_cnpj === "15.302.980/0001-54") {
+            if (response.data?.cpf_cnpj === "000.000.000-00") {
                 CriaOrdemDeCompra(response.data)
             }
 
@@ -142,8 +142,8 @@ export default function Sale() {
                         <Icone label='COMPRAS' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='bag-handle-outline' onpress={() => CriaOrdemDeCompra(cliente)}/>
                     </Pressable> : null}
 
-                    {!cpf_cnpj && isEnabled ? <Pressable onPress={() => BuscaCliente("15.302.980/0001-54")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-                        <Icone label='VENDA LIVRE' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("15.302.980/0001-54")}/>
+                    {!cpf_cnpj && isEnabled ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+                        <Icone label='VENDA LIVRE' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("000.000.000-00")}/>
                         </Pressable> : null}
 
                     {!cliente && cpf_cnpj.length >= 14 ? <Pressable onPress={() => navigation.navigate('RegistraCliente', { cpf_cnpj })} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 60, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>

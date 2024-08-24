@@ -22,6 +22,7 @@ export default function ListaDeClientes() {
           <AntDesign name='idcard' />
           <Texto texto={data.cpf_cnpj} tipo='Light' />
         </View>
+          <Texto texto={data.id} tipo='Light' />
         <View style={{ flexDirection: 'row', alignItems: "center", gap: 4 }}>
           <AntDesign name='phone' />
           <Texto texto={data.whatsapp} tipo='Light' />
