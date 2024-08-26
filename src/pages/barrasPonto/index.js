@@ -62,21 +62,22 @@ export default function BarrasPonto() {
 
 
     return (
-<>
-<Topo
-        posicao='left'
-        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-        titulo='Crachá Digital' />
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <>
+            <Topo
+                posicao='center'
+                iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+                titulo='Crachá Digital' />
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
 
-            <Texto texto={`${credencial?.nome}`} tipo='Regular' tamanho={18} estilo={{ alignSelf: 'center' }} />
-            <Texto texto={`Matrícula: ${credencial?.matricula}`} tipo='Light' estilo={{ alignSelf: 'center', marginBottom: 20 }} />
-            <Texto texto={`${registro}`} tipo='Light' estilo={{ alignSelf: 'center', marginVertical: 20, }} />
+                <Texto texto={`${credencial?.nome}`} tipo='Bold' tamanho={22} />
+                <Texto texto={`Matrícula: ${credencial?.matricula}`} tipo='Light' />
+                <Texto texto={`${registro}`} tipo='Light' />
 
-            <View style={{ alignItems: "center", justifyContent: "center", height: 120 }}>
-                <Text style={{ fontFamily: 'Barcode', fontSize: 250, color: '#222' }}>{codigoDeBarras}</Text>
+                <Texto tipo='Light' texto={'Aponte o leitor para o código de barras'} estilo={{ marginVertical: 30 }} />
+                <View style={{ alignItems: "center", justifyContent: "center", height: 120 }}>
+                    <Text style={{ fontFamily: 'Barcode', fontSize: 250, color: '#222' }}>{codigoDeBarras}</Text>
+                </View>
             </View>
-        </View>
-</>
+        </>
     );
 }

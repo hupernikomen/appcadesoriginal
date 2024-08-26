@@ -2,14 +2,13 @@ import { View } from 'react-native';
 import Icone from '../Icone';
 import Texto from '../Texto';
 import { useTheme } from '@react-navigation/native';
-import { mkdir } from 'react-native-fs';
 
 export default function Topo({ children, iconeLeft, iconeRight, right, titulo, posicao }) {
 
     const { colors } = useTheme()
 
     return (
-        <View style={{ elevation: 5 }}>
+        <View style={{ elevation: 15 }}>
 
             <View style={{ backgroundColor: colors.theme, height: 60, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>

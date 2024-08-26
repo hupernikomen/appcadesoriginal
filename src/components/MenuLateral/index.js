@@ -36,7 +36,7 @@ export default function DrawerCustom(props) {
         }
 
 
-        <View style={{ borderTopWidth: .5, borderColor: '#ff9980' }}>
+        <View style={{ borderTopWidth: .5, borderColor: '#333' }}>
 
           {/* PAGES */}
 

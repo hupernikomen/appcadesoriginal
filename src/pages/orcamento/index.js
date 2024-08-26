@@ -51,8 +51,8 @@ export default function Orcamento() {
       } else { setProdutoEncontrado([]) }
    }, [referencia])
 
-   const tipoC = orcamento?.tipo?.substr(0,1)
-   
+   const tipoC = orcamento?.tipo?.substr(0, 1)
+
 
    async function BuscaOrdemDecompra() {
       try {
@@ -102,8 +102,8 @@ export default function Orcamento() {
          <ContainerItem altura={50}>
             <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
 
-               <Texto texto={`${referencia} `} />
-               <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${nome} T. ${tamanho} ${cor?.nome} `} />
+               <Texto texto={`${referencia} `} tipo='Light' />
+               <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${nome} T. ${tamanho} ${cor?.nome} #${parseFloat(tipoC === 'A' ? valorAtacado : valorVarejo).toFixed(2)}`} />
 
                <View style={{ flexDirection: 'row', alignItems: "center" }}>
 
@@ -292,6 +292,7 @@ export default function Orcamento() {
       </div>
     </div>
   `
+
    return (
       <>
          <Topo
@@ -299,35 +300,73 @@ export default function Orcamento() {
             iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
             titulo={`Pedido ${orcamento?.estado}  ${tipoC}-${orcamento?.id.substr(0, 6).toUpperCase()}`} >
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 6, backgroundColor: '#292929' }}>
+            <View
+               style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-around',
+                  gap: 6,
+                  backgroundColor: '#292929',
+               }}
+            >
+               {orcamento?.estado !== 'Entregue' && orcamento?.estado !== 'Criado' && (
+                  <Icone
+                     disabled={!itensDoPedido.length > 0}
+                     label="CONDIÇÕES"
+                     tamanhoDoIcone={18}
+                     onpress={() =>
+                        navigation.navigate('FinalizaVenda', {
+                           ordemDeCompraID: rota.ordemDeCompraID,
+                        })
+                     }
+                     nomeDoIcone={'wallet-outline'}
+                     corDoIcone="#fff"
+                  />
+               )}
 
-               {orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? null :
-                  <Icone disabled={!itensDoPedido.length > 0} label='CONDIÇÕES' tamanhoDoIcone={18} onpress={() => navigation.navigate('FinalizaVenda', { ordemDeCompraID: rota.ordemDeCompraID })} nomeDoIcone={'wallet-outline'} corDoIcone={orcamento?.estado === 'Entregue' || orcamento?.estado === 'Criado' ? '#ffffff99' : '#fff'} />}
+               {orcamento?.estado !== 'Aberto' && (
+                  <Icone
+                     label="PDF"
+                     tamanhoDoIcone={18}
+                     onpress={gerarPDF}
+                     nomeDoIcone={'share-social-outline'}
+                     corDoIcone="#fff"
+                  />
+               )}
 
-               {orcamento?.estado === 'Aberto' ? null :
-                  <Icone label='PDF' tamanhoDoIcone={18} onpress={() => gerarPDF()} nomeDoIcone={'share-social-outline'} corDoIcone={'#fff'} />}
+               {orcamento?.estado !== 'Aberto' && orcamento?.estado !== 'Entregue' && (
+                  <Icone
+                     label="STATUS"
+                     tamanhoDoIcone={18}
+                     onpress={StateBudget}
+                     nomeDoIcone={'arrow-redo-outline'}
+                     corDoIcone="#fff"
+                  />
+               )}
 
-               {orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue' ? null  :
-                  <Icone label='STATUS' tamanhoDoIcone={18} onpress={() => StateBudget()} nomeDoIcone={'arrow-redo-outline'} corDoIcone={'#fff'} />}
-
-               {orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue' ? null :
-                  <Icone label='EXCLUIR' tamanhoDoIcone={18} onpress={() => setModalVisible(true)} nomeDoIcone={'trash-outline'} corDoIcone={'#fff'} />}
-
+               {orcamento?.estado !== 'Entregue' && (
+                  <Icone
+                     label="EXCLUIR"
+                     tamanhoDoIcone={18}
+                     onpress={() => setModalVisible(true)}
+                     nomeDoIcone={'trash-outline'}
+                     corDoIcone="#fff"
+                  />
+               )}
             </View>
-
          </Topo>
 
-
          {orcamento?.estado === 'Aberto' ?
-            <View style={{ gap: 6, marginBottom: 20 }}>
-               <View style={{ paddingHorizontal: 14, paddingTop: 10, marginBottom: 20 }}>
-
+            <View style={{  }}>
+               <View style={{ paddingHorizontal: 14, paddingVertical: 10 }}>
                   <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
                </View>
 
                <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 14 }}>
                   {listaDeTamanhos.map((tamanho, index) => {
-                     const tamanhoExiste = [...new Set(produtoEncontrado.filter(item => (item.estoque - (item.reservado + item.saida)) > 0).map(item => item.tamanho))]
+                     const tamanhoExiste = [...new Set(produtoEncontrado
+                        .filter(item => (item?.estoque - (item?.reservado + item?.saida)) > 0)
+                        .map(item => item.tamanho))]
+                     if (!tamanhoExiste) return
                      return (
                         <Pressable disabled={!tamanhoExiste.includes(tamanho)} onPress={() => setTamanhoSelecionado(tamanho)} key={index}
                            style={{
@@ -336,44 +375,49 @@ export default function Orcamento() {
                               aspectRatio: 1,
                               alignItems: "center",
                               justifyContent: "center",
+                              backgroundColor: colors.detail2,
+                              elevation: 6,
+                              opacity: .7,
                               borderRadius: 12,
-                              borderColor: tamanhoSelecionado === tamanho ? colors.detail : "#777",
-                              borderWidth: 1,
                            }}>
-                           <Texto texto={tamanho} cor={tamanhoSelecionado === tamanho ? colors.detail : "#222"} />
+                           <Texto texto={tamanho} tipo='Medium' cor='#222' />
                         </Pressable>
                      )
                   })}
 
                </View>
 
-               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", marginHorizontal: 6, paddingHorizontal: 6 }} >
-                  {[...new Set(produtoEncontrado.filter(item => item.tamanho === tamanhoSelecionado)
-                     .filter(item => item.estoque > (item.reservado + item.saida))
-                     .map((item, index) => {
-                        return (
-                           <Pressable disabled={load} onPress={() => AdicionarItemAoPedido({ produtoID: item.id, ordemDeCompraID: orcamento?.id })
-                           } key={index}
-                              style={{
-                                 alignItems: "center",
-                                 justifyContent: "center",
-                                 borderRadius: 12,
-                                 borderColor: '#777',
-                                 borderWidth: .7,
-                                 height: 40,
-                                 paddingHorizontal: 18,
-                                 marginRight: 5,
-                                 marginVertical: 4,
-                              }}>
+               <FlatList
+                  horizontal
+                  ItemSeparatorComponent={<View style={{ marginHorizontal: 3 }} />}
+                  contentContainerStyle={{ paddingHorizontal: 14 }}
+                  data={[...new Set(produtoEncontrado?.filter(item => item.tamanho === tamanhoSelecionado)
+                     .filter(item => item.estoque > (item.reservado + item.saida)))]}
+                  renderItem={({ item, index }) => {
+                     return (
+                        <Pressable disabled={load} onPress={() => AdicionarItemAoPedido({ produtoID: item.id, ordemDeCompraID: orcamento?.id })
+                        } key={index}
+                           style={{
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: 12,
+                              height: 40,
+                              backgroundColor: '#FFF3E0',
+                              elevation: 6,
+                              opacity: .7,
+                              paddingHorizontal: 12,
+                              marginVertical: 12,
+                           }}>
 
-                              <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
-                                 <Texto texto={item.estoque - (item.reservado + item.saida)} tipo={'Light'} tamanho={10} />
-                              </View>
-                              <Texto texto={item?.cor?.nome} tipo={'Regular'} />
-                           </Pressable>
-                        )
-                     }))]}
-               </ScrollView>
+                           <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
+                              <Texto texto={item?.estoque - (item?.reservado + item?.saida)} tipo={'Light'} tamanho={10} />
+                           </View>
+                           <Texto texto={item?.cor?.nome} tipo={'Regular'} />
+                        </Pressable>
+
+                     )
+                  }}
+               />
             </View> : null}
 
 
@@ -446,7 +490,7 @@ const styles = StyleSheet.create({
       alignItems: "center",
       justifyContent: 'center',
       width: 25,
-      height: 35,
+      height: 30,
       backgroundColor: '#fff'
    }
 });
