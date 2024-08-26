@@ -259,8 +259,6 @@ export default function Orcamento() {
       </div>
 
       <div style=" margin-top: 20px; flex-direction: row; display: flex; justify-content: space-between ">
-
-
         <div style="padding-left: 10px; color: '#333' ">
 
           <div style="font-size: 10px; font-weight: 500; marginBottom: 6 ">Atenção</div>

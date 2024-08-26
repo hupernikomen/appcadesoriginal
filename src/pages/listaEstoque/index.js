@@ -12,8 +12,6 @@ export default function ListaEstoque() {
     const [listaEstoque, setListaEstoque] = useState([])
     const navigation = useNavigation()
     const [totalEstoque, setTotalEstoque] = useState('')
-    const screenWidth = Dimensions.get('window').width;
-    const { colors } = useTheme()
     const [load, setLoad] = useState(true)
 
     useEffect(() => {
@@ -22,8 +20,6 @@ export default function ListaEstoque() {
     }, [])
 
     async function ListaEstoque() {
-
-
         try {
             const res = await api.get('/lista/produtos')
 
