@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-
+import codePush from 'react-native-code-push';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { StatusBar } from 'react-native';
 import { AppProvider } from './src/contexts/appContext';
@@ -19,7 +19,7 @@ const Theme = {
   }
 };
 
-export default function App() {
+function App() {
   return (
 
     <NavigationContainer theme={Theme}>
@@ -38,3 +38,5 @@ export default function App() {
     </NavigationContainer>
   )
 }
+
+export default codePush(App)

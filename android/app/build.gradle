@@ -79,8 +79,8 @@ android {
         applicationId "com.appcadesoriginal"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "1.0.15"
+        versionCode 17
+        versionName "1.0.16"
     }
     signingConfigs {
         debug {
@@ -128,3 +128,4 @@ dependencies {
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply from: "../../node_modules/react-native-code-push/android/codepush.gradle"

@@ -94,36 +94,6 @@ export default function Orcamento() {
       }
    }
 
-   function ItemDaLista({ data }) {
-
-      const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
-
-      return (
-         <ContainerItem altura={50}>
-            <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
-
-               <Texto texto={`${referencia} `} tipo='Light' />
-               <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${nome} T. ${tamanho} ${cor?.nome} #${parseFloat(tipoC === 'A' ? valorAtacado : valorVarejo).toFixed(2)}`} />
-
-               <View style={{ flexDirection: 'row', alignItems: "center" }}>
-
-                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
-                     onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
-                     <Texto texto='-' />
-                  </Pressable>
-
-                  <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
-
-                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
-                     onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
-                     <Texto texto='+' />
-                  </Pressable>
-
-               </View>
-            </View>
-         </ContainerItem>
-      )
-   }
 
    async function StateBudget() {
 
@@ -187,26 +157,6 @@ export default function Orcamento() {
       }
    };
 
-   const HeaderBudget = () => {
-
-      return (
-         <View style={{ marginTop: 20 }}>
-            {load ? <ActivityIndicator color={colors.theme} /> :
-               <View style={{ alignItems: "flex-end", borderTopWidth: 1, borderColor: '#e9e9e9', padding: 10 }}>
-
-                  {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} /> : null}
-                  {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
-                  {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
-                  {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
-                  <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}`} />
-
-               </View>
-            }
-         </View>
-      )
-   }
-
-   if (loadPage) return <Load />
 
    const htmlDoc = `
 <div style="display: flex; flex-direction: column; padding: 30px">
@@ -290,6 +240,61 @@ export default function Orcamento() {
       </div>
     </div>
   `
+
+
+  
+  function ItemDaLista({ data }) {
+
+   const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
+
+   return (
+      <ContainerItem altura={50}>
+         <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
+
+            <Texto texto={`${referencia} `} tipo='Light' />
+            <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${nome} T. ${tamanho} ${cor?.nome} #${parseFloat(tipoC === 'A' ? valorAtacado : valorVarejo).toFixed(2)}`} />
+
+            <View style={{ flexDirection: 'row', alignItems: "center" }}>
+
+               <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
+                  onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
+                  <Texto texto='-' />
+               </Pressable>
+
+               <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
+
+               <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
+                  onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
+                  <Texto texto='+' />
+               </Pressable>
+
+            </View>
+         </View>
+      </ContainerItem>
+   )
+}
+
+
+const HeaderBudget = () => {
+
+   return (
+      <View style={{ marginTop: 20 }}>
+         {load ? <ActivityIndicator color={colors.theme} /> :
+            <View style={{ alignItems: "flex-end", borderTopWidth: 1, borderColor: '#e9e9e9', padding: 10 }}>
+
+               {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} /> : null}
+               {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
+               {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
+               {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
+               <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}`} />
+
+            </View>
+         }
+      </View>
+   )
+}
+
+if (loadPage) return <Load />
 
    return (
       <>
