@@ -20,7 +20,6 @@ export default function ListaEstoque() {
     useEffect(() => {
         ListaEstoque()
 
-
     }, [])
 
 
@@ -64,7 +63,6 @@ export default function ListaEstoque() {
             });
 
             const listaEstoque = Object.keys(uniqueReferences).map(key => {
-
 
                 return {
                     referencia: key,
