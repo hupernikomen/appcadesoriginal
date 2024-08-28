@@ -20,11 +20,31 @@ export default function ListaEstoque() {
     useEffect(() => {
         ListaEstoque()
 
+
     }, [])
+
+
+    // Testar Erros no estoque 
+    function verificaIntegridadeDoEstoque(itens) {
+        const itemFalha = itens.find((item) => {
+            const { reservado, saida, estoque } = item;
+            return (
+                reservado < 0 ||
+                reservado + saida > estoque ||
+                saida > estoque
+            );
+        });
+        return { resultado: !!itemFalha, itemFalha };
+    }
 
     async function ListaEstoque() {
         try {
             const res = await api.get('/lista/produtos')
+
+            // Varre o estoque atras de algumas falhas, se houver falha, retorna TRUE e o item da falha
+            const { resultado, itemFalha } = verificaIntegridadeDoEstoque(res.data);
+            console.log(itemFalha, "Item com inconsistência no estoque");
+
 
             const uniqueReferences = {};
             res.data.forEach(item => {
@@ -35,7 +55,7 @@ export default function ListaEstoque() {
                         estoque: 0,
                         nome: item.nome,
                         saida: 0,
-                        saidaTotal: 0
+                        saidaTotal: 0,
                     };
                 }
                 uniqueReferences[item.referencia].estoque += item.estoque;
@@ -44,15 +64,19 @@ export default function ListaEstoque() {
             });
 
             const listaEstoque = Object.keys(uniqueReferences).map(key => {
+
+
                 return {
                     referencia: key,
                     estoque: uniqueReferences[key].estoque,
                     nome: uniqueReferences[key].nome,
-                    saidaTotal: uniqueReferences[key].saidaTotal
+                    saidaTotal: uniqueReferences[key].saidaTotal,
+                    erro: key === itemFalha?.referencia ? true : false
                 };
             });
 
             setListaEstoque(listaEstoque);
+            
 
             const maxStock = listaEstoque.reduce((acc, current) => acc + current.estoque, 0);
             setTotalEstoque(maxStock);
@@ -67,6 +91,7 @@ export default function ListaEstoque() {
     }
 
     function Produtos({ data }) {
+
         return (
             <Pressable onPress={() => navigation.navigate('DetalheEstoque', { referencia: data })} style={{ flexDirection: 'row', justifyContent: "space-between" }}>
                 <View style={{ flexDirection: 'row', alignItems: "baseline" }}>
@@ -79,9 +104,9 @@ export default function ListaEstoque() {
                         <Texto texto={data.nome} tipo='Light' />
                         <Texto tipo='Light' texto={`${((data.estoque / totalEstoque) * 100).toFixed(2)}% do estoque`} />
                         {data.saidaTotal === 0 ? null : <Texto texto={`${data.saidaTotal} ite${data.saidaTotal > 1 ? 'ns' : 'm'} vendido${data.saidaTotal > 1 ? 's' : ''}`} tipo='Light' />}
+                        {!data.erro ? null : <Texto tipo='Light' texto={data.erro ? 'Inconsistência no estoque' : ''} cor={colors.detalhe} />}
                     </View>
                 </View>
-
                 <Texto texto={data.estoque} tipo='Light' />
             </Pressable>
         )
@@ -91,6 +116,7 @@ export default function ListaEstoque() {
 
     return (
         <>
+
             <Topo
                 posicao='center'
                 iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
