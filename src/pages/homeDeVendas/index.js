@@ -110,7 +110,7 @@ export default function Sale() {
 
                     <Switch
                         trackColor={{ false: '#ccc', true: '#ccc' }}
-                        thumbColor={colors.theme}
+                        thumbColor={colors.detalhe}
                         onValueChange={toggleSwitch}
                         value={isEnabled}
                     />

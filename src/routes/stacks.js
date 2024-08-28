@@ -18,6 +18,7 @@ import FinalizaVenda from '../pages/finalizaVenda';
 import BarrasPonto from '../pages/barrasPonto';
 import ListaEstoque from '../pages/listaEstoque';
 import DetalheEstoque from '../pages/detalheEstoque';
+import DetalheCliente from '../pages/detalheCliente';
 
 export default function RotasStack() {
     const { colors } = useTheme()
@@ -26,11 +27,13 @@ export default function RotasStack() {
         <Stack.Navigator
             initialRouteName={'Home'}
             screenOptions={{
-                headerTintColor: colors.text,
+                headerTintColor: colors.fundo,
                 orientation: 'portrait',
+
                 headerTitleStyle: { fontSize: 18, fontFamily: 'Roboto-Medium' },
                 headerStyle: { backgroundColor: colors.theme },
-                headerShown:false
+                headerShown:false,
+                
             }}>
 
             <Stack.Screen name='Home' component={Home}  />
@@ -47,6 +50,8 @@ export default function RotasStack() {
             <Stack.Screen name='BarrasPonto' component={BarrasPonto} options={{ title: '' }} />
             <Stack.Screen name='ListaEstoque' component={ListaEstoque}  />
             <Stack.Screen name='DetalheEstoque' component={DetalheEstoque} />
+            <Stack.Screen name='DetalheCliente' component={DetalheCliente} />
+
 
 
 

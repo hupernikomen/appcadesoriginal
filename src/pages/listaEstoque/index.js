@@ -6,13 +6,16 @@ import Texto from '../../components/Texto';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import Load from '../../components/Load';
+import MaskOfInput from '../../components/MaskOfInput';
 
 export default function ListaEstoque() {
 
-    const [listaEstoque, setListaEstoque] = useState([])
     const navigation = useNavigation()
+    const { colors } = useTheme()
+    const [listaEstoque, setListaEstoque] = useState([])
     const [totalEstoque, setTotalEstoque] = useState('')
     const [load, setLoad] = useState(true)
+    const [busca, setBusca] = useState('')
 
     useEffect(() => {
         ListaEstoque()
@@ -48,6 +51,7 @@ export default function ListaEstoque() {
                     saidaTotal: uniqueReferences[key].saidaTotal
                 };
             });
+
             setListaEstoque(listaEstoque);
 
             const maxStock = listaEstoque.reduce((acc, current) => acc + current.estoque, 0);
@@ -55,21 +59,26 @@ export default function ListaEstoque() {
 
         } catch (error) {
             console.log(error.response);
+
         } finally {
             setLoad(false)
+
         }
     }
 
     function Produtos({ data }) {
         return (
             <Pressable onPress={() => navigation.navigate('DetalheEstoque', { referencia: data })} style={{ flexDirection: 'row', justifyContent: "space-between" }}>
-                <View style={{ flexDirection: 'row', alignItems: "flex-start" }}>
+                <View style={{ flexDirection: 'row', alignItems: "baseline" }}>
 
-                    <Texto estilo={{ width: 40 }} texto={data.referencia} tipo='Light' />
+                    <View style={{ backgroundColor: colors.detalhe, marginRight: 10, borderRadius: 10, paddingHorizontal: 6, alignItems: 'center' }}>
+                        <Texto tamanho={12} texto={data.referencia} cor='#fff' tipo='Light' />
+                    </View>
+
                     <View >
                         <Texto texto={data.nome} tipo='Light' />
-                        <Texto tipo='Light' texto={`${((data.estoque / totalEstoque) * 100).toFixed(2)}% do estoque total`} />
-                        <Texto texto={`${data.saidaTotal} itens vendidos`} tipo='Light' />
+                        <Texto tipo='Light' texto={`${((data.estoque / totalEstoque) * 100).toFixed(2)}% do estoque`} />
+                        {data.saidaTotal === 0 ? null : <Texto texto={`${data.saidaTotal} ite${data.saidaTotal > 1 ? 'ns' : 'm'} vendido${data.saidaTotal > 1 ? 's' : ''}`} tipo='Light' />}
                     </View>
                 </View>
 
@@ -78,40 +87,28 @@ export default function ListaEstoque() {
         )
     }
 
-    const EstoqueCabecalho = () => {
-        return (
-            <View style={{ justifyContent: "space-between", flexDirection: 'row', height: 50, alignItems: 'center' }}>
-
-                <View style={{ flexDirection: 'row' }}>
-                    <Texto tipo='Medium' texto={'Ref.'} estilo={{ width: 40 }} />
-                    <Texto tipo='Medium' texto={'Informações'} />
-                </View>
-                <Texto tipo='Medium' texto={'Estoque'} />
-            </View>
-        )
-    }
-
-    if (load) return <Load/>
-
+    if (load) return <Load />
 
     return (
         <>
             <Topo
-                posicao='left'
+                posicao='center'
                 iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
                 iconeRight={{ nome: 'add-sharp', acao: () => navigation.navigate('RegistraEstoque') }}
-                titulo='Estoque' />
+                titulo='Estoque Atual' />
 
             <Tela>
-
-                <Texto texto={'Obs.: Esta lista está ordenada da referência mais vendida para a menos vendida. Itens clicáveis'} tipo='Light' estilo={{marginVertical:12}}/>
-
                 <FlatList
                     showsVerticalScrollIndicator={false}
-                    ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
-                    data={listaEstoque.sort((a, b) => b.saidaTotal - a.saidaTotal)}
+                    contentContainerStyle={{ paddingVertical: 10 }}
+                    ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 20 }} />}
+                    data={
+                        busca
+                            ? listaEstoque.filter((item) => item.referencia === busca)
+                            : listaEstoque.sort((a, b) => b.saidaTotal - a.saidaTotal)
+                    }
                     renderItem={({ item }) => <Produtos data={item} />}
-                    ListHeaderComponent={<EstoqueCabecalho />}
+                    ListHeaderComponent={<MaskOfInput type='numeric' setValue={setBusca} value={busca} title={'Busca por Referência'} style={{ marginBottom: 30 }} />}
                 />
             </Tela>
         </>

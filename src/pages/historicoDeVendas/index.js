@@ -7,6 +7,7 @@ import { CrudContext } from '../../contexts/crudContext';
 import ContainerItem from '../../components/ContainerItem';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
+import Texto from '../../components/Texto';
 
 
 export default function HistoricoDeVendas() {
@@ -51,10 +52,10 @@ export default function HistoricoDeVendas() {
 
         <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .5 : 1 }}>
           <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
-            <Text style={styles.pedidoText}>Pedido {item?.estado} {tipoC}-{item.id.substr(0, 6).toUpperCase()}</Text>
-            <Text numberOfLines={1} style={[styles.pedidoText]}>{converteData(item?.criadoEm)}</Text>
+            <Texto tipo='Light' texto={`Pedido ${item?.estado} ${tipoC}-${item.id.substr(0, 6).toUpperCase()}`}/>
+            <Texto tipo='Light' texto={`${converteData(item?.criadoEm)}`}/>
           </View>
-          <Text numberOfLines={1} style={[styles.pedidoText]}>Cliente: {item?.cliente?.nome}</Text>
+            <Texto tipo='Light' texto={`Cliente: ${item?.cliente?.nome}`}/>
         </View>
 
       </ContainerItem>
@@ -89,23 +90,3 @@ export default function HistoricoDeVendas() {
   )
 
 }
-
-const styles = StyleSheet.create({
-
-  marcadorDoPedido: {
-    width: 10,
-    aspectRatio: 1,
-    backgroundColor: '#f1f1f1',
-    borderWidth: 2,
-    position: "absolute",
-    marginLeft: -9,
-    borderRadius: 6,
-  },
-  pedidoText: {
-    fontWeight: '300',
-    color: '#222',
-    marginLeft: 6,
-    fontFamily: 'Roboto-Light',
-  },
-
-})

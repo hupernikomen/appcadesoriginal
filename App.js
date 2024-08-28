@@ -10,12 +10,12 @@ import Routes from './src/routes';
 const Theme = {
   ...DefaultTheme,
   colors: {
-    black: '#222',
-    theme: '#212121',
-    detail: '#b32400',
-    detail2: '#FFF3E0',
+    padrao: '#000',
+    theme: '#333',
+    detalhe: '#FF8A80',
+    efeito: '#FFF3E0',
     background: '#f3f3f3',
-    text: '#fff',
+    fundo: '#FAFAFA',
   }
 };
 

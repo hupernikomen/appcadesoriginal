@@ -112,20 +112,23 @@ export default function Orcamento() {
 
    async function CancelarCompra(ordemDeCompraID) {
 
+      
       const headers = {
          'Content-Type': 'application/json',
          'Authorization': `Bearer ${credencial?.token}`
       }
 
       try {
+         
          await api.delete(`/cancelaCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
+         await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
          await BuscaItemDoPedido(orcamento?.id)
          await ListaOrdemDeCompras()
          navigation.goBack()
 
       } catch (error) {
          console.log(error.response);
-
+         
       } finally {
          setModalVisible(!modalVisible)
       }
@@ -166,7 +169,7 @@ export default function Orcamento() {
     <div style="display: flex; align-self: center; font-weight: 300; font-size: 13px;">CNPJ: 15.302.980/0001-54 - Contato: (86) 99491-8984</div>
   </div>
 
-  <div style="display: flex; align-self: center; font-weight: 400; padding: 20px;">Ordem de Compra nº ${tipoC}-${orcamento?.id.slice(0, 6).toUpperCase()}</div>
+  <div style="display: flex; align-self: center; font-weight: 400; padding: 20px;">Ordem de Compra nº ${tipoC}-${orcamento?.id?.slice(0, 6).toUpperCase()}</div>
 
   <div style="border-color: #eee; border-bottom: 1px solid #eee; padding: 10px;">
 
@@ -308,7 +311,7 @@ if (loadPage) return <Load />
                   flexDirection: 'row',
                   justifyContent: 'space-around',
                   gap: 6,
-                  backgroundColor: '#292929',
+                  backgroundColor: colors.theme,
                }}
             >
                {orcamento?.estado !== 'Entregue' && orcamento?.estado !== 'Criado' && (
@@ -359,7 +362,7 @@ if (loadPage) return <Load />
          </Topo>
 
          {orcamento?.estado === 'Aberto' ?
-            <View style={{  }}>
+            <View>
                <View style={{ paddingHorizontal: 14, paddingVertical: 10 }}>
                   <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
                </View>
@@ -378,8 +381,8 @@ if (loadPage) return <Load />
                               aspectRatio: 1,
                               alignItems: "center",
                               justifyContent: "center",
-                              backgroundColor: colors.detail2,
-                              elevation: 6,
+                              backgroundColor: colors.fundo,
+                              elevation: 5,
                               opacity: .7,
                               borderRadius: 12,
                            }}>
@@ -405,8 +408,8 @@ if (loadPage) return <Load />
                               justifyContent: "center",
                               borderRadius: 12,
                               height: 40,
-                              backgroundColor: '#FFF3E0',
-                              elevation: 6,
+                              backgroundColor: colors.fundo,
+                              elevation: 5,
                               opacity: .7,
                               paddingHorizontal: 12,
                               marginVertical: 12,
@@ -445,7 +448,7 @@ if (loadPage) return <Load />
 
             <View style={styles.centeredView}>
                <View style={styles.modalView}>
-                  <Text style={{ marginBottom: 12 }}>Cancelar Pedido: {orcamento?.id?.substr(0, 6).toUpperCase()}?</Text>
+                  <Text style={{ marginBottom: 12 }}>Cancelar Pedido: {tipoC}-{orcamento?.id?.slice(0, 6).toUpperCase()}?</Text>
 
                   <View style={{ flexDirection: "row", gap: 12, marginVertical: 12 }}>
                      <Pressable

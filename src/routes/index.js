@@ -17,10 +17,11 @@ export default function Routes() {
       screenOptions={{
         headerShown: false,
         unmountOnBlur: true,
-        drawerType: 'back',
+        drawerType: 'slide',
         drawerStyle: {
-          width: WIDTH - 100,
+          width: WIDTH - 80,
           backgroundColor: colors.theme,
+          
         }
       }}>
       <Drawer.Screen name='HomeScreen' component={HomeStack} />

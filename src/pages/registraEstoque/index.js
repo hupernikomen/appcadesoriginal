@@ -284,15 +284,15 @@ export default function RegistraEstoque() {
             <MaskOfInput type='numeric' load={loadBusca} style={{ flex: 1 }} title='Valor Varejo' value={valorVarejo} setValue={setValorVarejo} mask={CurrencyMask} />
           </View>
 
-          {!!rota ? null : <View >
+          <View >
             <View style={{ flexDirection: 'row' }}>
-              <MaskOfInput maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
+              <MaskOfInput editable={!rota} maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
               <Pick itemTopo={corSelecionada?.nome || ''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
-              <MaskOfInput maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
+              <MaskOfInput editable={!rota} maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
 
             </View>
 
-            {!!codigoDeBarras ? <Pressable
+            {!!codigoDeBarras && !rota ? <Pressable
               style={{
                 alignItems: "center",
                 justifyContent: 'center',
@@ -333,7 +333,7 @@ export default function RegistraEstoque() {
               <Texto texto={'Adicionar à lista'} />
               <AntDesign name='enter' size={18} />
             </Pressable> : null}
-          </View>}
+          </View>
 
           {itensAAdcionar.length ?
             <View style={{

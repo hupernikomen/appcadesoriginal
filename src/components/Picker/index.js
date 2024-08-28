@@ -16,7 +16,7 @@ export default function Pick({ data, title, selectedValue, setValue, style, info
   return (
     <View style={[{
       height: 60,
-      backgroundColor: "#e9e9e9",
+      backgroundColor: "#e9e9e999",
       paddingVertical: 8,
       borderRadius: 12,
       paddingHorizontal: 12,

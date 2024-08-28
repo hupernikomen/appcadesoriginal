@@ -24,7 +24,7 @@ export default function DrawerCustom(props) {
             <View>
               <Text style={{ color: '#fff', fontSize: 16, fontWeight: '500' }}>{credencial.nome}</Text>
               <Pressable onPress={() => signOut()}>
-                <Text style={{ color: '#fff', fontWeight: '300', fontSize:13 }}>Sair</Text>
+                <Text style={{ color: '#fff', fontWeight: '300', fontSize: 13 }}>Sair</Text>
               </Pressable>
             </View>
           </View>
@@ -42,12 +42,11 @@ export default function DrawerCustom(props) {
 
           <DrawerItem
             label="Home"
+            inactiveTintColor='#fff'
             onPress={() => navigation.navigate("Home")}
           />
-          <DrawerItem
-            label="Colaboradores"
-            onPress={() => navigation.navigate("Home")}
-          />
+          
+
 
         </View>
 
