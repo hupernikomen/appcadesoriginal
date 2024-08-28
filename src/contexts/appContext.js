@@ -108,7 +108,6 @@ export function AppProvider({ children }) {
 
         navigation.reset({ index: 0, routes: [{ name: 'Login' }] })
         navigation.dispatch(DrawerActions.closeDrawer());
-        Toast('Você saiu')
       })
   }
 

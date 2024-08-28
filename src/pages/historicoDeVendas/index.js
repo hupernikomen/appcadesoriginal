@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, Pressable, Text, FlatList } from 'react-native';
-import { useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
+import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
 
@@ -11,6 +11,8 @@ import Texto from '../../components/Texto';
 
 
 export default function HistoricoDeVendas() {
+
+  const {params: rota} = useRoute()
 
   const focus = useIsFocused()
   const navigation = useNavigation()
@@ -78,10 +80,21 @@ export default function HistoricoDeVendas() {
         titulo='Histórico' />
       <Tela>
 
+        {console.log(ordenarListaPorEstado(ordemDeCompra))
+        }
+
         <FlatList
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{paddingVertical:14}}
-          data={ordenarListaPorEstado(ordemDeCompra)}
+          // data={ordenarListaPorEstado(ordemDeCompra)}
+
+          data={
+            rota?.clienteID
+                ? ordenarListaPorEstado(ordemDeCompra).filter((item) => item.cliente?.id === rota?.clienteID)
+                : ordenarListaPorEstado(ordemDeCompra)
+        }
+
+
           renderItem={({ item }) => <RenderItem item={item} />}
         />
 

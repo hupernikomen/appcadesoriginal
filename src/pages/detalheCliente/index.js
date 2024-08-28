@@ -9,10 +9,11 @@ import Load from '../../components/Load';
 
 import { CrudContext } from '../../contexts/crudContext';
 import Icone from '../../components/Icone';
+import { FlatList } from 'react-native-gesture-handler';
 
 export default function DetalheCliente() {
 
-    const {colors} = useTheme()
+    const { colors } = useTheme()
     const { ordemDeCompra } = useContext(CrudContext)
 
     const navigation = useNavigation()
@@ -33,7 +34,6 @@ export default function DetalheCliente() {
         try {
             const res = await api.get(`/busca/cliente?cpf_cnpj=${rota.cpf_cnpj}`)
             setCliente(res.data)
-            console.log(res.data);
 
 
         } catch (error) {
@@ -64,6 +64,12 @@ export default function DetalheCliente() {
 
     if (load) return <Load />
 
+    const buttonsInfo = [
+        { icone: 'logo-whatsapp', nome: 'Whatsapp', rota: () => Linking.openURL(`whatsapp://send?phone=55${cliente.whatsapp}`) },
+        { icone: 'pencil', nome: 'Editar', rota: () => navigation.navigate('RegistraCliente', cliente) },
+        { icone: 'reader-outline', nome: 'Compras', rota: () => navigation.navigate('HistoricoDeVendas', { clienteID: cliente.id }) },
+    ]
+
     return (
         <>
             <Topo
@@ -75,6 +81,7 @@ export default function DetalheCliente() {
             <Tela>
                 <View style={{ alignItems: "center", justifyContent: "center", marginTop: 20, padding: 14 }}>
                     <Texto alinhamento='center' tipo='Bold' tamanho={22} texto={cliente?.nome} />
+                    <Texto tipo='Light' texto={`Nasc. ${cliente?.dataNascimento}`} />
                     <Texto tipo='Light' texto={`${cliente?.cpf_cnpj}`} />
 
                     <View style={{ marginVertical: 12, alignItems: 'center' }}>
@@ -89,20 +96,28 @@ export default function DetalheCliente() {
                     </View>
                 </View>
 
-                <View style={{flexDirection:'row', alignItems:"center", justifyContent:'center', gap:6, marginTop:30}}>
+                <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'center', gap: 6, marginTop: 30 }}>
 
-                    <Pressable  style={{borderRadius:12, backgroundColor:colors.detalhe , padding:12, alignItems: 'center', justifyContent: 'center', width:100 }} onPress={() => Linking.openURL(`whatsapp://send?phone=55${cliente.whatsapp}`)} >
-                        <Icone onpress={() => Linking.openURL(`whatsapp://send?phone=55${cliente.whatsapp}`)} nomeDoIcone='logo-whatsapp' corDoIcone='#fff' tamanhoDoIcone={26} />
-                        <Texto texto={'Whatsapp'} cor='#fff' />
-                    </Pressable>
 
-                    <Pressable style={{ borderRadius:12, backgroundColor:colors.detalhe, padding:12,alignItems: 'center', justifyContent: 'center', width:100 }} onPress={() => navigation.navigate('RegistraCliente', cliente)}>
-                        <Icone onpress={() => navigation.navigate('RegistraCliente', cliente)} nomeDoIcone='pencil'  corDoIcone='#fff' tamanhoDoIcone={26}/>
-                        <Texto texto={'Editar'} cor='#fff'/>
-                    </Pressable>
+                    <FlatList
+                        numColumns={2}
+                        columnWrapperStyle={{ gap: 6, marginVertical: 3 }}
+                        contentContainerStyle={{ alignSelf: 'center' }}
+                        data={buttonsInfo}
+                        renderItem={({ item }) => {
+                            return (
+                                <Pressable style={{ borderRadius: 12, backgroundColor: colors.detalhe, padding: 12, alignItems: 'center', justifyContent: 'center', width: 100 }} onPress={item.rota} >
+                                    <Icone onpress={item.rota} nomeDoIcone={item.icone} corDoIcone='#fff' tamanhoDoIcone={26} />
+                                    <Texto texto={item.nome} cor='#fff' />
+                                </Pressable>
+
+                            )
+                        }}
+                    />
+
+
                 </View>
             </Tela>
-
         </>
     );
 }
