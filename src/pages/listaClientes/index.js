@@ -1,17 +1,33 @@
-import { Pressable, View, Text, FlatList, Linking } from 'react-native';
+import { Pressable, View, Text, FlatList, Linking, LogBox } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
-import { useContext, useEffect } from 'react';
+import { useContext, useCallback, useState, useEffect } from 'react';
 
 import { CrudContext } from '../../contexts/crudContext';
+import { AppContext } from '../../contexts/appContext';
+
 import Texto from '../../components/Texto';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
+import MaskOfInput from '../../components/MaskOfInput';
 
 export default function ListaDeClientes() {
 
-  const { clientes, ListaOrdemDeCompras, ordemDeCompra } = useContext(CrudContext)
+  const { clientes, ordemDeCompra } = useContext(CrudContext)
+  const { FormatarTexto } = useContext(AppContext)
+
   const navigation = useNavigation()
+  const [busca, setBusca] = useState('');
+  const [clientesFiltrados, setClientesFiltrados] = useState(clientes);
+
+  const CPF_MASK = [/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/, /\d/];
+  const CNPJ_MASK = [/\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "/", /\d/, /\d/, /\d/, /\d/, "-", /\d/, /\d/]
+
+  const texto = busca.trim();
+  const textoSemCaracteres = texto.replace(/[./-]/g, "");
+  const ehNumerico = /^\d+$/.test(textoSemCaracteres);
+
+  const [mask, setMask] = useState(null)
 
 
   const converteData = (date) => {
@@ -23,12 +39,24 @@ export default function ListaDeClientes() {
 
   const Cliente = ({ data }) => {
 
+    let segundaLinha = ''
+
+    if (!!data.nomeFantasia) {
+      segundaLinha = data.nomeFantasia
+
+    } else if (!!ContagemDeCompras(data.id).ultimaDataDaCompra) {
+      segundaLinha = `Última compra em ${converteData(ContagemDeCompras(data.id).ultimaDataDaCompra)}`
+
+    } else {
+      segundaLinha = data.cpf_cnpj
+    }
+
+
     return (
-      <Pressable onPress={() => navigation.navigate('DetalheCliente', { cpf_cnpj: data.cpf_cnpj })} style={{ justifyContent: "center" }}>
-        <Texto texto={data.nome} />
-        {!ContagemDeCompras(data.id).count ? <Texto texto={data.cpf_cnpj} tipo='Light' /> : <Texto tipo='Light' texto={`${ContagemDeCompras(data.id).count} compra realizada`}/>}
-        {!ContagemDeCompras(data.id).ultimaDataDaCompra ? null : <Texto tipo='Light' texto={`Última compra em ${converteData(ContagemDeCompras(data.id).ultimaDataDaCompra)}`}/>}
-        
+      <Pressable onPress={() => navigation.navigate('DetalheCliente', { cpf_cnpj: data.cpf_cnpj })} style={{ justifyContent: "center", paddingHorizontal: 16 }}>
+        <Texto texto={FormatarTexto(data.nome)} />
+        <Texto tipo='Light' texto={segundaLinha} />
+
       </Pressable>
     )
   }
@@ -36,7 +64,7 @@ export default function ListaDeClientes() {
   function ContagemDeCompras(clientId) {
     let count = 0;
     let ultimaDataDaCompra = null;
-  
+
     ordemDeCompra.forEach(order => {
       if (order.estado === 'Entregue' && order.cliente.id === clientId) {
         count++;
@@ -45,10 +73,37 @@ export default function ListaDeClientes() {
         }
       }
     });
-  
+
+
     return { count, ultimaDataDaCompra };
   }
 
+
+  useEffect(() => {
+
+    if (busca.trim() !== '') {
+      const textoLowercase = busca.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const filteredClientes = clientes.filter((item) => {
+        return (
+          item.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(textoLowercase) ||
+          item.cpf_cnpj?.includes(textoLowercase) ||
+          item.nomeFantasia?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(textoLowercase)
+        );
+      });
+      setClientesFiltrados(filteredClientes);
+    } else {
+      setClientesFiltrados(clientes);
+    }
+
+
+    if (ehNumerico && busca.length <= 14) {
+      setMask(CPF_MASK)
+    } else if (ehNumerico && busca.length > 14) {
+      setMask(CNPJ_MASK)
+    } else {
+      setMask(null)
+    }
+  }, [busca]);
 
 
   return (
@@ -58,13 +113,17 @@ export default function ListaDeClientes() {
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
         iconeRight={{ nome: 'add-sharp', acao: () => navigation.navigate('RegistraCliente') }}
         titulo='Clientes' />
-        
+
       <Tela>
         <FlatList
-          ItemSeparatorComponent={<View style={{marginVertical: 20, borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={<View style={{ marginVertical: 20, borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}
           contentContainerStyle={{ paddingVertical: 20 }}
-          data={clientes.sort((a, b) => a.nome.localeCompare(b.nome))}
+          data={clientesFiltrados}
           renderItem={({ item }) => <Cliente data={item} />}
+          ListHeaderComponent={
+            <MaskOfInput mask={mask} setValue={setBusca} value={busca} style={{ flex: 1, fontSize: 22, marginBottom: 20 }} title={'Buscar Cliente'} />
+          }
         />
       </Tela>
     </>

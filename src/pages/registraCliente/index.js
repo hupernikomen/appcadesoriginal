@@ -1,14 +1,12 @@
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
-
 import { useState, useContext, useEffect } from 'react';
-
 import { useRoute, useTheme, useNavigation } from '@react-navigation/native';
-import { Masks } from 'react-native-mask-input';
-import MaskOfInput from '../../components/MaskOfInput';
-import Tela from '../../components/Tela';
-
 import { CrudContext } from '../../contexts/crudContext';
 import { AppContext } from '../../contexts/appContext';
+import { Masks } from 'react-native-mask-input';
+
+import MaskOfInput from '../../components/MaskOfInput';
+import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import api from '../../services/api';
 
@@ -27,6 +25,7 @@ export default function RegistraCliente() {
   const { colors } = useTheme()
   const [cpf_cnpj, setCpf_Cnpj] = useState("")
   const [nome, setNome] = useState("")
+  const [nomeFantasia, setNomeFantasia] = useState('')
   const [CEP, setCEP] = useState("")
   const [inscricaoEstadualRg, setInscricaoEstadualRg] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
@@ -38,13 +37,11 @@ export default function RegistraCliente() {
 
   useEffect(() => {
 
-    if (!!rota?.cpf_cnpj) {
-      setCpf_Cnpj(rota?.cpf_cnpj)
-    }
-
     if (!!rota?.id) {
+      setCpf_Cnpj(rota?.cpf_cnpj)
       setEndereco(rota?.endereco)
       setNome(rota?.nome)
+      setNomeFantasia(rota?.nomeFantasia)
       setBairro(rota?.bairro)
       setCidade(rota?.cidade)
       setEstado(rota?.estado)
@@ -58,6 +55,7 @@ export default function RegistraCliente() {
   async function AtualizaCliente(
     cpf_cnpj,
     nome,
+    nomeFantasia,
     endereco,
     bairro,
     cidade,
@@ -76,6 +74,7 @@ export default function RegistraCliente() {
       await api.put(`/atualiza/cliente?clienteID=${rota?.id}`, {
         cpf_cnpj,
         nome,
+        nomeFantasia,
         endereco,
         bairro,
         cidade,
@@ -90,7 +89,7 @@ export default function RegistraCliente() {
     } catch (error) {
       console.log(error.response);
 
-    } finally { 
+    } finally {
       navigation.navigate('Home')
     }
   }
@@ -122,7 +121,8 @@ export default function RegistraCliente() {
           </View>
 
 
-          <MaskOfInput title='Nome' value={nome} setValue={setNome} maxlength={50} />
+          <MaskOfInput title='Nome do Cliente' value={nome} setValue={setNome} maxlength={50} />
+          <MaskOfInput title='Nome Fantasia' value={nomeFantasia} setValue={setNomeFantasia} maxlength={50} />
           <MaskOfInput title='Endereço' value={endereco} setValue={setEndereco} maxlength={80} />
 
           <View style={{ flexDirection: 'row', }}>
@@ -144,6 +144,7 @@ export default function RegistraCliente() {
             <Pressable onPress={() => AtualizaCliente(
               cpf_cnpj,
               nome,
+              nomeFantasia,
               endereco,
               bairro,
               cidade,
@@ -160,6 +161,7 @@ export default function RegistraCliente() {
             <Pressable onPress={() => RegistraCliente(
               cpf_cnpj,
               nome,
+              nomeFantasia,
               endereco,
               bairro,
               cidade,

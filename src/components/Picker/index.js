@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Picker } from "@react-native-picker/picker";
 import Texto from '../Texto';
 
-export default function Pick({ data, title, selectedValue, setValue, style, info, itemTopo, valorItemTopo }) {
+export default function Pick({editable = true, data, title, selectedValue, setValue, style, info, itemTopo, valorItemTopo }) {
   const styles = StyleSheet.create({
 
     boxtop: {
@@ -28,6 +28,7 @@ export default function Pick({ data, title, selectedValue, setValue, style, info
       </View>
       <Picker
         mode="dialog"
+        enabled={editable}
         style={{ marginTop: -18, height: 40, marginLeft: -12 }}
         selectedValue={selectedValue}
         onValueChange={(itemValue) => {

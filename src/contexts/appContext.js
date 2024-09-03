@@ -4,7 +4,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
 import { useNavigation, DrawerActions } from "@react-navigation/native";
 
-import { CrudContext } from "./crudContext";
 
 export const AppContext = createContext({})
 
@@ -23,13 +22,11 @@ export function AppProvider({ children }) {
     token: '',
   })
 
+  const autenticado = !!credencial.id
 
   useEffect(() => {
-    Promise.all(ValidaCredential())
+    ValidaCredential()
   }, [])
-
-
-  const autenticado = !!credencial.id
 
 
   // Exibe mensagens de retorno de execução de comandos
@@ -42,6 +39,24 @@ export function AppProvider({ children }) {
       30,
     );
   };
+
+
+  function CodigoDeVerificacaoEAN13(ean12) {
+    const weights = [1, 3];
+    let sum = 0;
+    let weightIndex = 0;
+
+    for (let i = 0; i < 12; i++) {
+      const digit = parseInt(ean12.charAt(i));
+      sum += digit * weights[weightIndex];
+      weightIndex = (weightIndex + 1) % 2;
+    }
+
+    const remainder = sum % 10;
+    const checksum = remainder === 0 ? 0 : 10 - remainder;
+
+    return checksum;
+  }
 
 
   // Busca do storage informações do usuario logado e armazena em uma state
@@ -73,11 +88,12 @@ export function AppProvider({ children }) {
 
 
   async function signIn(nome, senha) {
-
+    
     if (!nome || !senha) return
-
+    
     try {
       const res = await api.post('/login', { nome: nome.trim(), senha: senha.trim() })
+      console.log(res.data);
 
       const { id, token } = res.data
       const data = { ...res.data }
@@ -111,9 +127,32 @@ export function AppProvider({ children }) {
       })
   }
 
+  function TratarErro(error) {
+    console.error(error);
+    Toast(error.response.data.error);
+    setLoad(false)
+  }
+
+
+
+
+  function FormatarTexto(texto) {
+    const excessoes = ["com", "e", "de", "por", "a", "o", "do", "em", "é", "no", "na", "da", "dos", "das"]
+  
+    return texto?.split(' ').map(word => {
+      const palavraMinuscula = word.toLowerCase();
+      return excessoes.includes(palavraMinuscula) ? palavraMinuscula : palavraMinuscula.charAt(0).toUpperCase() + palavraMinuscula.slice(1);
+    }).join(' ');
+  }
+
+  
+
   return (
     <AppContext.Provider value={{
       Toast,
+      TratarErro,
+      CodigoDeVerificacaoEAN13,
+      FormatarTexto,
       credencial,
       autenticado,
       signIn, signOut,

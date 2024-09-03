@@ -2,14 +2,15 @@ import { Pressable, View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert
 
 import { useTheme, useRoute } from '@react-navigation/native';
 import { useEffect, useContext, useState } from 'react';
-import AntDesign from 'react-native-vector-icons/AntDesign'
-import MaskOfInput from '../../components/MaskOfInput';
 import { createNumberMask } from 'react-native-mask-input';
 import { useNavigation } from '@react-navigation/native';
+import { AppContext } from '../../contexts/appContext';
+
+import AntDesign from 'react-native-vector-icons/AntDesign'
+import MaskOfInput from '../../components/MaskOfInput';
 
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 
-import { AppContext } from '../../contexts/appContext';
 import api from '../../services/api';
 import Load from '../../components/Load';
 import Pick from '../../components/Picker';
@@ -24,21 +25,21 @@ export default function RegistraEstoque() {
   const { params: rota } = useRoute()
 
   const CurrencyMask = createNumberMask({
-    delimiter: '.',
-    separator: ',',
-    precision: 2,
+    delimiter: '.', separator: ',', precision: 2,
   });
 
-  const { credencial, Toast } = useContext(AppContext)
+  const { credencial, Toast,TratarErro, CodigoDeVerificacaoEAN13, FormatarTexto } = useContext(AppContext)
   const { colors } = useTheme()
 
   const [load, setLoad] = useState(false)
   const [loadBusca, setLoadBusca] = useState(false)
   const [itensAAdcionar, setItensAAdicionar] = useState([])
 
+  const [id, setId] = useState('')
   const [codigoDeBarras, setCodigoDeBarras] = useState('')
   const [referencia, setReferencia] = useState('')
   const [nome, setNome] = useState('')
+  const [detalhes, setDetalhes] = useState('')
   const [tamanho, setTamanho] = useState('')
   const [estoque, setEstoque] = useState('')
   const [valorAtacado, setValorAtacado] = useState('') // valor Atacado
@@ -47,6 +48,12 @@ export default function RegistraEstoque() {
   const [listaDeCores, setListaDeCores] = useState([])
   const [corSelecionada, setCorSelecionada] = useState({})
   const [finalizarLista, setFinalizarLista] = useState(true)
+
+  if (credencial.cargo !== 'Socio') {
+    navigation.goBack()
+    Toast('Acesso Negado')
+    return
+  }
 
   const listaTamanhos = [
     { codigo: '01', tamanho: 'PP' || 'Pp' || 'pp' },
@@ -70,12 +77,12 @@ export default function RegistraEstoque() {
 
   useEffect(() => {
 
-    if (!!rota) BuscaProdutosPorCodigo(rota?.codigoDeBarras)
-  }, [])
+    Promise.all([BuscaProdutos(!!rota ? rota?.codigoDeBarras : referencia), ListaCores()])
+    // !!rota ? BuscaProdutosPorCodigo(rota?.codigoDeBarras) : Promise.all([BuscaProdutos(referencia), ListaCores()])
 
-  useEffect(() => {
-
-    if (!rota) Promise.all([BuscaProdutos(referencia), ListaCores()])
+    if (referencia.length < 4) {
+      LimpaCampos()
+    }
 
   }, [referencia])
 
@@ -83,12 +90,24 @@ export default function RegistraEstoque() {
   useEffect(() => {
 
     const ean12 = `789${buscaCodigoDeTamanho(tamanho)}${corSelecionada?.codigo}0${referencia}`
-    const chave = codigoDeVerificacaoEAN13(ean12)
+    const chave = CodigoDeVerificacaoEAN13(ean12)
 
     isNaN(chave) ? setCodigoDeBarras("") : setCodigoDeBarras(ean12 + chave)
 
   }, [tamanho, corSelecionada, referencia])
 
+
+  function LimpaCampos() {
+    setCodigoDeBarras('')
+    setNome('')
+    setDetalhes('')
+    setTamanho('')
+    setCorSelecionada({})
+    setEstoque('')
+    setValorAtacado('')
+    setValorVarejo('')
+    setItensAAdicionar([])
+  }
 
 
   async function ListaCores() {
@@ -97,89 +116,63 @@ export default function RegistraEstoque() {
       setListaDeCores(res.data)
 
     } catch (error) {
-      console.log(error.response);
+      TratarErro(error)
 
     }
   }
 
-  async function BuscaProdutosPorCodigo(codigoDeBarras) {
 
-    setLoadBusca(true)
-
-    try {
-      const res = await api.get(`/busca/produto/codigo?codigoDeBarras${codigoDeBarras}`)
-      const produto = res.data.find((item) => item.codigoDeBarras === codigoDeBarras)
-
-      setReferencia(produto?.referencia)
-      setNome(produto?.nome)
-      setValorAtacado(String(produto?.valorAtacado))
-      setValorVarejo(String(produto?.valorVarejo))
-      setTamanho(produto?.tamanho)
-      setEstoque(String(produto?.estoque))
-      setCorSelecionada(produto?.cor)
-
-    } catch (error) {
-      console.log(error.response);
-
-    } finally {
-      setLoadBusca(false)
-    }
-
-  }
+  async function BuscaProdutos(params) {
 
 
-  async function BuscaProdutos(referencia) {
-
-    if (!!rota) {
+    if (params?.length < 4) {
       return
     }
 
     setLoadBusca(true)
 
     try {
-      const res = await api.get(`/busca/produto/referencia?referencia${referencia}`)
-      const produto = res.data.find((item) => item.referencia === referencia)
 
-      if (!!produto) {
-        setNome(produto.nome)
-        setValorAtacado(produto.valorAtacado)
-        setValorVarejo(produto.valorVarejo)
+      const url = params.length > 4
+        ? `/busca/produto/codigo?codigoDeBarras=${params}`
+        : `/busca/produto/referencia?referencia=${params}`;
 
+      const response = await api.get(url);
+      const produto = response.data.find((item) => item.codigoDeBarras === params || item.referencia === params);
+
+
+      if (produto) {
+        setId(produto.id)
+        setReferencia(produto?.referencia)
+        setNome(produto?.nome)
+        setDetalhes(produto?.detalhes)
+        setValorAtacado(String(produto?.valorAtacado))
+        setValorVarejo(String(produto?.valorVarejo))
+
+        if (params.length > 4) {
+
+          setTamanho(produto?.tamanho)
+          setEstoque(String(produto?.estoque))
+          setCorSelecionada(produto?.cor)
+        }
       }
+
+
     } catch (error) {
-      console.log(error.response);
+      TratarErro(error)
 
     } finally {
       setLoadBusca(false)
     }
-
   }
 
   const buscaCodigoDeTamanho = (tamanho) => {
-    for (let i = 0; i < listaTamanhos.length; i++) {
-      if (listaTamanhos[i].tamanho?.toUpperCase() === tamanho?.toUpperCase()) {
-        return listaTamanhos[i].codigo;
-      }
-    }
-    return null;
+    const tamanhoEncontrado = listaTamanhos.find((item) => item.tamanho.toUpperCase() === tamanho.toUpperCase());
+    return tamanhoEncontrado ? tamanhoEncontrado.codigo : null;
   };
 
-  function codigoDeVerificacaoEAN13(ean12) {
-    const weights = [1, 3];
-    let sum = 0;
-    let weightIndex = 0;
 
-    for (let i = 0; i < 12; i++) {
-      const digit = parseInt(ean12.charAt(i));
-      sum += digit * weights[weightIndex];
-      weightIndex = (weightIndex + 1) % 2;
-    }
 
-    const remainder = sum % 10;
-    const checksum = remainder === 0 ? 0 : 10 - remainder;
-
-    return checksum;
-  }
 
   async function AtualizaProduto() {
 
@@ -189,20 +182,20 @@ export default function RegistraEstoque() {
     }
 
     try {
-      await api.put(`/atualiza/produto?produtoID=${rota?.id}`, {
-        nome, valorAtacado, valorVarejo
+      await api.put(`/atualiza/produto?produtoID=${id}`, {
+        nome, detalhes, valorAtacado, valorVarejo, estoque:Number(estoque)
       }, { headers })
 
       navigation.navigate('ListaEstoque')
+      Toast('Produto Atualizado')
 
     } catch (error) {
-      console.log(error.response);
-
-    } finally {
-      Toast('Produto Atualizado')
+      TratarErro(error)
     }
 
   }
+
+
 
   async function RegistraProduto() {
 
@@ -218,13 +211,14 @@ export default function RegistraEstoque() {
       'Authorization': `Bearer ${credencial?.token}`
     }
 
-    itensAAdcionar.map(async (item) => {
+    for (const item of itensAAdcionar) {
       try {
 
         await api.post('/cria/produto', {
           codigoDeBarras: item.codigoDeBarras,
           referencia: item.referencia,
           nome: item.nome,
+          detalhes: item.detalhes,
           tamanho: item.tamanho.toUpperCase(),
           corID: item?.corSelecionada?.id,
           estoque: Number(item.estoque),
@@ -232,23 +226,14 @@ export default function RegistraEstoque() {
           valorVarejo: item.valorVarejo,
         }, { headers })
 
-      } catch (error) {
-        console.log(error.response);
-        Toast(error.response.data.error)
-
-      } finally {
+        LimpaCampos()
         setLoad(false)
-        setCodigoDeBarras('')
-        setReferencia('')
-        setNome('')
-        setTamanho('')
-        setCorSelecionada({})
-        setEstoque('')
-        setValorAtacado('')
-        setValorVarejo('')
-        setItensAAdicionar([])
-      }
-    })
+        
+      } catch (error) {
+        TratarErro(error)
+
+      } 
+    }
   }
 
   if (load) return <Load />
@@ -259,14 +244,14 @@ export default function RegistraEstoque() {
       <Topo
         posicao='left'
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-        titulo='Produto' />
+        titulo={rota?.codigoDeBarras ? 'Editar Produto' : 'Cadastrar Produto'} />
       <Tela>
 
         <ScrollView style={{ marginTop: 10 }}>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
 
-            <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
+            <MaskOfInput bg={false} load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
 
             {!!rota ? null : <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
               <Icone onpress={() => navigation.navigate('ListaDeCores')} nomeDoIcone='contrast' label='CORES' corDoIcone='#222' />
@@ -276,19 +261,22 @@ export default function RegistraEstoque() {
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <MaskOfInput editable={!rota} type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />
-            <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Descrição' value={nome} setValue={setNome} maxlength={30} info={nome?.length + '/30'} />
+            <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Nome do Produto' value={nome} setValue={setNome} maxlength={30} info={nome?.length + '/30'} />
           </View>
+
+          <MaskOfInput lines={5} multiline={true} styleMask={{height:60}} style={{height: 100}} title='Detalhes do produto' value={detalhes} setValue={setDetalhes}  />
 
           <View style={{ flexDirection: 'row' }}>
             <MaskOfInput type='numeric' load={loadBusca} style={{ flex: 1 }} title='Valor Atacado' value={valorAtacado} setValue={setValorAtacado} mask={CurrencyMask} />
             <MaskOfInput type='numeric' load={loadBusca} style={{ flex: 1 }} title='Valor Varejo' value={valorVarejo} setValue={setValorVarejo} mask={CurrencyMask} />
           </View>
 
-          <View >
+          <View>
+            
             <View style={{ flexDirection: 'row' }}>
               <MaskOfInput editable={!rota} maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
-              <Pick itemTopo={corSelecionada?.nome || ''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
-              <MaskOfInput editable={!rota} maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
+              <Pick editable={!rota} itemTopo={corSelecionada?.nome || ''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
+              <MaskOfInput  maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
 
             </View>
 
@@ -318,6 +306,7 @@ export default function RegistraEstoque() {
                   referencia,
                   codigoDeBarras,
                   nome,
+                  detalhes,
                   valorAtacado,
                   valorVarejo,
                   tamanho: tamanho.toUpperCase(),
@@ -352,7 +341,7 @@ export default function RegistraEstoque() {
               {itensAAdcionar.map((item, index) => {
                 const filteredProdutos = itensAAdcionar.filter(produto => produto.codigoDeBarras !== item.codigoDeBarras);
                 return (
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View key={index} style={{ flexDirection: 'row', alignItems: 'center' }}>
 
                     <Pressable style={{ flex: 1, }} onPress={() => {
                       Alert.alert(
@@ -383,44 +372,6 @@ export default function RegistraEstoque() {
                   </View>
                 )
               })}
-              {/* 
-              <FlatList data={itensAAdcionar}
-                ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
-                renderItem={({ item, index }) => {
-                  return (
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-
-                      <Pressable style={{ flex: 1, }} onPress={() => {
-                        Alert.alert(
-                          '',
-                          `Excluir o item: ${item.nome}?`,
-                          [
-                            {
-                              text: 'Cancelar',
-                              onPress: () => console.log('Cancel Pressed'),
-                              style: 'cancel',
-                            },
-                            {
-                              text: 'Excluir',
-                              onPress: () => {
-                                setItensAAdicionar(filteredProdutos);
-                              },
-                            },
-                          ],
-                          { cancelable: false }
-                        );
-                      }}>
-                        <Animated.View entering={FadeInUp.duration(200).delay(200)} key={index} style={{ flex: 1, flexDirection: 'row', justifyContent: "space-between" }}>
-                          <Text style={{ fontWeight: '300', color: '#000' }}>{item.referencia}</Text>
-                          <Text style={{ fontWeight: '300', color: '#000', flex: 1, marginLeft: 6 }}>{item.nome} {item.tamanho} {item.corSelecionada.nome}</Text>
-                          <Text style={{ width: 30, textAlign: 'right' }}>{item.estoque}</Text>
-                        </Animated.View>
-                      </Pressable>
-                    </View>
-                  )
-                }}
-              /> */}
-
 
 
               <Pressable style={{

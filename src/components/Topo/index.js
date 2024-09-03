@@ -1,4 +1,4 @@
-import { View, Dimensions } from 'react-native';
+import { View, Dimensions, Text } from 'react-native';
 import Icone from '../Icone';
 import Texto from '../Texto';
 import { useTheme } from '@react-navigation/native';
@@ -12,13 +12,16 @@ export default function Topo({ children, iconeLeft, iconeRight, right, titulo, p
         <View style={{ elevation: 15 }}>
 
             <View style={{ backgroundColor: colors.theme, height: 60, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <Icone onpress={iconeLeft?.acao} nomeDoIcone={iconeLeft?.nome} />
-                    {posicao === 'left' ? <Texto cor='#fff' texto={titulo?.substring(0, 26)} tamanho={18} tipo='Medium' /> : null}
+                    {posicao === 'left' ? <Text style={{ textAlign: 'left', color: '#fff', fontSize: 18, fontFamily: "Roboto-Medium" }}>{titulo}</Text> : null}
                 </View>
-                {posicao === 'center' ? <Texto cor='#fff' texto={titulo?.substring(0, 26)} tamanho={18} tipo='Medium' /> : null}
 
-                <Icone onpress={iconeRight?.acao} nomeDoIcone={iconeRight?.nome} />
+                {posicao === 'center' ? <Text style={{ textAlign: 'left', color: '#fff', fontSize: 18, fontFamily: "Roboto-Medium" }}>{titulo}</Text> : null}
+
+                <View style={{ minWidth: 55 }}>
+                    <Icone onpress={iconeRight?.acao} nomeDoIcone={iconeRight?.nome} />
+                </View>
 
             </View>
             {children}

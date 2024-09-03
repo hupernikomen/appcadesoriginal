@@ -38,7 +38,7 @@ export default function FinalizaVenda() {
 
     const [orcamento, setOrcamento] = useState([])
 
-    const maxTimes = 6
+    const maxTimes = 3
 
     useEffect(() => {
         BuscaOrdemDecompra()

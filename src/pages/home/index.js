@@ -1,10 +1,9 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
 import { useContext, useEffect, useState, useTransition } from 'react';
 import { useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
 
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
-import { FlatList } from 'react-native-gesture-handler';
 import Texto from '../../components/Texto';
 import Topo from '../../components/Topo';
 import Icone from '../../components/Icone';
@@ -30,10 +29,10 @@ export default function Home() {
 
 
   const buttonsInfo = [
-    { icone: 'repeat', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas' },
-    { icone: 'reader-outline', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas' },
-    { icone: 'people-outline', nome: 'Clientes', notificacao: clientes?.length, pagina: 'ListaDeClientes', desabilitado: credencial?.cargo === 'Vendedor' },
-    { icone: 'shirt-outline', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'ListaEstoque', desabilitado: credencial?.cargo === 'Vendedor' },
+    { icone: 'repeat', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas', desabilitado: credencial?.cargo === 'Funcionario' },
+    { icone: 'reader-outline', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas', desabilitado: credencial?.cargo === 'Funcionario' },
+    { icone: 'people-outline', nome: 'Clientes', notificacao: clientes?.length, pagina: 'ListaDeClientes', desabilitado: credencial?.cargo === 'Vendedor' || credencial?.cargo === 'Funcionario' },
+    { icone: 'shirt-outline', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'ListaEstoque', desabilitado: credencial?.cargo === 'Vendedor' || credencial?.cargo === 'Funcionario' },
     { icone: 'barcode-outline', nome: 'Crachá', notificacao: '', pagina: !!autenticado ? 'BarrasPonto' : 'Login', desabilitado: credencial?.cargo === 'Vendedor' },
   ]
 
@@ -64,8 +63,6 @@ export default function Home() {
 
     setAniversariante(aniversariantes);
   }
-
-
 
 
   function Button({ icone, nome, notificacao, pagina, desabilitado }) {
@@ -104,19 +101,19 @@ export default function Home() {
 
           {credencial?.token ?
             <FlatList
-            ListHeaderComponent={
+              ListHeaderComponent={
 
-              !!autenticado && <View style={{ alignSelf: 'center', paddingHorizontal: 14, marginBottom:50 }}>
-              <Texto texto={'Alerta:'} tipo={'Regular'} />
-              {aniversariante.map((item, index) => {
-                return (
-                  <Pressable key={index} onPress={() => navigation.navigate('DetalheCliente', { clienteID: aniversariante.id })}>
-                    <Texto texto={`Cliente ${item.nome.split(" ")[0]} ${item.nome.split(" ")[1]} aniversaria dia ${item.dataNascimento.substring(0, 5)}`} tipo={'Light'} />
-                  </Pressable>
-                )
-              })}
-            </View>
-            }
+                (credencial.cargo !== "Funcionario" && credencial.cargo !== "Vendedor") && <View style={{ alignSelf: 'center', paddingHorizontal: 14, marginBottom: 50 }}>
+                  <Texto texto={'Alerta:'} tipo={'Regular'} />
+                  {aniversariante.map((item, index) => {
+                    return (
+                      <Pressable key={index} onPress={() => navigation.navigate('DetalheCliente', { clienteID: aniversariante.id })}>
+                        <Texto texto={`Cliente ${item.nome.split(" ")[0]} ${item.nome.split(" ")[1]} aniversaria dia ${item.dataNascimento.substring(0, 5)}`} tipo={'Light'} />
+                      </Pressable>
+                    )
+                  })}
+                </View>
+              }
               data={buttonsInfo}
               contentContainerStyle={{ padding: 4 }}
               showsVerticalScrollIndicator={false}

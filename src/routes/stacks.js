@@ -29,31 +29,26 @@ export default function RotasStack() {
             screenOptions={{
                 headerTintColor: colors.fundo,
                 orientation: 'portrait',
-
                 headerTitleStyle: { fontSize: 18, fontFamily: 'Roboto-Medium' },
                 headerStyle: { backgroundColor: colors.theme },
-                headerShown:false,
-                
+                headerShown: false,
             }}>
 
-            <Stack.Screen name='Home' component={Home}  />
-            <Stack.Screen name='RegistraEstoque' component={RegistraEstoque} options={{ title: 'Cadastro de Estoque' }} />
-            <Stack.Screen name='RegistraCliente' component={RegistraCliente} options={{ title: 'Cadastro de Clientes' }} />
-            <Stack.Screen name='Login' component={Login} options={{ title: '' }} />
-            <Stack.Screen name='HistoricoDeVendas' component={HistoricoDeVendas}  />
-            <Stack.Screen name='HomeDeVendas' component={HomeDeVendas}  />
-            <Stack.Screen name='Orcamento' component={Orcamento}  />
-            <Stack.Screen name='Scanner' component={Scanner} options={{ title: 'Scanner' }} />
-            <Stack.Screen name='ListaDeCores' component={ListaDeCores} options={{ title: 'Lista de Cores' }} />
-            <Stack.Screen name='ListaDeClientes' component={ListaDeClientes}  />
-            <Stack.Screen name='FinalizaVenda' component={FinalizaVenda} options={{ title: '' }} />
-            <Stack.Screen name='BarrasPonto' component={BarrasPonto} options={{ title: '' }} />
-            <Stack.Screen name='ListaEstoque' component={ListaEstoque}  />
+            <Stack.Screen name='Home' component={Home} />
+            <Stack.Screen name='RegistraEstoque' component={RegistraEstoque} />
+            <Stack.Screen name='RegistraCliente' component={RegistraCliente} />
+            <Stack.Screen name='Login' component={Login} />
+            <Stack.Screen name='HistoricoDeVendas' component={HistoricoDeVendas} />
+            <Stack.Screen name='HomeDeVendas' component={HomeDeVendas} />
+            <Stack.Screen name='Orcamento' component={Orcamento} />
+            <Stack.Screen name='Scanner' component={Scanner} />
+            <Stack.Screen name='ListaDeCores' component={ListaDeCores} />
+            <Stack.Screen name='ListaDeClientes' component={ListaDeClientes} />
+            <Stack.Screen name='FinalizaVenda' component={FinalizaVenda} />
+            <Stack.Screen name='BarrasPonto' component={BarrasPonto} />
+            <Stack.Screen name='ListaEstoque' component={ListaEstoque} />
             <Stack.Screen name='DetalheEstoque' component={DetalheEstoque} />
             <Stack.Screen name='DetalheCliente' component={DetalheCliente} />
-
-
-
 
         </Stack.Navigator>
 

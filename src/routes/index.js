@@ -7,7 +7,7 @@ import MenuLateral from '../components/MenuLateral';
 const Drawer = createDrawerNavigator()
 
 export default function Routes() {
-  const WIDTH = Dimensions.get('window').width
+  const { width } = Dimensions.get('window')
   const { colors } = useTheme()
 
   return (
@@ -19,9 +19,9 @@ export default function Routes() {
         unmountOnBlur: true,
         drawerType: 'slide',
         drawerStyle: {
-          width: WIDTH - 80,
+          width: width - 80,
           backgroundColor: colors.theme,
-          
+
         }
       }}>
       <Drawer.Screen name='HomeScreen' component={HomeStack} />

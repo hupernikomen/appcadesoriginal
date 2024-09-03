@@ -6,14 +6,17 @@ import api from '../../services/api';
 import Texto from '../../components/Texto';
 import Tela from '../../components/Tela';
 import Load from '../../components/Load';
+import Icone from '../../components/Icone';
 
 import { CrudContext } from '../../contexts/crudContext';
-import Icone from '../../components/Icone';
+import { AppContext } from '../../contexts/appContext';
 import { FlatList } from 'react-native-gesture-handler';
 
 export default function DetalheCliente() {
 
     const { colors } = useTheme()
+
+    const {credencial, FormatarTexto} = useContext(AppContext)
     const { ordemDeCompra } = useContext(CrudContext)
 
     const navigation = useNavigation()
@@ -75,12 +78,11 @@ export default function DetalheCliente() {
             <Topo
                 posicao='left'
                 iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-                // iconeRight={{nome :'pencil', acao: () => navigation.navigate('RegistraCliente', dadosCliente)}}
                 titulo={''} />
 
             <Tela>
                 <View style={{ alignItems: "center", justifyContent: "center", marginTop: 20, padding: 14 }}>
-                    <Texto alinhamento='center' tipo='Bold' tamanho={22} texto={cliente?.nome} />
+                    <Texto alinhamento='center' tipo='Bold' tamanho={22} texto={FormatarTexto(cliente?.nome)} />
                     <Texto tipo='Light' texto={`Nasc. ${cliente?.dataNascimento}`} />
                     <Texto tipo='Light' texto={`${cliente?.cpf_cnpj}`} />
 

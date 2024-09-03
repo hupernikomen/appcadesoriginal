@@ -10,7 +10,7 @@ import Topo from '../../components/Topo';
 export default function BarrasPonto() {
 
     const navigation = useNavigation()
-    const { credencial } = useContext(AppContext)
+    const { credencial,CodigoDeVerificacaoEAN13 } = useContext(AppContext)
     const [codigoDeBarras, setCodigoDeBarras] = useState('')
 
     const data = new Date();
@@ -35,30 +35,13 @@ export default function BarrasPonto() {
 
     function MontaCodigo() {
         const ean12 = `${credencial?.matricula}${convertData()}`
-        const chave = codigoDeVerificacaoEAN13(ean12)
+        const chave = CodigoDeVerificacaoEAN13(ean12)
 
         isNaN(chave) ? setCodigoDeBarras("") : setCodigoDeBarras(ean12 + chave)
 
     }
 
 
-
-    function codigoDeVerificacaoEAN13(ean12) {
-        const weights = [1, 3];
-        let sum = 0;
-        let weightIndex = 0;
-
-        for (let i = 0; i < 12; i++) {
-            const digit = parseInt(ean12.charAt(i));
-            sum += digit * weights[weightIndex];
-            weightIndex = (weightIndex + 1) % 2;
-        }
-
-        const remainder = sum % 10;
-        const checksum = remainder === 0 ? 0 : 10 - remainder;
-
-        return checksum;
-    }
 
 
     return (

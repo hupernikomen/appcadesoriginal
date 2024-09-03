@@ -1,12 +1,14 @@
 import { View, Text, Pressable, FlatList, Dimensions } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import api from '../../services/api';
 import Texto from '../../components/Texto';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import Load from '../../components/Load';
 import MaskOfInput from '../../components/MaskOfInput';
+
+import { AppContext } from '../../contexts/appContext';
 
 export default function ListaEstoque() {
 
@@ -16,6 +18,8 @@ export default function ListaEstoque() {
     const [totalEstoque, setTotalEstoque] = useState('')
     const [load, setLoad] = useState(true)
     const [busca, setBusca] = useState('')
+
+    const {FormatarTexto} = useContext(AppContext)
 
     useEffect(() => {
         ListaEstoque()
@@ -40,9 +44,12 @@ export default function ListaEstoque() {
         try {
             const res = await api.get('/lista/produtos')
 
+            
+
             // Varre o estoque atras de algumas falhas, se houver falha, retorna TRUE e o item da falha
             const { resultado, itemFalha } = verificaIntegridadeDoEstoque(res.data);
-            console.log(itemFalha, "Item com inconsistência no estoque");
+
+            resultado && console.log(itemFalha, "Item com inconsistência no estoque");
 
 
             const uniqueReferences = {};
@@ -67,14 +74,14 @@ export default function ListaEstoque() {
                 return {
                     referencia: key,
                     estoque: uniqueReferences[key].estoque,
-                    nome: uniqueReferences[key].nome,
+                    nome: FormatarTexto(uniqueReferences[key].nome),
                     saidaTotal: uniqueReferences[key].saidaTotal,
                     erro: key === itemFalha?.referencia ? true : false
                 };
             });
 
             setListaEstoque(listaEstoque);
-            
+
 
             const maxStock = listaEstoque.reduce((acc, current) => acc + current.estoque, 0);
             setTotalEstoque(maxStock);

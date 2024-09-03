@@ -106,20 +106,19 @@ export default function Orcamento() {
          await api.put(`/atualiza/estoque?ordemDeCompraID=${orcamento?.id}`, { headers })
          navigation.navigate('HistoricoDeVendas')
       }
-
       catch (error) { console.log(error.response) }
    }
 
    async function CancelarCompra(ordemDeCompraID) {
 
-      
+
       const headers = {
          'Content-Type': 'application/json',
          'Authorization': `Bearer ${credencial?.token}`
       }
 
       try {
-         
+
          await api.delete(`/cancelaCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
          await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
          await BuscaItemDoPedido(orcamento?.id)
@@ -128,7 +127,7 @@ export default function Orcamento() {
 
       } catch (error) {
          console.log(error.response);
-         
+
       } finally {
          setModalVisible(!modalVisible)
       }
@@ -159,7 +158,6 @@ export default function Orcamento() {
          }
       }
    };
-
 
    const htmlDoc = `
 <div style="display: flex; flex-direction: column; padding: 30px">
@@ -245,59 +243,68 @@ export default function Orcamento() {
   `
 
 
-  
-  function ItemDaLista({ data }) {
 
-   const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
+   function ItemDaLista({ data }) {
 
-   return (
-      <ContainerItem altura={50}>
-         <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', flex: 1 }}>
+      const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
 
-            <Texto texto={`${referencia} `} tipo='Light' />
-            <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${nome} T. ${tamanho} ${cor?.nome} #${parseFloat(tipoC === 'A' ? valorAtacado : valorVarejo).toFixed(2)}`} />
-
+      return (
+         <View>
             <View style={{ flexDirection: 'row', alignItems: "center" }}>
 
-               <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
-                  onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
-                  <Texto texto='-' />
-               </Pressable>
+               <View style={{ backgroundColor: colors.detalhe, marginRight: 10, borderRadius: 10, paddingHorizontal: 6 }}>
+                  <Texto tamanho={12} texto={`${referencia} `} tipo='Light' cor='#fff' />
+               </View>
 
-               <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
+                  <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${nome} T. ${tamanho} ${cor?.nome} #${tipoC === 'A' ? valorAtacado : valorVarejo}`} />
 
-               <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
-                  onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
-                  <Texto texto='+' />
-               </Pressable>
+               <View style={{ flexDirection: 'row', alignItems: "center" }}>
 
+                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
+                     onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
+                     <Texto texto='-' />
+                  </Pressable>
+
+                  <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
+
+                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
+                     onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
+                     <Texto texto='+' />
+                  </Pressable>
+
+               </View>
             </View>
          </View>
-      </ContainerItem>
-   )
-}
+      )
+   }
 
 
-const HeaderBudget = () => {
+   const HeaderBudget = () => {
 
-   return (
-      <View style={{ marginTop: 20 }}>
-         {load ? <ActivityIndicator color={colors.theme} /> :
-            <View style={{ alignItems: "flex-end", borderTopWidth: 1, borderColor: '#e9e9e9', padding: 10 }}>
+      let totalQuantidade = 0;
+      orcamento.itemDoPedido.forEach((item) => {
+         totalQuantidade += item.quantidade;
+      });
 
-               {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} /> : null}
-               {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
-               {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
-               {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
-               <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}`} />
+      return (
+         <View style={{ marginVertical: 20 }}>
+            {load ? <ActivityIndicator color={colors.theme} /> :
+               <View style={{ alignItems: "flex-end", borderTopWidth: 1, borderColor: '#e9e9e9', padding: 10 }}>
 
-            </View>
-         }
-      </View>
-   )
-}
+                  {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} /> : null}
+                  {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
+                  {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
+                  {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
+                  <Texto tipo='Light' texto={`Total de itens: ${totalQuantidade}`} />
+                  <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}`} />
 
-if (loadPage) return <Load />
+               </View>
+            }
+         </View>
+      )
+   }
+
+   if (loadPage) return <Load />
 
    return (
       <>
@@ -361,82 +368,86 @@ if (loadPage) return <Load />
             </View>
          </Topo>
 
-         {orcamento?.estado === 'Aberto' ?
-            <View>
-               <View style={{ paddingHorizontal: 14, paddingVertical: 10 }}>
-                  <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
-               </View>
 
-               <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 14 }}>
-                  {listaDeTamanhos.map((tamanho, index) => {
-                     const tamanhoExiste = [...new Set(produtoEncontrado
-                        .filter(item => (item?.estoque - (item?.reservado + item?.saida)) > 0)
-                        .map(item => item.tamanho))]
-                     if (!tamanhoExiste) return
-                     return (
-                        <Pressable disabled={!tamanhoExiste.includes(tamanho)} onPress={() => setTamanhoSelecionado(tamanho)} key={index}
-                           style={{
-                              display: tamanhoExiste.includes(tamanho) ? 'flex' : 'none',
-                              width: 40,
-                              aspectRatio: 1,
-                              alignItems: "center",
-                              justifyContent: "center",
-                              backgroundColor: colors.fundo,
-                              elevation: 5,
-                              opacity: .7,
-                              borderRadius: 12,
-                           }}>
-                           <Texto texto={tamanho} tipo='Medium' cor='#222' />
-                        </Pressable>
-                     )
-                  })}
-
-               </View>
-
-               <FlatList
-                  horizontal
-                  ItemSeparatorComponent={<View style={{ marginHorizontal: 3 }} />}
-                  contentContainerStyle={{ paddingHorizontal: 14 }}
-                  data={[...new Set(produtoEncontrado?.filter(item => item.tamanho === tamanhoSelecionado)
-                     .filter(item => item.estoque > (item.reservado + item.saida)))]}
-                  renderItem={({ item, index }) => {
-                     return (
-                        <Pressable disabled={load} onPress={() => AdicionarItemAoPedido({ produtoID: item.id, ordemDeCompraID: orcamento?.id })
-                        } key={index}
-                           style={{
-                              alignItems: "center",
-                              justifyContent: "center",
-                              borderRadius: 12,
-                              height: 40,
-                              backgroundColor: colors.fundo,
-                              elevation: 5,
-                              opacity: .7,
-                              paddingHorizontal: 12,
-                              marginVertical: 12,
-                           }}>
-
-                           <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
-                              <Texto texto={item?.estoque - (item?.reservado + item?.saida)} tipo={'Light'} tamanho={10} />
-                           </View>
-                           <Texto texto={item?.cor?.nome} tipo={'Regular'} />
-                        </Pressable>
-
-                     )
-                  }}
-               />
-            </View> : null}
-
-
-         {orcamento?.estado !== 'Entregue' && !!orcamento?.observacao ? <View style={{ paddingHorizontal: 18, marginVertical: 12 }}>
-
-            {!!orcamento?.observacao ?
-               <Texto cor={'#777'} tipo={'Light'} texto={`Obs. ${orcamento?.observacao}`} /> : null}
-
-         </View> : null}
 
          <FlatList
+            ListHeaderComponent={
+               <View style={{marginVertical:14}}>
+                  {orcamento?.estado === 'Aberto' ?
+                     <View style={{ marginBottom: 18, gap:12 }}>
+                        <View>
+                           <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
+                        </View>
+
+                        <View style={{ flexDirection: "row", gap: 6, }}>
+                           {listaDeTamanhos.map((tamanho, index) => {
+                              const tamanhoExiste = [...new Set(produtoEncontrado
+                                 .filter(item => (item?.estoque - (item?.reservado + item?.saida)) > 0)
+                                 .map(item => item.tamanho))]
+                              if (!tamanhoExiste) return
+                              return (
+                                 <Pressable disabled={!tamanhoExiste.includes(tamanho)} onPress={() => setTamanhoSelecionado(tamanho)} key={index}
+                                    style={{
+                                       display: tamanhoExiste.includes(tamanho) ? 'flex' : 'none',
+                                       width: 40,
+                                       aspectRatio: 1,
+                                       alignItems: "center",
+                                       justifyContent: "center",
+                                       backgroundColor: colors.fundo,
+                                       elevation: 5,
+                                       opacity: .7,
+                                       borderRadius: 12,
+                                    }}>
+                                    <Texto texto={tamanho} tipo='Medium' cor='#222' />
+                                 </Pressable>
+                              )
+                           })}
+
+                        </View>
+
+                        <FlatList
+                           horizontal
+                           ItemSeparatorComponent={<View style={{ marginHorizontal: 3 }} />}
+                           contentContainerStyle={{ paddingHorizontal: 2 }}
+                           data={[...new Set(produtoEncontrado?.filter(item => item.tamanho === tamanhoSelecionado)
+                              .filter(item => item.estoque > (item.reservado + item.saida)))]}
+                           renderItem={({ item, index }) => {
+                              return (
+                                 <Pressable disabled={load} onPress={() => AdicionarItemAoPedido({ produtoID: item.id, ordemDeCompraID: orcamento?.id })
+                                 } key={index}
+                                    style={{
+                                       alignItems: "center",
+                                       justifyContent: "center",
+                                       borderRadius: 12,
+                                       height: 40,
+                                       backgroundColor: colors.fundo,
+                                       elevation: 5,
+                                       opacity: .7,
+                                       paddingHorizontal: 12,
+                                       marginVertical: 12,
+                                    }}>
+
+                                    <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
+                                       <Texto texto={item?.estoque - (item?.reservado + item?.saida)} tipo={'Light'} tamanho={10} />
+                                    </View>
+                                    <Texto texto={item?.cor?.nome} tipo={'Regular'} />
+                                 </Pressable>
+                              )
+                           }}
+                        />
+                     </View> : null}
+
+                  {orcamento?.estado !== 'Entregue' && !!orcamento?.observacao ? <View style={{  marginVertical: 12 }}>
+
+                     {!!orcamento?.observacao ?
+                        <Texto texto={`Obs. ${orcamento?.observacao}`} /> : null}
+
+                  </View> : null}
+               </View>
+            }
             data={itensDoPedido}
-            contentContainerStyle={{ padding: 14 }}
+            ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
+            contentContainerStyle={{paddingHorizontal:14,}}
             renderItem={({ item }) => <ItemDaLista data={item} />}
             ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
          />

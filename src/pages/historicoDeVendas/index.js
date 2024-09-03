@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, Pressable, Text, FlatList } from 'react-native';
+import { View, FlatList } from 'react-native';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
@@ -16,15 +16,12 @@ export default function HistoricoDeVendas() {
 
   const focus = useIsFocused()
   const navigation = useNavigation()
-  const { credencial, Toast } = useContext(AppContext)
+  const { credencial, Toast, FormatarTexto } = useContext(AppContext)
   const { ordemDeCompra, ListaOrdemDeCompras } = useContext(CrudContext)
 
   useEffect(() => {
     ListaOrdemDeCompras()
   }, [focus])
-
-
-  
 
 
   const converteData = (date) => {
@@ -57,7 +54,7 @@ export default function HistoricoDeVendas() {
             <Texto tipo='Light' texto={`Pedido ${item?.estado} ${tipoC}-${item.id.substr(0, 6).toUpperCase()}`}/>
             <Texto tipo='Light' texto={`${converteData(item?.criadoEm)}`}/>
           </View>
-            <Texto tipo='Light' texto={`Cliente: ${item?.cliente?.nome}`}/>
+            <Texto tipo='Light' texto={`Cliente: ${FormatarTexto(item?.cliente?.nome)}`}/>
         </View>
 
       </ContainerItem>
@@ -71,28 +68,25 @@ export default function HistoricoDeVendas() {
     return lista.sort((a, b) => estados[a.estado] - estados[b.estado]);
   }
 
-
   return (
     <>
+
+
       <Topo
         posicao='left'
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
         titulo='Histórico' />
       <Tela>
 
-        {console.log(ordenarListaPorEstado(ordemDeCompra))
-        }
-
         <FlatList
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{paddingVertical:14}}
-          // data={ordenarListaPorEstado(ordemDeCompra)}
-
           data={
             rota?.clienteID
                 ? ordenarListaPorEstado(ordemDeCompra).filter((item) => item.cliente?.id === rota?.clienteID)
                 : ordenarListaPorEstado(ordemDeCompra)
         }
+        
 
 
           renderItem={({ item }) => <RenderItem item={item} />}
