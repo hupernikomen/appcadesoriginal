@@ -1,24 +1,28 @@
 import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
-import { useContext, useEffect, useState, useTransition } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
 
-import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
+import { CredencialContext } from '../../contexts/credencialContext';
+
 import Texto from '../../components/Texto';
 import Topo from '../../components/Topo';
 import Icone from '../../components/Icone';
+import Load from '../../components/Load';
 
 export default function Home() {
   const navigation = useNavigation()
   const focus = useIsFocused()
   const { colors } = useTheme()
+  const [load, setLoad] = useState(false)
 
-  const { credencial, autenticado } = useContext(AppContext)
+  const { credencial, autenticado } = useContext(CredencialContext)
   const { clientes, ordemDeCompra, ListaOrdemDeCompras, ListaProdutos, quantidadeNoEstoque, ListaClientes } = useContext(CrudContext)
   const [aniversariante, setAniversariante] = useState([])
 
   useEffect(() => {
-    Promise.all([ListaOrdemDeCompras(), ListaProdutos(), ListaClientes()])
+    setLoad(true)
+    Promise.all([ListaOrdemDeCompras(), ListaProdutos(), ListaClientes()]).finally(() => setLoad(false))
 
   }, [focus])
 
@@ -33,7 +37,8 @@ export default function Home() {
     { icone: 'reader-outline', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas', desabilitado: credencial?.cargo === 'Funcionario' },
     { icone: 'people-outline', nome: 'Clientes', notificacao: clientes?.length, pagina: 'ListaDeClientes', desabilitado: credencial?.cargo === 'Vendedor' || credencial?.cargo === 'Funcionario' },
     { icone: 'shirt-outline', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'ListaEstoque', desabilitado: credencial?.cargo === 'Vendedor' || credencial?.cargo === 'Funcionario' },
-    { icone: 'barcode-outline', nome: 'Crachá', notificacao: '', pagina: !!autenticado ? 'BarrasPonto' : 'Login', desabilitado: credencial?.cargo === 'Vendedor' },
+    // { icone: 'barcode-outline', nome: 'Crachá', notificacao: '', pagina: !!autenticado ? 'BarrasPonto' : 'Login', desabilitado: credencial?.cargo === 'Vendedor' },
+    { icone: 'trending-up', nome: 'Relatorio', notificacao: '', pagina: 'Relatorio', desabilitado: credencial?.cargo !== 'Socio' },
   ]
 
   function EncontrarAniversariantes() {
@@ -75,15 +80,17 @@ export default function Home() {
         style={stl.buttons}
         onPress={() => navigation.navigate(pagina)}>
 
-        <Icone nomeDoIcone={icone} corDoIcone={colors.padrao} tamanhoDoIcone={26} onpress={() => navigation.navigate(pagina)} />
+        <Icone nomeDoIcone={icone} corDoIcone={colors.detalhe} tamanhoDoIcone={26} onpress={() => navigation.navigate(pagina)} />
 
-        {notificacao > 0 ? <Texto estilo={stl.notification} texto={notificacao} tamanho={12} tipo='Light' /> : null}
+        {notificacao > 0 ? <Texto estilo={stl.notification}  texto={notificacao} tamanho={12} tipo='Light' /> : null}
 
         <Texto texto={nome} tipo='Light' />
 
       </Pressable>
     )
   }
+
+  if (load) return <Load />
 
 
   return (
@@ -95,9 +102,7 @@ export default function Home() {
 
       <View style={{ flex: 1, justifyContent: 'space-around', paddingVertical: 20 }}>
 
-
         <View style={{ alignItems: "center", justifyContent: 'center' }}>
-
 
           {credencial?.token ?
             <FlatList

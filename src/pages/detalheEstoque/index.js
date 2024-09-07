@@ -1,16 +1,14 @@
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, FlatList, Pressable, Dimensions } from 'react-native';
 import api from '../../services/api';
 import Topo from '../../components/Topo';
 import Texto from '../../components/Texto';
 import Load from '../../components/Load';
-import { ScrollView } from 'react-native-gesture-handler';
-import { AppContext } from '../../contexts/appContext';
+import Tela from '../../components/Tela';
 
 export default function DetalheEstoque() {
 
-    const {credencial} = useContext(AppContext)
 
     const tamanhoOrder = ['PP', 'P', 'M', 'G', 'GG', 'G1', 'G2', 'G3', 'G4', 'G5', '2', '4', '6', '8', '10', '12', '14', '16'];
 
@@ -28,8 +26,10 @@ export default function DetalheEstoque() {
 
     async function BuscaPorReferencia() {
         try {
-            const res = await api.get(`/busca/produto/referencia?referencia=${route.params?.referencia?.referencia}`)
-            setProdutos(res.data)
+            const response = await api.get(`/busca/produto/referencia?referencia=${route.params?.referencia?.referencia}`)
+            const produtos = response.data
+
+            setProdutos(produtos)
 
         } catch (error) {
             console.log(error.data);
@@ -68,8 +68,6 @@ export default function DetalheEstoque() {
 
 
 
-    //   console.log(organizedData);
-
     if (load) return <Load />
 
     return (
@@ -79,55 +77,52 @@ export default function DetalheEstoque() {
                 iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
                 titulo={route.params?.referencia?.referencia + " - " + route.params?.referencia?.nome} />
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <FlatList
+                horizontal
+                data={organizeList(produtos)}
+                showsHorizontalScrollIndicator={false}
+                pagingEnabled
+                renderItem={({ item, index }) => {
+                    return (
+                        <View key={index} style={{ width: width, paddingHorizontal: 14 }}>
+                            <View style={{ flexDirection: "row",  justifyContent: "space-between", borderBottomWidth: .5, borderColor: '#d9d9d9', paddingVertical: 12 }}>
+                                <Texto tamanho={22} tipo='Bold' texto={item.tamanho} estilo={{ marginLeft: 36 }} />
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
 
-                <FlatList
-                    horizontal
-                    data={organizeList(produtos)}
-                    showsHorizontalScrollIndicator={false}
-                    pagingEnabled
-                    renderItem={({ item, index }) => {
-                        return (
-                            <View key={index} style={{ width: width, paddingHorizontal: 14 }}>
-                                <View style={{ flexDirection: "row", marginBottom: 12, justifyContent:"space-between",borderBottomWidth: .5, borderColor: '#d9d9d9',paddingVertical: 12 }}>
-                                    <Texto tamanho={22} tipo='Bold' texto={item.tamanho}  estilo={{ marginLeft: 36 }}/>
-                                    <View style={{flexDirection:'row', alignItems:'center'}}>
-
-                                    <Texto tamanho={16} tipo='Medium' texto='R' estilo={{ width: 30, textAlign: 'right' }} />
-                                    <Texto tamanho={16} tipo='Medium' texto='S' estilo={{ width: 30, textAlign: 'right' }} />
-                                    <Texto tamanho={16} tipo='Medium' texto='E' estilo={{ width: 50, textAlign: 'right' }} />
-                                    </View>
+                                    <Texto texto='Res.' estilo={{ width: 30, textAlign: 'right' }} />
+                                    <Texto texto='Vend.' estilo={{ width: 50, textAlign: 'right' }} />
+                                    <Texto texto='Est.' estilo={{ width: 50, textAlign: 'right' }} />
                                 </View>
-
-                                <FlatList
-                                    ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
-                                    data={item.cores}
-                                    contentContainerStyle={{ marginBottom:20}}
-                                    renderItem={({ item }) => {
-                                            return (
-                                                <Pressable onPress={() => {
-                                                    navigation.navigate('RegistraEstoque', { codigoDeBarras: item.codigoDeBarras })}} key={index} style={{ flexDirection: "row", justifyContent: "space-between", height: 25, alignItems: 'center' }}>
-                                                    <View style={{ width: 26, aspectRatio: 1, borderRadius: 10, backgroundColor: item.corHexa, marginRight: 10, opacity: .8 }} />
-                                                    <Texto tipo='Light' texto={item.cor} estilo={{ flex: 1 }} />
-                                                    {item.estoque ? null : <Texto tipo='Light' texto={item.reservado} estilo={{ width: 30, textAlign: 'right' }} />}
-                                                    {!item.saida ? null : <Texto tipo='Light' texto={item.saida} estilo={{ width: 25, textAlign: 'right' }} />}
-                                                    <Texto tipo='Light' texto={item.estoque - item.saida} estilo={{ width: 50, textAlign: 'right' }} />
-                                                </Pressable>
-                                            )
-                                    }}
-                                />
-
-
-
-
-
                             </View>
-                        )
-                    }}
-                />
 
+                            <FlatList
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{paddingTop:14, paddingBottom:104}}
+                                ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
+                                data={item.cores}
+                                renderItem={({ item }) => {
+                                    return (
+                                        <Pressable onPress={() => {
+                                            navigation.navigate('RegistraEstoque', { codigoDeBarras: item.codigoDeBarras })
+                                        }} key={index} style={{ flexDirection: "row", justifyContent: "space-between", height: 25, alignItems: 'center' }}>
+                                            <View style={{ width: 26, aspectRatio: 1, borderRadius: 10, backgroundColor: item.corHexa, marginRight: 10, opacity: .8 }} />
 
-            </ScrollView>
+                                            <Texto tipo='Light' texto={item.cor} estilo={{ flex: 1 }} />
+
+                                            {item.reservado === 0 ? null : <Texto tipo='Light' texto={item.reservado} estilo={{ width: 30, textAlign: 'right' }} />}
+
+                                            {!item.saida ? null : <Texto tipo='Light' texto={item.saida} estilo={{ width: 50, textAlign: 'right' }} />}
+
+                                            <Texto tipo='Light' texto={item.estoque - item.saida} estilo={{ width: 50, textAlign: 'right' }} />
+                                        </Pressable>
+                                    )
+                                }}
+                            />
+
+                        </View>
+                    )
+                }}
+            />
         </View>
     );
 }

@@ -1,7 +1,7 @@
 import { Pressable, View, Text, FlatList, Linking, LogBox } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
-import { useContext, useCallback, useState, useEffect } from 'react';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useContext, useState, useEffect } from 'react';
 
 import { CrudContext } from '../../contexts/crudContext';
 import { AppContext } from '../../contexts/appContext';
@@ -13,7 +13,7 @@ import MaskOfInput from '../../components/MaskOfInput';
 
 export default function ListaDeClientes() {
 
-  const { clientes, ordemDeCompra } = useContext(CrudContext)
+  const { clientes, ordemDeCompra, ListaClientes } = useContext(CrudContext)
   const { FormatarTexto } = useContext(AppContext)
 
   const navigation = useNavigation()
@@ -103,6 +103,8 @@ export default function ListaDeClientes() {
     } else {
       setMask(null)
     }
+
+    ListaClientes()
   }, [busca]);
 
 
@@ -110,8 +112,15 @@ export default function ListaDeClientes() {
     <>
       <Topo
         posicao='left'
-        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-        iconeRight={{ nome: 'add-sharp', acao: () => navigation.navigate('RegistraCliente') }}
+        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.navigate('Home') }}
+        iconeRight={{ nome: 'add-sharp', acao: () => navigation.dispatch(
+          CommonActions.reset({
+            index: 1,
+            routes: [
+              { name: 'Home' }, { name: 'RegistraCliente' },
+            ],
+          })
+        ) }}
         titulo='Clientes' />
 
       <Tela>

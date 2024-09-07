@@ -1,9 +1,9 @@
 import { createContext, useState, useEffect, useContext } from "react";
-import { ToastAndroid } from "react-native";
 import api from "../services/api";
 import { useNavigation } from "@react-navigation/native";
 
 import { AppContext } from "./appContext";
+import { CredencialContext } from "./credencialContext";
 
 export const CrudContext = createContext({})
 
@@ -11,7 +11,8 @@ export function CrudProvider({ children }) {
 
   const navigation = useNavigation()
 
-  const { credencial, load, setLoad } = useContext(AppContext)
+  const { credencial } = useContext(CredencialContext)
+  const { load, setLoad, Toast } = useContext(AppContext)
   const [clientes, setClientes] = useState([])
   const [ordemDeCompra, setOrdemDeCompra] = useState([])
   const [itensDoPedido, setItensDoPedido] = useState([])
@@ -24,8 +25,10 @@ export function CrudProvider({ children }) {
 
   async function ListaClientes() {
     try {
-      const res = await api.get('/lista/clientes')
-      setClientes(res.data)
+      const response = await api.get('/lista/clientes')
+      const cliente = response.data
+
+      setClientes(cliente)
 
     } catch (error) {
       console.log(error.response);
@@ -33,32 +36,40 @@ export function CrudProvider({ children }) {
   }
 
 
-  async function ListaOrdemDeCompras() {
 
+
+  // REFATORACAO
+  async function ListaOrdemDeCompras() {
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${credencial?.token}`
-    }
+      'Authorization': `Bearer ${credencial?.token}`,
+    };
 
     try {
-      const res = await api.get('/lista/ordemDeCompras')
-      res.data?.map(async (item) => {
+      const response = await api.get('/lista/ordemDeCompras');
+      const ordensDeCompra = response.data;
 
-        try {
+      // Filtra e exclui ordens de compra com total da nota igual a 0
+      const ordensDeCompraValidas = await Promise.all(
+        ordensDeCompra.map(async (item) => {
           if (item?.totalDaNota === 0 || !item?.totalDaNota) {
-            await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${item?.id}`, { headers })
+            try {
+              await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${item?.id}`, { headers });
+              return null;
+            } catch (error) {
+              console.error(error.response);
+              return item;
+            }
           }
+          return item;
+        })
+      );
 
-        } catch (error) {
-          console.log(error.response);
-
-        }
-      })
-
-      setOrdemDeCompra(res.data);
+      const ordensDeCompraFiltradas = ordensDeCompraValidas.filter((item) => item !== null);
+      setOrdemDeCompra(ordensDeCompraFiltradas);
 
     } catch (error) {
-      console.log(error.response);
+      console.error(error.response);
     }
   }
 
@@ -73,8 +84,10 @@ export function CrudProvider({ children }) {
     }
 
     try {
-      const res = await api.get(`/busca/itemDoPedido?ordemDeCompraID=${ordemDeCompraID}`)
-      setItensDoPedido(res.data)
+      const response = await api.get(`/busca/itemDoPedido?ordemDeCompraID=${ordemDeCompraID}`)
+      const itemDoPedido = response.data
+
+      setItensDoPedido(itemDoPedido)
       setLoad(false)
 
     } catch (error) {
@@ -92,10 +105,15 @@ export function CrudProvider({ children }) {
       'Authorization': `Bearer ${credencial?.token}`
     }
 
+    const atualizacao = {
+      quantidade: Number(quantidade - 1), 
+      produtoID: produtoID
+    }
+
     try {
-      await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${itemDoPedidoID}`, { quantidade: Number(quantidade - 1), produtoID: produtoID }, { headers })
+      await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${itemDoPedidoID}`, atualizacao, { headers })
       BuscaItemDoPedido(ordemDeCompraID)
-    
+
     } catch (error) {
       console.log(error.response)
     }
@@ -104,32 +122,22 @@ export function CrudProvider({ children }) {
 
 
 
+
   async function ListaProdutos() {
     try {
-      const res = await api.get('/lista/produtos')
-      let estoque = res.data.reduce((acc, current) => acc + current.estoque, 0)
-      let saida = res.data.reduce((acc, current) => acc + current.saida, 0)
-      setQuantidadeNoEstoque(estoque - saida)
+      const response = await api.get('/lista/produtos');
+      const produtos = response.data;
+
+      const totalEstoque = produtos.reduce((acc, produto) => acc + produto.estoque, 0);
+      const totalSaida = produtos.reduce((acc, produto) => acc + produto.saida, 0);
+
+      const quantidadeNoEstoque = totalEstoque - totalSaida;
+      setQuantidadeNoEstoque(quantidadeNoEstoque);
 
     } catch (error) {
-      console.log(error.response);
-
+      console.error(error.response);
     }
   }
-
-
-  const Toast = message => {
-    ToastAndroid.showWithGravityAndOffset(
-      message,
-      ToastAndroid.SHORT,
-      ToastAndroid.BOTTOM,
-      25,
-      30,
-    );
-  };
-
-
-
 
 
   async function AdicionarItemAoPedido(data) {
@@ -141,26 +149,28 @@ export function CrudProvider({ children }) {
       'Authorization': `Bearer ${credencial?.token}`
     }
 
-    // SE O PRODUTO JA ESTIVER NA LISTA ...
+    // Verifica se o produto já está na lista
     const itemJaIncluso = itensDoPedido.find(item => item.produto?.id === data.produtoID);
 
     try {
       if (itemJaIncluso) {
+        // Atualiza a quantidade do item existente
         await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${itemJaIncluso?.id}`, { quantidade: Number(itemJaIncluso.quantidade + 1), produtoID: data?.produtoID }, { headers })
 
       } else {
-
-        const item = {
+        // Cria um novo item
+        const novoItem = {
           ordemDeCompraID: data.ordemDeCompraID,
           produtoID: data.produtoID,
           quantidade: 1,
         }
 
-        await api.post('/cria/itemDoPedido', item, { headers })
+        await api.post('/cria/itemDoPedido', novoItem, { headers })
 
       }
     } catch (error) {
       Toast(error.response.data.error)
+
     } finally {
       setLoad(false)
     }
@@ -170,32 +180,8 @@ export function CrudProvider({ children }) {
 
 
 
-
-
-
-  async function RegistraCliente(cpf_cnpj, nome, endereco, bairro, cidade, estado, whatsapp, dataNascimento, CEP, inscricaoEstadualRg) {
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${credencial?.token}`
-    }
-
-    try {
-      await api.post('/registra/cliente', { cpf_cnpj, nome, endereco, bairro, cidade, estado, whatsapp, dataNascimento, CEP, inscricaoEstadualRg }, { headers })
-      ListaClientes()
-      navigation.goBack()
-    } catch (error) {
-      console.log(error.response);
-
-    }
-  }
-
-
-
-
   return (
     <CrudContext.Provider value={{
-      RegistraCliente,
       clientes,
       ListaClientes,
       ordemDeCompra,

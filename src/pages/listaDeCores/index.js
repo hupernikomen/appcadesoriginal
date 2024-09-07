@@ -22,8 +22,10 @@ export default function ListColors() {
 
     async function ListaCores() {
         try {
-            const res = await api.get("/listaCores")
-            setCores(res.data)
+            const response = await api.get("/listaCores")
+            const cores = response.data
+            
+            setCores(cores)
 
         } catch (error) {
             console.log(error.response);

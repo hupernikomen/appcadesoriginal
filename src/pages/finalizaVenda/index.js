@@ -2,7 +2,9 @@ import { View, Text, Pressable, ActivityIndicator, Keyboard } from 'react-native
 
 import { useRoute, useTheme, useNavigation } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
+
 import { AppContext } from '../../contexts/appContext';
+import { CredencialContext } from '../../contexts/credencialContext';
 
 import api from '../../services/api';
 
@@ -13,7 +15,8 @@ import Topo from '../../components/Topo';
 
 export default function FinalizaVenda() {
 
-    const { credencial, Toast } = useContext(AppContext)
+    const { Toast } = useContext(AppContext)
+    const { credencial } = useContext(CredencialContext)
 
     const CurrencyMask = createNumberMask({
         delimiter: '.',
@@ -28,13 +31,11 @@ export default function FinalizaVenda() {
 
     const [load, setLoad] = useState(false)
 
-    const [alerta, setAlerta] = useState('')
-
     const [tempoDePagamento, setTempoDePagamento] = useState('')
     const [valorAdiantado, setValorAdiantado] = useState('')
     const [observacao, setObservacao] = useState('')
     const [desconto, setDesconto] = useState('')
-    const [total, setTotal] = useState('')
+    // const [total, setTotal] = useState('')
 
     const [orcamento, setOrcamento] = useState([])
 
@@ -53,19 +54,19 @@ export default function FinalizaVenda() {
 
     }, [tempoDePagamento])
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        setTotal(orcamento?.totalDaNota - valorAdiantado.replace(',', '.'))
-    }, [valorAdiantado])
+    //     setTotal(orcamento?.totalDaNota - valorAdiantado.replace(',', '.'))
+    // }, [valorAdiantado])
 
 
     async function BuscaOrdemDecompra() {
 
         try {
-            const res = await api.get(`/busca/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`)
-            setOrcamento(res.data)
+            const response = await api.get(`/busca/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`)
+            const orcamento = response.data
 
-            const { estado, id } = res.data
+            setOrcamento(orcamento)
 
         } catch (error) {
             console.log(error.response);
@@ -77,13 +78,12 @@ export default function FinalizaVenda() {
     async function EnviaVenda() {
 
         Keyboard.dismiss()
+        setLoad(true)
 
         if (Number(valorAdiantado) > Number(orcamento?.totalDaNota)) {
             Toast('Valor superior à compra')
             return
         }
-
-        setLoad(true)
 
         const headers = {
             'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export default function FinalizaVenda() {
         try {
             await api.put(`/atualiza/estoque?ordemDeCompraID=${rota?.ordemDeCompraID}`, { headers })
             await api.put(`/atualiza/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`, {
-                estado: 'Criado',
+                estado: 'Processando',
                 totalDaNota: Number(orcamento?.totalDaNota),
                 valorPago: (Number(orcamento?.totalDaNota) - valorAdiantado) * (1 - desconto / 100),
                 desconto: Number(desconto) || null,
@@ -132,7 +132,6 @@ export default function FinalizaVenda() {
                 {!desconto && <View>
                     <MaskOfInput type='numeric' title={'Adiantamento (R$)'} value={valorAdiantado} setValue={setValorAdiantado} mask={CurrencyMask} />
                     <MaskOfInput type='numeric' title='Nº de prestações' value={tempoDePagamento} setValue={setTempoDePagamento} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100) / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
-                    <Text>{alerta}</Text>
                 </View>}
 
                 <MaskOfInput lines={5} multiline={true} styleMask={{ height: 60 }} style={{ height: 100 }} title='Observações' value={observacao} setValue={setObservacao} />

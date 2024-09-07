@@ -9,6 +9,7 @@ import Load from '../../components/Load';
 import MaskOfInput from '../../components/MaskOfInput';
 
 import { AppContext } from '../../contexts/appContext';
+import Icone from '../../components/Icone';
 
 export default function ListaEstoque() {
 
@@ -19,7 +20,7 @@ export default function ListaEstoque() {
     const [load, setLoad] = useState(true)
     const [busca, setBusca] = useState('')
 
-    const {FormatarTexto} = useContext(AppContext)
+    const { FormatarTexto } = useContext(AppContext)
 
     useEffect(() => {
         ListaEstoque()
@@ -44,7 +45,7 @@ export default function ListaEstoque() {
         try {
             const res = await api.get('/lista/produtos')
 
-            
+
 
             // Varre o estoque atras de algumas falhas, se houver falha, retorna TRUE e o item da falha
             const { resultado, itemFalha } = verificaIntegridadeDoEstoque(res.data);
@@ -107,12 +108,14 @@ export default function ListaEstoque() {
 
                     <View >
                         <Texto texto={data.nome} tipo='Light' />
-                        <Texto tipo='Light' texto={`${((data.estoque / totalEstoque) * 100).toFixed(2)}% do estoque`} />
+                        <Texto tipo='Light' texto={`${(((data.estoque - data.saidaTotal) / totalEstoque) * 100).toFixed(2)}% do estoque`} />
                         {data.saidaTotal === 0 ? null : <Texto texto={`${data.saidaTotal} ite${data.saidaTotal > 1 ? 'ns' : 'm'} vendido${data.saidaTotal > 1 ? 's' : ''}`} tipo='Light' />}
-                        {!data.erro ? null : <Texto tipo='Light' texto={data.erro ? 'Inconsistência no estoque' : ''} cor={colors.detalhe} />}
                     </View>
                 </View>
-                <Texto texto={data.estoque} tipo='Light' />
+                <View style={{ flexDirection: 'row', position: 'absolute', right: 0, top: 0 }}>
+                    {!data.erro ? null : <Icone estilo={{ marginRight: -8 }} tamanhoDoIcone={16} height={20} nomeDoIcone={'warning-outline'} corDoIcone='#e6b800' />}
+                    <Texto texto={data.estoque - data.saidaTotal} tipo='Light' />
+                </View>
             </Pressable>
         )
     }

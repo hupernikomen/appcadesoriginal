@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
 import { View, Pressable, Keyboard, ActivityIndicator, Switch, FlatList } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
-import { AppContext } from '../../contexts/appContext';
+
 import { CrudContext } from '../../contexts/crudContext';
+import { CredencialContext } from '../../contexts/credencialContext';
 
 import api from '../../services/api';
 import MaskOfInput from '../../components/MaskOfInput';
@@ -10,12 +11,13 @@ import Texto from '../../components/Texto';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import Icone from '../../components/Icone';
+import SeletorAV from '../../components/SeletorAV';
 
 export default function Sale() {
 
 
 	const { clientes, ordemDeCompra } = useContext(CrudContext)
-	const { credencial } = useContext(AppContext)
+	const { credencial } = useContext(CredencialContext)
 	const navigation = useNavigation()
 	const { colors } = useTheme()
 
@@ -23,8 +25,8 @@ export default function Sale() {
 
 	const [load, setLoad] = useState(false)
 
-	const [isEnabled, setIsEnabled] = useState(false);
-	const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+	const [xAtacado, setXAtacado] = useState(false);
+
 
 
 	const [busca, setBusca] = useState('');
@@ -71,7 +73,7 @@ export default function Sale() {
 		}
 
 		try {
-			const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id, tipo: isEnabled ? 'Varejo' : 'Atacado' }, { headers })
+			const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id, tipo: xAtacado ? 'Varejo' : 'Atacado' }, { headers })
 			navigation.navigate('Orcamento', { ordemDeCompraID: response.data.id })
 
 		} catch (error) {
@@ -165,28 +167,7 @@ export default function Sale() {
 			<Tela>
 
 
-				<View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 20, marginBottom: 20, borderBottomWidth: .7, borderColor: '#ccc' }}>
-					<Pressable onPress={() => {
-						setIsEnabled(false)
-					}} style={{ flex: 1, alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}>
-
-						<Texto texto={'Venda Atacado'} cor={!isEnabled ? colors.theme : '#bbb'} />
-					</Pressable>
-
-					<Switch
-						trackColor={{ false: '#ccc', true: '#ccc' }}
-						thumbColor={colors.detalhe}
-						onValueChange={toggleSwitch}
-						value={isEnabled}
-					/>
-
-					<Pressable onPress={() => {
-						setIsEnabled(true)
-					}} style={{ flex: 1, alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}>
-						<Texto texto={'Venda Varejo'} cor={isEnabled ? colors.theme : '#bbb'} />
-					</Pressable>
-				</View>
-
+			<SeletorAV setXAtacado={setXAtacado} xAtacado={xAtacado}/>
 
 
 				<FlatList
@@ -212,7 +193,7 @@ export default function Sale() {
                                 <Icone label='SACOLA' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='bag-handle-outline' onpress={() => CriaOrdemDeCompra(cliente)} />
                             </Pressable> : null} */}
 
-							{isEnabled && !clientesFiltrados.length ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+							{xAtacado && !clientesFiltrados.length ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
 								<Icone label='S/ CAD.' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("000.000.000-00")} />
 							</Pressable> : null}
 

@@ -1,7 +1,8 @@
 import { useNavigation } from '@react-navigation/native'
 import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer'
 import { useContext } from 'react'
-import { AppContext } from '../../contexts/appContext'
+
+import { CredencialContext } from '../../contexts/credencialContext'
 
 import AntDesign from 'react-native-vector-icons/AntDesign'
 
@@ -10,7 +11,7 @@ import { View, Text, Pressable } from 'react-native'
 export default function DrawerCustom(props) {
 
   const navigation = useNavigation()
-  const { autenticado, credencial, signOut } = useContext(AppContext)
+  const { autenticado, credencial, signOut } = useContext(CredencialContext)
 
 
   return (
@@ -35,21 +36,15 @@ export default function DrawerCustom(props) {
           />
         }
 
-
         <View style={{ borderTopWidth: .5, borderColor: '#333' }}>
-
-          {/* PAGES */}
 
           <DrawerItem
             label="Home"
             inactiveTintColor='#fff'
             onPress={() => navigation.navigate("Home")}
           />
-          
-
 
         </View>
-
       </View>
 
 

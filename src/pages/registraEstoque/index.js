@@ -5,6 +5,7 @@ import { useEffect, useContext, useState } from 'react';
 import { createNumberMask } from 'react-native-mask-input';
 import { useNavigation } from '@react-navigation/native';
 import { AppContext } from '../../contexts/appContext';
+import { CredencialContext } from '../../contexts/credencialContext';
 
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import MaskOfInput from '../../components/MaskOfInput';
@@ -28,7 +29,8 @@ export default function RegistraEstoque() {
     delimiter: '.', separator: ',', precision: 2,
   });
 
-  const { credencial, Toast,TratarErro, CodigoDeVerificacaoEAN13, FormatarTexto } = useContext(AppContext)
+  const { credencial } = useContext(CredencialContext)
+  const { Toast, TratarErro, CodigoDeVerificacaoEAN13, FormatarTexto } = useContext(AppContext)
   const { colors } = useTheme()
 
   const [load, setLoad] = useState(false)
@@ -106,7 +108,7 @@ export default function RegistraEstoque() {
     setEstoque('')
     setValorAtacado('')
     setValorVarejo('')
-    setItensAAdicionar([])
+
   }
 
 
@@ -183,7 +185,7 @@ export default function RegistraEstoque() {
 
     try {
       await api.put(`/atualiza/produto?produtoID=${id}`, {
-        nome, detalhes, valorAtacado, valorVarejo, estoque:Number(estoque)
+        nome, detalhes, valorAtacado, valorVarejo, estoque: Number(estoque)
       }, { headers })
 
       navigation.navigate('ListaEstoque')
@@ -227,12 +229,13 @@ export default function RegistraEstoque() {
         }, { headers })
 
         LimpaCampos()
+        setItensAAdicionar([])
         setLoad(false)
-        
+
       } catch (error) {
         TratarErro(error)
 
-      } 
+      }
     }
   }
 
@@ -264,7 +267,7 @@ export default function RegistraEstoque() {
             <MaskOfInput load={loadBusca} style={{ flex: 1 }} title='Nome do Produto' value={nome} setValue={setNome} maxlength={30} info={nome?.length + '/30'} />
           </View>
 
-          <MaskOfInput lines={5} multiline={true} styleMask={{height:60}} style={{height: 100}} title='Detalhes do produto' value={detalhes} setValue={setDetalhes}  />
+          <MaskOfInput lines={5} multiline={true} styleMask={{ height: 60 }} style={{ height: 100 }} title='Detalhes do produto' value={detalhes} setValue={setDetalhes} />
 
           <View style={{ flexDirection: 'row' }}>
             <MaskOfInput type='numeric' load={loadBusca} style={{ flex: 1 }} title='Valor Atacado' value={valorAtacado} setValue={setValorAtacado} mask={CurrencyMask} />
@@ -272,11 +275,11 @@ export default function RegistraEstoque() {
           </View>
 
           <View>
-            
+
             <View style={{ flexDirection: 'row' }}>
               <MaskOfInput editable={!rota} maxlength={3} style={{ width: 75 }} title='Tam.' value={tamanho} setValue={setTamanho} info={buscaCodigoDeTamanho(tamanho)} />
               <Pick editable={!rota} itemTopo={corSelecionada?.nome || ''} title={'Cor'} data={listaDeCores?.sort((a, b) => a.nome.localeCompare(b.nome))} setValue={setCorSelecionada} value={corSelecionada} style={{ flex: 1 }} selectedValue={corSelecionada} info={corSelecionada?.codigo} />
-              <MaskOfInput  maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
+              <MaskOfInput maxlength={3} style={{ width: 75 }} title='Qtd.' value={estoque} setValue={setEstoque} type='numeric' />
 
             </View>
 
@@ -299,7 +302,6 @@ export default function RegistraEstoque() {
                 if (!listaTamanhos.find((item) => item.tamanho === tamanho.toUpperCase())?.codigo || !listaDeCores.find((item) => item.nome === corSelecionada.nome)?.codigo) {
                   Toast('Tamanho ou cor invalida')
                   return
-
                 }
 
                 setItensAAdicionar(arr => [...arr, {

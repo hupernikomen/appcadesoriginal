@@ -1,4 +1,4 @@
-import { View, Linking, Pressable, Text } from 'react-native';
+import { View, Linking, Pressable, FlatList } from 'react-native';
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
 import Topo from '../../components/Topo';
@@ -10,13 +10,12 @@ import Icone from '../../components/Icone';
 
 import { CrudContext } from '../../contexts/crudContext';
 import { AppContext } from '../../contexts/appContext';
-import { FlatList } from 'react-native-gesture-handler';
 
 export default function DetalheCliente() {
 
     const { colors } = useTheme()
 
-    const {credencial, FormatarTexto} = useContext(AppContext)
+    const { FormatarTexto } = useContext(AppContext)
     const { ordemDeCompra } = useContext(CrudContext)
 
     const navigation = useNavigation()
@@ -35,9 +34,10 @@ export default function DetalheCliente() {
     async function BuscaCliente() {
         setLoad(true)
         try {
-            const res = await api.get(`/busca/cliente?cpf_cnpj=${rota.cpf_cnpj}`)
-            setCliente(res.data)
+            const response = await api.get(`/busca/cliente?cpf_cnpj=${rota.cpf_cnpj}`)
+            const cliente = response.data
 
+            setCliente(cliente)
 
         } catch (error) {
             console.log(error.response);

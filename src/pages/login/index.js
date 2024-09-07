@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react'
-import { Pressable, View, StyleSheet, Image } from 'react-native'
+import { Pressable, View, StyleSheet, Image, Dimensions } from 'react-native'
 import Load from '../../components/Load'
+import { CredencialContext } from '../../contexts/credencialContext'
 import { AppContext } from '../../contexts/appContext'
 import { useTheme } from '@react-navigation/native'
 
@@ -9,7 +10,9 @@ import Texto from '../../components/Texto'
 
 export default function Login() {
 
-    const { signIn, load } = useContext(AppContext)
+    const { width } = Dimensions.get('window')
+    const { signIn } = useContext(CredencialContext)
+    const { load } = useContext(AppContext)
     const { colors } = useTheme()
     const [nome, setNome] = useState('')
     const [senha, setSenha] = useState('')
@@ -19,30 +22,28 @@ export default function Login() {
 
     return (
         <View style={{ flex: 1 }}>
-            <Image source={logo} style={{ alignSelf: 'center', position: 'absolute', top: 0 }} />
-            <View style={{ width: '100%', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
 
-                <View style={{ margin: 14, width: '100%', padding: 14 }}>
+                <Image source={logo} style={{ alignSelf: 'center', width: 200, height: 320, opacity: .05, marginBottom: -100 }} />
+                <View style={{ width: width, flex: 1, alignItems: 'center', justifyContent: 'center' }}>
 
+                    <View style={{width: width, padding: 14 }}>
 
-                    <MaskOfInput value={nome} setValue={setNome} title='Usuário' />
-                    <MaskOfInput type='numeric' value={senha} setValue={setSenha} title='Senha' />
-                    <Pressable
-                        style={[stl.botaoEntrar, { backgroundColor: colors.detalhe }]}
-                        onPress={() => signIn(nome, senha)}
-                    >
+                        <MaskOfInput value={nome} setValue={setNome} title='Usuário' />
+                        <MaskOfInput type='numeric' value={senha} setValue={setSenha} title='Senha' />
+                        <Pressable
+                            style={[stl.botaoEntrar, { backgroundColor: colors.detalhe }]}
+                            onPress={() => signIn(nome, senha)}
+                            >
 
-                        <Texto texto={'Entrar'} cor='#fff' />
+                            <Texto texto={'Entrar'} cor='#fff' />
 
-                    </Pressable>
+                        </Pressable>
+                    </View>
+
                 </View>
 
             </View>
 
-            <Texto texto={'Desenvolvido por Wilson Ramos'} estilo={{ alignSelf: "center"}} cor='#aaa' tipo='Light'/>
-            <Texto texto={'Cades Original'} estilo={{ alignSelf: "center", marginBottom: 20 }} tipo='Light'/>
-
-        </View>
     );
 }
 

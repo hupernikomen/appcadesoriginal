@@ -4,11 +4,11 @@ import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
+import { CredencialContext } from '../../contexts/credencialContext';
 
 import api from '../../services/api';
 
 import Texto from '../../components/Texto';
-import ContainerItem from '../../components/ContainerItem';
 import Load from '../../components/Load';
 import MaskOfInput from '../../components/MaskOfInput';
 import Icone from '../../components/Icone';
@@ -20,7 +20,9 @@ import Topo from '../../components/Topo';
 
 export default function Orcamento() {
    const { colors } = useTheme()
-   const { credencial, listaDeTamanhos } = useContext(AppContext)
+   const { credencial } = useContext(CredencialContext)
+   const { listaDeTamanhos } = useContext(AppContext)
+
    const { BuscaItemDoPedido, itensDoPedido, load, AdicionarItemAoPedido, SubtraiUmItemDoPedido, ListaOrdemDeCompras } = useContext(CrudContext)
 
    const navigation = useNavigation()
@@ -247,6 +249,8 @@ export default function Orcamento() {
    function ItemDaLista({ data }) {
 
       const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
+      
+      const status = orcamento.estado === "Aberto" || orcamento.estado === "Processando"
 
       return (
          <View>
@@ -260,15 +264,15 @@ export default function Orcamento() {
 
                <View style={{ flexDirection: 'row', alignItems: "center" }}>
 
-                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
-                     onPress={() => orcamento?.estado === "Aberto" && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
+                  <Pressable disabled={!status} style={[styles.btnQtd, { opacity: status ? .7 : .5 }]}
+                     onPress={() => status && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
                      <Texto texto='-' />
                   </Pressable>
 
                   <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
 
-                  <Pressable disabled={orcamento?.estado !== "Aberto"} style={[styles.btnQtd, { opacity: orcamento?.estado === 'Aberto' ? .7 : .5 }]}
-                     onPress={() => AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
+                  <Pressable disabled={!status} style={[styles.btnQtd, { opacity: status ? .7 : .5 }]}
+                     onPress={() => status && AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
                      <Texto texto='+' />
                   </Pressable>
 
@@ -321,7 +325,7 @@ export default function Orcamento() {
                   backgroundColor: colors.theme,
                }}
             >
-               {orcamento?.estado !== 'Entregue' && orcamento?.estado !== 'Criado' && (
+               {orcamento?.estado !== 'Entregue' && orcamento?.estado !== 'Processando' && (
                   <Icone
                      disabled={!itensDoPedido.length > 0}
                      label="CONDIÇÕES"
@@ -373,7 +377,7 @@ export default function Orcamento() {
          <FlatList
             ListHeaderComponent={
                <View style={{marginVertical:14}}>
-                  {orcamento?.estado === 'Aberto' ?
+                  {orcamento?.estado !== 'Entregue' ?
                      <View style={{ marginBottom: 18, gap:12 }}>
                         <View>
                            <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />

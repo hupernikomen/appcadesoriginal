@@ -19,6 +19,7 @@ import BarrasPonto from '../pages/barrasPonto';
 import ListaEstoque from '../pages/listaEstoque';
 import DetalheEstoque from '../pages/detalheEstoque';
 import DetalheCliente from '../pages/detalheCliente';
+import Relatorio from '../pages/relatorio';
 
 export default function RotasStack() {
     const { colors } = useTheme()
@@ -49,6 +50,8 @@ export default function RotasStack() {
             <Stack.Screen name='ListaEstoque' component={ListaEstoque} />
             <Stack.Screen name='DetalheEstoque' component={DetalheEstoque} />
             <Stack.Screen name='DetalheCliente' component={DetalheCliente} />
+            <Stack.Screen name='Relatorio' component={Relatorio} />
+
 
         </Stack.Navigator>
 

@@ -1,27 +1,32 @@
 import { useEffect, useState, useContext } from 'react';
-import { View, FlatList } from 'react-native';
+import { View, FlatList, Pressable } from 'react-native';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
+import { CredencialContext } from '../../contexts/credencialContext';
 
-import ContainerItem from '../../components/ContainerItem';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import Texto from '../../components/Texto';
-
+import ContainerItem from '../../components/ContainerItem';
 
 export default function HistoricoDeVendas() {
 
-  const {params: rota} = useRoute()
+  const { params: rota } = useRoute()
 
   const focus = useIsFocused()
   const navigation = useNavigation()
-  const { credencial, Toast, FormatarTexto } = useContext(AppContext)
+  const { credencial } = useContext(CredencialContext)
+  const { Toast, FormatarTexto } = useContext(AppContext)
   const { ordemDeCompra, ListaOrdemDeCompras } = useContext(CrudContext)
+
 
   useEffect(() => {
     ListaOrdemDeCompras()
+
+    
   }, [focus])
+
 
 
   const converteData = (date) => {
@@ -33,7 +38,7 @@ export default function HistoricoDeVendas() {
 
   const RenderItem = ({ item }) => {
 
-    const tipoC = item.tipo?.substr(0,1)
+    const tipoC = item.tipo?.substr(0, 1)
 
     return (
 
@@ -41,7 +46,7 @@ export default function HistoricoDeVendas() {
         if (credencial.cargo === 'Socio' || credencial.cargo === 'Gerente') {
           navigation.navigate('Orcamento', { ordemDeCompraID: item.id })
 
-        } else if (credencial.cargo === 'Vendedor' && item.estado === "Aberto" || item.estado === "Criado") {
+        } else if (credencial.cargo === 'Vendedor' && item.estado === "Aberto" || item.estado === "Processando") {
           navigation.navigate('Orcamento', { ordemDeCompraID: item.id })
 
         } else {
@@ -49,12 +54,12 @@ export default function HistoricoDeVendas() {
         }
       }}>
 
-        <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .5 : 1 }}>
+        <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .4 : 1 }}>
           <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
-            <Texto tipo='Light' texto={`Pedido ${item?.estado} ${tipoC}-${item.id.substr(0, 6).toUpperCase()}`}/>
-            <Texto tipo='Light' texto={`${converteData(item?.criadoEm)}`}/>
+            <Texto tipo='Light' texto={`Pedido ${item?.estado} ${tipoC}-${item.id.substr(0, 6).toUpperCase()}`} />
+            <Texto tipo='Light' texto={`${converteData(item?.criadoEm)}`} />
           </View>
-            <Texto tipo='Light' texto={`Cliente: ${FormatarTexto(item?.cliente?.nome)}`}/>
+          <Texto tipo='Light' texto={`Cliente: ${FormatarTexto(item?.cliente?.nome)}`} />
         </View>
 
       </ContainerItem>
@@ -79,16 +84,15 @@ export default function HistoricoDeVendas() {
       <Tela>
 
         <FlatList
+
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingVertical:14}}
+          ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 20 }} />}
+          contentContainerStyle={{ paddingVertical: 14 }}
           data={
             rota?.clienteID
-                ? ordenarListaPorEstado(ordemDeCompra).filter((item) => item.cliente?.id === rota?.clienteID)
-                : ordenarListaPorEstado(ordemDeCompra)
-        }
-        
-
-
+              ? ordenarListaPorEstado(ordemDeCompra).filter((item) => item.cliente?.id === rota?.clienteID)
+              : ordenarListaPorEstado(ordemDeCompra)
+          }
           renderItem={({ item }) => <RenderItem item={item} />}
         />
 

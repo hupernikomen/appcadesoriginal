@@ -1,16 +1,20 @@
-import { View, Text, Pressable } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { View, Text, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useContext, useEffect, useState } from 'react';
 
 import { AppContext } from '../../contexts/appContext';
-import AntDesign from 'react-native-vector-icons/AntDesign'
+import { CredencialContext } from '../../contexts/credencialContext';
+
 import Texto from '../../components/Texto';
 import Topo from '../../components/Topo';
 
 export default function BarrasPonto() {
 
+    const {width} = Dimensions.get('window')
+
     const navigation = useNavigation()
-    const { credencial,CodigoDeVerificacaoEAN13 } = useContext(AppContext)
+    const { credencial } = useContext(CredencialContext)
+    const { CodigoDeVerificacaoEAN13 } = useContext(AppContext)
     const [codigoDeBarras, setCodigoDeBarras] = useState('')
 
     const data = new Date();
@@ -58,7 +62,7 @@ export default function BarrasPonto() {
 
                 <Texto tipo='Light' texto={'Aponte o leitor para o código de barras'} estilo={{ marginVertical: 30 }} />
                 <View style={{ alignItems: "center", justifyContent: "center", height: 120 }}>
-                    <Text style={{ fontFamily: 'Barcode', fontSize: 250, color: '#222' }}>{codigoDeBarras}</Text>
+                    <Text style={{ fontFamily: 'Barcode', fontSize: width * 0.5, color: '#222' }}>{codigoDeBarras}</Text>
                 </View>
             </View>
         </>

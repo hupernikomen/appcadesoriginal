@@ -1,8 +1,9 @@
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useState, useContext, useEffect } from 'react';
-import { useRoute, useTheme, useNavigation } from '@react-navigation/native';
+import { useRoute, useTheme, useNavigation, CommonActions } from '@react-navigation/native';
 import { CrudContext } from '../../contexts/crudContext';
 import { AppContext } from '../../contexts/appContext';
+import { CredencialContext } from '../../contexts/credencialContext';
 import { Masks } from 'react-native-mask-input';
 
 import MaskOfInput from '../../components/MaskOfInput';
@@ -19,8 +20,9 @@ export default function RegistraCliente() {
   const { params: rota } = useRoute()
   const navigation = useNavigation()
 
-  const { RegistraCliente } = useContext(CrudContext)
-  const { credencial, Toast } = useContext(AppContext)
+  const { credencial } = useContext(CredencialContext)
+  const { ListaClientes } = useContext(CrudContext)
+  const { Toast } = useContext(AppContext)
 
   const { colors } = useTheme()
   const [cpf_cnpj, setCpf_Cnpj] = useState("")
@@ -50,6 +52,11 @@ export default function RegistraCliente() {
       setDataNascimento(rota?.dataNascimento)
     }
 
+   return () => {
+    ListaClientes()
+      
+   }
+
   }, [rota])
 
   async function AtualizaCliente(
@@ -68,6 +75,11 @@ export default function RegistraCliente() {
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${credencial?.token}`
+    }
+
+    if (!cpf_cnpj || !nome || !endereco || !bairro || !cidade || !estado || !whatsapp || !dataNascimento) {
+      Toast('Campo vazio')
+      return
     }
 
     try {
@@ -90,7 +102,58 @@ export default function RegistraCliente() {
       console.log(error.response);
 
     } finally {
-      navigation.navigate('Home')
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            { name: 'Home' },
+          ],
+        })
+      )
+    }
+  }
+
+  async function RegistraCliente(cpf_cnpj, nome,nomeFantasia, endereco, bairro, cidade, estado, whatsapp, dataNascimento, CEP, inscricaoEstadualRg) {
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${credencial?.token}`
+    }
+
+    if (!cpf_cnpj || !nome || !endereco || !bairro || !cidade || !estado || !whatsapp || !dataNascimento) {
+      Toast('Campo vazio')
+      return
+    }
+
+    const cliente = { 
+      cpf_cnpj, 
+      nome, 
+      nomeFantasia,
+      endereco, 
+      bairro, 
+      cidade, 
+      estado, 
+      whatsapp, 
+      dataNascimento, 
+      CEP, 
+      inscricaoEstadualRg 
+    }
+
+    try {
+      await api.post('/registra/cliente', cliente , { headers })
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            { name: 'Home' },
+          ],
+        })
+      )
+
+    } catch (error) {
+      Toast(error.response.data.error)
+      console.log(error.response);
+
     }
   }
 
@@ -98,7 +161,14 @@ export default function RegistraCliente() {
     <>
       <Topo
         posicao='left'
-        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.dispatch(
+          CommonActions.reset({
+            index: 1,
+            routes: [
+              { name: 'Home' }, { name: 'ListaDeClientes' },
+            ],
+          })
+        ) }}
         titulo='Cliente' />
       <Tela>
 
@@ -121,8 +191,8 @@ export default function RegistraCliente() {
           </View>
 
 
+          {cpf_cnpj.length > 14 ? <MaskOfInput title='Nome Fantasia' value={nomeFantasia} setValue={setNomeFantasia} maxlength={50} /> : null}
           <MaskOfInput title='Nome do Cliente' value={nome} setValue={setNome} maxlength={50} />
-          <MaskOfInput title='Nome Fantasia' value={nomeFantasia} setValue={setNomeFantasia} maxlength={50} />
           <MaskOfInput title='Endereço' value={endereco} setValue={setEndereco} maxlength={80} />
 
           <View style={{ flexDirection: 'row', }}>
