@@ -19,9 +19,8 @@ export default function Routes() {
         unmountOnBlur: true,
         drawerType: 'slide',
         drawerStyle: {
-          width: width - 80,
+          width: width / 1.5,
           backgroundColor: colors.theme,
-
         }
       }}>
       <Drawer.Screen name='HomeScreen' component={HomeStack} />

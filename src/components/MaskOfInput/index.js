@@ -14,8 +14,8 @@ export default function MaskOfInput({ bg = true, styleMask, lines, load, mask, s
 
   const styles = StyleSheet.create({
     box: {
-      height: 60,
-      paddingVertical: 8,
+      height: 50,
+      paddingVertical: 4,
       borderRadius: 12,
       paddingHorizontal: 10,
       margin: 2,
@@ -28,7 +28,6 @@ export default function MaskOfInput({ bg = true, styleMask, lines, load, mask, s
       paddingHorizontal: 4
     },
     input: {
-      fontFamily: 'Roboto-Regular',
       paddingVertical: 0,
       color: '#000',
       height: 25,
@@ -39,10 +38,10 @@ export default function MaskOfInput({ bg = true, styleMask, lines, load, mask, s
   return (
     <Pressable onPress={handlePress} style={[styles.box, style]}>
       <View style={styles.boxtop}>
-        <Texto texto={title} tipo={'Light'} tamanho={13} />
+        <Texto texto={title}  tipo={'Light'} tamanho={13} />
         <View>
           {load ? <ActivityIndicator size={14} /> :
-            <Texto texto={info} tipo={'Light'} tamanho={13} />
+            <Texto texto={info} tamanho={13} />
           }
         </View>
       </View>

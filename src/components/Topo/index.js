@@ -2,27 +2,25 @@ import { View, Dimensions, Text } from 'react-native';
 import Icone from '../Icone';
 import { useTheme } from '@react-navigation/native';
 
-export default function Topo({ children, iconeLeft, iconeRight, right, titulo, posicao }) {
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import Texto from '../Texto';
 
-    const { width } = Dimensions.get("window")
+export default function Topo({ children, iconeLeft, iconeRight, titulo }) {
+
     const { colors } = useTheme()
 
     return (
         <View style={{ elevation: 15 }}>
 
-            <View style={{ backgroundColor: colors.theme, height: 60, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 2, borderBottomColor:colors.detalhe }}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Animated.View entering={FadeInUp.duration(300).delay(300)}
+                style={{ backgroundColor: colors.theme, height: 60, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
+                
                     <Icone onpress={iconeLeft?.acao} nomeDoIcone={iconeLeft?.nome} />
-                    {posicao === 'left' ? <Text style={{ textAlign: 'left', color: '#fff', fontSize: 18, fontFamily: "Roboto-Medium" }}>{titulo}</Text> : null}
-                </View>
+                    <Texto texto={titulo} alinhamento='left' tipo='Medium' tamanho={18} cor='#fff'/>
 
-                {posicao === 'center' ? <Text style={{ textAlign: 'left', color: '#fff', fontSize: 18, fontFamily: "Roboto-Medium" }}>{titulo}</Text> : null}
+                <Icone onpress={iconeRight?.acao} nomeDoIcone={iconeRight?.nome} />
+            </Animated.View>
 
-                <View style={{ minWidth: 55 }}>
-                    <Icone onpress={iconeRight?.acao} nomeDoIcone={iconeRight?.nome} />
-                </View>
-
-            </View>
             {children}
         </View>
     );

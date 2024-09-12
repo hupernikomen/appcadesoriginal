@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet, ScrollView, TextBase } from 'react-native';
+import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet, Alert } from 'react-native';
 
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
@@ -17,8 +17,10 @@ import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
 import Topo from '../../components/Topo';
 
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
-export default function Orcamento() {
+
+export default function AtualizaOrcamento() {
    const { colors } = useTheme()
    const { credencial } = useContext(CredencialContext)
    const { listaDeTamanhos } = useContext(AppContext)
@@ -34,9 +36,29 @@ export default function Orcamento() {
    const [orcamento, setOrcamento] = useState([])
    const [tamanhoSelecionado, setTamanhoSelecionado] = useState("")
    const [loadPage, setLoadPage] = useState(true)
+   const [status, setStatus] = useState('')
+   
+   const tipoC = orcamento?.tipo?.substr(0, 1)
 
    useEffect(() => {
       Promise.all([BuscaOrdemDecompra(), AtualizaOrdemDecompra()]).then(() => setLoadPage(false))
+
+      switch (orcamento?.estado) {
+         case 'Aberto':
+            setStatus('Processando')
+            break;
+      
+         case 'Processando':
+            setStatus('Embalado')
+            break;
+   
+         case 'Embalado':
+            setStatus('Entregue')
+            break;
+      
+         default:
+            break;
+      }
    }, [itensDoPedido])
 
    useEffect(() => {
@@ -53,7 +75,20 @@ export default function Orcamento() {
       } else { setProdutoEncontrado([]) }
    }, [referencia])
 
-   const tipoC = orcamento?.tipo?.substr(0, 1)
+
+
+
+   const acaoExcluir = () => {
+      Alert.alert('', `Deseja excluir pedido: ${tipoC}-${orcamento?.id?.slice(0, 6).toUpperCase()} ?`, [
+         { text: 'Excluir', onPress: () => CancelarCompra(orcamento?.id) },
+         {
+            text: 'Cancelar',
+            onPress: () => null,
+            style: 'cancel',
+         },
+      ]);
+      return true;
+   };
 
 
    async function BuscaOrdemDecompra() {
@@ -125,7 +160,7 @@ export default function Orcamento() {
          await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
          await BuscaItemDoPedido(orcamento?.id)
          await ListaOrdemDeCompras()
-         navigation.goBack()
+         navigation.navigate('Home')
 
       } catch (error) {
          console.log(error.response);
@@ -264,14 +299,14 @@ export default function Orcamento() {
 
                <View style={{ flexDirection: 'row', alignItems: "center" }}>
 
-                  <Pressable disabled={!status} style={[styles.btnQtd, { opacity: status ? .7 : .5 }]}
+                  <Pressable disabled={!status || load} style={[styles.btnQtd, { opacity: status ? .7 : .5 }]}
                      onPress={() => status && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
                      <Texto texto='-' />
                   </Pressable>
 
-                  <Texto estilo={{ width: 20, textAlign: 'center' }} texto={data.quantidade} />
+                  <Texto estilo={{ width: 26, textAlign: 'center' }} texto={data.quantidade} />
 
-                  <Pressable disabled={!status} style={[styles.btnQtd, { opacity: status ? .7 : .5 }]}
+                  <Pressable disabled={!status || load} style={[styles.btnQtd, { opacity: status ? .7 : .5 }]}
                      onPress={() => status && AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
                      <Texto texto='+' />
                   </Pressable>
@@ -297,7 +332,7 @@ export default function Orcamento() {
 
                   {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} /> : null}
                   {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
-                  {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
+                  {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: -R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
                   {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
                   <Texto tipo='Light' texto={`Total de itens: ${totalQuantidade}`} />
                   <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}`} />
@@ -310,14 +345,19 @@ export default function Orcamento() {
 
    if (loadPage) return <Load />
 
+
+
    return (
+
+      
+
       <>
          <Topo
             posicao='left'
             iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
             titulo={`Pedido ${orcamento?.estado}  ${tipoC}-${orcamento?.id.substr(0, 6).toUpperCase()}`} >
 
-            <View
+            <Animated.View  entering={FadeInUp.duration(400).delay(300)}
                style={{
                   flexDirection: 'row',
                   justifyContent: 'space-around',
@@ -352,7 +392,7 @@ export default function Orcamento() {
 
                {orcamento?.estado !== 'Aberto' && orcamento?.estado !== 'Entregue' && (
                   <Icone
-                     label="STATUS"
+                     label={status.toUpperCase()}
                      tamanhoDoIcone={18}
                      onpress={StateBudget}
                      nomeDoIcone={'arrow-redo-outline'}
@@ -364,12 +404,12 @@ export default function Orcamento() {
                   <Icone
                      label="EXCLUIR"
                      tamanhoDoIcone={18}
-                     onpress={() => setModalVisible(true)}
+                     onpress={() => acaoExcluir()}
                      nomeDoIcone={'trash-outline'}
                      corDoIcone="#fff"
                   />
                )}
-            </View>
+            </Animated.View>
          </Topo>
 
 
@@ -378,7 +418,7 @@ export default function Orcamento() {
             ListHeaderComponent={
                <View style={{marginVertical:14}}>
                   {orcamento?.estado !== 'Entregue' ?
-                     <View style={{ marginBottom: 18, gap:12 }}>
+                     <View style={{  gap:12 }}>
                         <View>
                            <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
                         </View>
@@ -456,62 +496,20 @@ export default function Orcamento() {
             ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
          />
 
-         <Modal
-            animationType="none"
-            transparent={true}
-            visible={modalVisible}>
-
-            <View style={styles.centeredView}>
-               <View style={styles.modalView}>
-                  <Text style={{ marginBottom: 12 }}>Cancelar Pedido: {tipoC}-{orcamento?.id?.slice(0, 6).toUpperCase()}?</Text>
-
-                  <View style={{ flexDirection: "row", gap: 12, marginVertical: 12 }}>
-                     <Pressable
-                        style={[styles.button, { backgroundColor: colors.theme }]}
-                        onPress={() => CancelarCompra(orcamento?.id)}>
-                        <Text style={styles.textStyle}>Sim, Cancelar</Text>
-                     </Pressable>
-
-                     <Pressable
-                        style={[styles.button, { backgroundColor: '#fff' }]}
-                        onPress={() => setModalVisible(!modalVisible)}>
-                        <Text style={{ color: '#222' }}>Desistir</Text>
-                     </Pressable>
-
-                  </View>
-               </View>
-            </View>
-         </Modal>
+      
       </>
    );
 }
 
 const styles = StyleSheet.create({
-   centeredView: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 22,
-   },
-   modalView: {
-      backgroundColor: '#f1f1f1',
-      borderRadius: 12,
-      padding: 35,
-      alignItems: 'center',
-      elevation: 12,
-   },
-   textStyle: { color: '#fff' },
-   button: {
-      borderRadius: 12,
-      padding: 10,
-   },
+  
    btnQtd: {
       elevation: 3,
       borderRadius: 6,
       alignItems: "center",
       justifyContent: 'center',
       width: 25,
-      height: 30,
+      height: 40,
       backgroundColor: '#fff'
    }
 });

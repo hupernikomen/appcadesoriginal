@@ -1,14 +1,14 @@
 import { useEffect, useState, useContext } from 'react';
-import { View, FlatList, Pressable } from 'react-native';
+import { View, FlatList } from 'react-native';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
-import { CredencialContext } from '../../contexts/credencialContext';
 
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import Texto from '../../components/Texto';
 import ContainerItem from '../../components/ContainerItem';
+import SeletorAV from '../../components/SeletorAV';
 
 export default function HistoricoDeVendas() {
 
@@ -16,22 +16,26 @@ export default function HistoricoDeVendas() {
 
   const focus = useIsFocused()
   const navigation = useNavigation()
-  const { credencial } = useContext(CredencialContext)
-  const { Toast, FormatarTexto } = useContext(AppContext)
+  const { FormatarTexto } = useContext(AppContext)
   const { ordemDeCompra, ListaOrdemDeCompras } = useContext(CrudContext)
+
+  const [xAtacado, setXAtacado] = useState(false);
 
 
   useEffect(() => {
     ListaOrdemDeCompras()
 
-    
   }, [focus])
-
 
 
   const converteData = (date) => {
     const data = new Date(date);
-    const formatoData = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    const formatoData = new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      // hour: "2-digit", 
+      // minute: "2-digit" 
+    });
     return formatoData.format(data);
 
   }
@@ -42,19 +46,11 @@ export default function HistoricoDeVendas() {
 
     return (
 
-      <ContainerItem opacidade={item.estado === 'Entregue' ? .9 : 1} onpress={() => {
-        if (credencial.cargo === 'Socio' || credencial.cargo === 'Gerente') {
-          navigation.navigate('Orcamento', { ordemDeCompraID: item.id })
-
-        } else if (credencial.cargo === 'Vendedor' && item.estado === "Aberto" || item.estado === "Processando") {
-          navigation.navigate('Orcamento', { ordemDeCompraID: item.id })
-
-        } else {
-          Toast("Acesso Negado")
-        }
+      <ContainerItem opacidade={item.estado === 'Entregue' ? .4 : 1} onpress={() => {
+        navigation.navigate('AtualizaOrcamento', { ordemDeCompraID: item.id })
       }}>
 
-        <View style={{ flex: 1, opacity: item.estado === 'Entregue' ? .4 : 1 }}>
+        <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
             <Texto tipo='Light' texto={`Pedido ${item?.estado} ${tipoC}-${item.id.substr(0, 6).toUpperCase()}`} />
             <Texto tipo='Light' texto={`${converteData(item?.criadoEm)}`} />
@@ -75,29 +71,27 @@ export default function HistoricoDeVendas() {
 
   return (
     <>
-
-
       <Topo
         posicao='left'
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
         titulo='Histórico' />
+
       <Tela>
 
-        <FlatList
+      <SeletorAV xAtacado={xAtacado} setXAtacado={setXAtacado} label1="Atacado" label2="Varejo" />
 
+        <FlatList
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 20 }} />}
-          contentContainerStyle={{ paddingVertical: 14 }}
+          ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9' }} />}
+          renderItem={({ item }) => <RenderItem item={item} />}
           data={
             rota?.clienteID
               ? ordenarListaPorEstado(ordemDeCompra).filter((item) => item.cliente?.id === rota?.clienteID)
-              : ordenarListaPorEstado(ordemDeCompra)
+              : ordenarListaPorEstado(ordemDeCompra).filter((item) => xAtacado ? item.tipo === "Varejo" : item.tipo === "Atacado")
           }
-          renderItem={({ item }) => <RenderItem item={item} />}
         />
 
       </Tela>
     </>
   )
-
 }

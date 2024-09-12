@@ -3,18 +3,20 @@ import Texto from '../Texto';
 
 import { useTheme } from '@react-navigation/native';
 
-export default function SeletorAV({ setXAtacado, xAtacado }) {
+import Animated, { FadeInUp } from 'react-native-reanimated';
+
+export default function SeletorAV({ setXAtacado, xAtacado, label1, label2 }) {
 
   const { colors } = useTheme()
   const toggleSwitch = () => setXAtacado(previousState => !previousState);
 
   return (
-    <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 20, borderBottomWidth: .7, borderColor: '#ccc' }}>
+    <Animated.View entering={FadeInUp.duration(400).delay(300)} style={{ flexDirection: "row",  backgroundColor: colors.background, elevation: 1, margin: 12, borderRadius:12 }}>
       <Pressable onPress={() => {
         setXAtacado(false)
-      }} style={{ flex: 1, alignItems: 'center', padding: 16, borderRadius: 6, }}>
+      }} style={{ flex: 1, alignItems: 'center', paddingVertical: 16 }}>
 
-        <Texto texto={'Atacado'} cor={!xAtacado ? colors.theme : '#ccc'} />
+        <Texto texto={label1} cor={!xAtacado ? colors.theme : '#bbb'} />
       </Pressable>
 
       <Switch
@@ -26,10 +28,10 @@ export default function SeletorAV({ setXAtacado, xAtacado }) {
 
       <Pressable onPress={() => {
         setXAtacado(true)
-      }} style={{ flex: 1, alignItems: 'center', padding: 16, borderRadius: 6 }}>
-        <Texto texto={'Varejo'} cor={xAtacado ? colors.theme : '#ccc'} />
+      }} style={{ flex: 1, alignItems: 'center', paddingVertical: 16 }}>
+        <Texto texto={label2} cor={xAtacado ? colors.theme : '#bbb'} />
       </Pressable>
-    </View>
+    </Animated.View>
 
   );
 }

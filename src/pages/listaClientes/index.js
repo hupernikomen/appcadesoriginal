@@ -55,7 +55,7 @@ export default function ListaDeClientes() {
     return (
       <Pressable onPress={() => navigation.navigate('DetalheCliente', { cpf_cnpj: data.cpf_cnpj })} style={{ justifyContent: "center", paddingHorizontal: 16 }}>
         <Texto texto={FormatarTexto(data.nome)} />
-        <Texto tipo='Light' texto={segundaLinha} />
+        <Texto tipo='Light' texto={FormatarTexto(segundaLinha)} />
 
       </Pressable>
     )

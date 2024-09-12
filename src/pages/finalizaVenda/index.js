@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ActivityIndicator, Keyboard } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator, Keyboard, BackHandler, Alert } from 'react-native';
 
 import { useRoute, useTheme, useNavigation } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
@@ -29,6 +29,8 @@ export default function FinalizaVenda() {
     const navigation = useNavigation()
     const { params: rota } = useRoute()
 
+console.log(rota);
+
     const [load, setLoad] = useState(false)
 
     const [tempoDePagamento, setTempoDePagamento] = useState('')
@@ -43,6 +45,13 @@ export default function FinalizaVenda() {
 
     useEffect(() => {
         BuscaOrdemDecompra()
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            backAction,
+         );
+   
+         return () => backHandler.remove();
     }, [])
 
     useEffect(() => {
@@ -54,10 +63,20 @@ export default function FinalizaVenda() {
 
     }, [tempoDePagamento])
 
-    // useEffect(() => {
 
-    //     setTotal(orcamento?.totalDaNota - valorAdiantado.replace(',', '.'))
-    // }, [valorAdiantado])
+
+    const backAction = () => {
+        Alert.alert('', `Para cancelar, acesse Vendas, busque o pedido ${rota.ordemDeCompraID?.slice(0, 6).toUpperCase()}, e exclua.`, [
+            { text: 'Vendas', onPress: () => navigation.navigate('HistoricoDeVendas') },
+            { text: 'Enviar', onPress: () => navigation.navigate('Home') },
+            {
+               text: 'Voltar',
+               onPress: () => null,
+               style: 'cancel',
+            },
+        ]);
+        return true;
+     };
 
 
     async function BuscaOrdemDecompra() {
@@ -80,7 +99,7 @@ export default function FinalizaVenda() {
         Keyboard.dismiss()
         setLoad(true)
 
-        if (Number(valorAdiantado) > Number(orcamento?.totalDaNota)) {
+        if (Number(valorAdiantado) > Number(rota.total)) {
             Toast('Valor superior à compra')
             return
         }
@@ -94,8 +113,8 @@ export default function FinalizaVenda() {
             await api.put(`/atualiza/estoque?ordemDeCompraID=${rota?.ordemDeCompraID}`, { headers })
             await api.put(`/atualiza/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`, {
                 estado: 'Processando',
-                totalDaNota: Number(orcamento?.totalDaNota),
-                valorPago: (Number(orcamento?.totalDaNota) - valorAdiantado) * (1 - desconto / 100),
+                totalDaNota: Number(rota.total),
+                valorPago: (Number(rota.total) - valorAdiantado) * (1 - desconto / 100),
                 desconto: Number(desconto) || null,
                 tempoDePagamento: tempoDePagamento || null,
                 valorAdiantado: Number(valorAdiantado.replace(',', '.')) || null,
@@ -118,20 +137,20 @@ export default function FinalizaVenda() {
         <>
             <Topo
                 posicao='left'
-                iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+                iconeLeft={{ nome: 'close', acao: () => backAction() }}
                 titulo='Condições de Pagamento' />
 
             <Tela>
 
                 <View style={{ padding: 16 }}>
-                    <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {parseFloat(orcamento?.totalDaNota).toFixed(2).replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
+                    <Text style={{ fontFamily: 'Roboto-Light', color: "#222" }}>Compra no valor de R$ {parseFloat(rota.total).toFixed(2).replace('.', ',')} poderá ser pago no cartão de crédito em até {maxTimes}x ou à vista.</Text>
                 </View>
 
-                {!tempoDePagamento && !valorAdiantado && <MaskOfInput type='numeric' title='Desconto (%)' value={desconto} setValue={setDesconto} info={'À pagar R$ ' + ((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100)).toFixed(2).replace('.', ',')} maxlength={2} />}
+                {!tempoDePagamento && !valorAdiantado && <MaskOfInput type='numeric' title='Desconto (%)' value={desconto} setValue={setDesconto} info={'À pagar R$ ' + ((parseFloat(rota.total) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100)).toFixed(2).replace('.', ',')} maxlength={2} />}
 
                 {!desconto && <View>
                     <MaskOfInput type='numeric' title={'Adiantamento (R$)'} value={valorAdiantado} setValue={setValorAdiantado} mask={CurrencyMask} />
-                    <MaskOfInput type='numeric' title='Nº de prestações' value={tempoDePagamento} setValue={setTempoDePagamento} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat((parseFloat(orcamento?.totalDaNota) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100) / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
+                    <MaskOfInput type='numeric' title='Nº de prestações' value={tempoDePagamento} setValue={setTempoDePagamento} info={tempoDePagamento ? tempoDePagamento + "x R$ " + (parseFloat((parseFloat(rota.total) - Number(valorAdiantado.replace(',', '.'))) * (1 - desconto / 100) / tempoDePagamento)).toFixed(2).replace('.', ',') : null} />
                 </View>}
 
                 <MaskOfInput lines={5} multiline={true} styleMask={{ height: 60 }} style={{ height: 100 }} title='Observações' value={observacao} setValue={setObservacao} />

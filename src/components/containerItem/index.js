@@ -11,7 +11,8 @@ export default function ContainerItem({ children, onpress, altura, largura = '10
             borderRadius:12,
             marginVertical: .8,
             alignItems: 'center',
-            opacity: opacidade
+            opacity: opacidade,
+            paddingVertical:20,
         }}>
             {children}
         </Pressable>

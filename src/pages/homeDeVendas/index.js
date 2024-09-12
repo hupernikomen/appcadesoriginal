@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { View, Pressable, Keyboard, ActivityIndicator, Switch, FlatList } from 'react-native';
+import { View, Pressable, Keyboard,  FlatList } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 
 import { CrudContext } from '../../contexts/crudContext';
@@ -12,6 +12,7 @@ import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import Icone from '../../components/Icone';
 import SeletorAV from '../../components/SeletorAV';
+import Load from '../../components/Load';
 
 export default function Sale() {
 
@@ -19,15 +20,9 @@ export default function Sale() {
 	const { clientes, ordemDeCompra } = useContext(CrudContext)
 	const { credencial } = useContext(CredencialContext)
 	const navigation = useNavigation()
-	const { colors } = useTheme()
-
-	// const [cliente, setCliente] = useState('')
 
 	const [load, setLoad] = useState(false)
-
 	const [xAtacado, setXAtacado] = useState(false);
-
-
 
 	const [busca, setBusca] = useState('');
 	const [clientesFiltrados, setClientesFiltrados] = useState([])
@@ -40,8 +35,6 @@ export default function Sale() {
 	const ehNumerico = /^\d+$/.test(textoSemCaracteres);
 
 	const [mask, setMask] = useState(null)
-
-
 
 
 	async function BuscaCliente(cpf_cnpj) {
@@ -67,6 +60,8 @@ export default function Sale() {
 
 	async function CriaOrdemDeCompra(data) {
 
+		setLoad(true)
+
 		const headers = {
 			'Content-Type': 'application/json',
 			'Authorization': `Bearer ${credencial?.token}`
@@ -74,7 +69,8 @@ export default function Sale() {
 
 		try {
 			const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id, tipo: xAtacado ? 'Varejo' : 'Atacado' }, { headers })
-			navigation.navigate('Orcamento', { ordemDeCompraID: response.data.id })
+			navigation.navigate('CriaOrcamento', { ordemDeCompraID: response.data.id })
+			setLoad(false)
 
 		} catch (error) {
 			console.log(error.response);
@@ -84,6 +80,7 @@ export default function Sale() {
 
 
 	useEffect(() => {
+
 		if (busca.trim() !== '') {
 			const textoLowercase = busca.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 			const filteredClientes = clientes.filter((item) => {
@@ -93,6 +90,7 @@ export default function Sale() {
 					item.nomeFantasia?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(textoLowercase)
 				);
 			});
+
 			setClientesFiltrados(filteredClientes);
 		} else {
 			setClientesFiltrados([]);
@@ -100,10 +98,13 @@ export default function Sale() {
 
 		if (ehNumerico && busca.length <= 14) {
 			setMask(CPF_MASK)
+
 		} else if (ehNumerico && busca.length > 14) {
 			setMask(CNPJ_MASK)
+
 		} else {
 			setMask(null)
+
 		}
 	}, [busca]);
 
@@ -147,7 +148,7 @@ export default function Sale() {
 		}
 
 		return (
-			<Pressable onPress={() => CriaOrdemDeCompra(data)} style={{ justifyContent: "center", paddingHorizontal: 16 }}>
+			<Pressable onPress={() => CriaOrdemDeCompra(data)} style={{ justifyContent: "center", padding: 16 }}>
 				<Texto texto={data.nome} />
 				<Texto tipo='Light' texto={segundaLinha} />
 
@@ -155,7 +156,7 @@ export default function Sale() {
 		)
 	}
 
-
+if (load) return <Load/>
 
 	return (
 		<>
@@ -166,39 +167,24 @@ export default function Sale() {
 
 			<Tela>
 
-
-			<SeletorAV setXAtacado={setXAtacado} xAtacado={xAtacado}/>
+			<SeletorAV xAtacado={xAtacado} setXAtacado={setXAtacado} label1="Atacado" label2="Varejo" />
 
 
 				<FlatList
 					showsVerticalScrollIndicator={false}
-					ItemSeparatorComponent={<View style={{ marginVertical: 20, borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}
+					ItemSeparatorComponent={<View style={{ borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}
 					data={clientesFiltrados}
 					renderItem={({ item }) => <Cliente data={item} />}
 					ListHeaderComponent={
 						<View style={{ flexDirection: "row", alignItems: 'center', gap: 2, marginBottom: 20 }}>
 							<MaskOfInput mask={mask} setValue={setBusca} value={busca} style={{ flex: 1, fontSize: 22 }} title={'Buscar Cliente'} />
 
-							<View style={{
-								alignItems: "center",
-								justifyContent: "center",
-								width: 45,
-								right: 5,
-								position: 'absolute'
-							}}>
-								{load ? <ActivityIndicator color={'#222'} /> : null}
-							</View>
-
-							{/* {!!cliente ? <Pressable onPress={() => CriaOrdemDeCompra(cliente)} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 60, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-                                <Icone label='SACOLA' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='bag-handle-outline' onpress={() => CriaOrdemDeCompra(cliente)} />
-                            </Pressable> : null} */}
-
-							{xAtacado && !clientesFiltrados.length ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 55, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-								<Icone label='S/ CAD.' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("000.000.000-00")} />
+							{xAtacado && !clientesFiltrados.length ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e999', height: 50, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+								<Icone label='S/ CAD.' tamanhoDoIcone={16} corDoIcone='#000' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("000.000.000-00")} />
 							</Pressable> : null}
 
 							{!!busca && !clientesFiltrados.length ? <Pressable onPress={() => navigation.navigate('RegistraCliente')} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e9', height: 60, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
-								<Icone label='NOVO' tamanhoDoIcone={20} corDoIcone='#222' nomeDoIcone='person-add-outline' onpress={() => navigation.navigate('RegistraCliente')} />
+								<Icone label='NOVO' tamanhoDoIcone={20} corDoIcone='#000' nomeDoIcone='person-add-outline' onpress={() => navigation.navigate('RegistraCliente')} />
 							</Pressable> : null}
 
 						</View>

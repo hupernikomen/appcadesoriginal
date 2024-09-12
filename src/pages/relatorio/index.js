@@ -26,16 +26,16 @@ export default function Relatorio() {
     // Filtrar os dados para vendas no estado 'entregue' e do tipo especificado
     let tipo = 'Atacado'
     xAtacado ? tipo = 'Varejo' : tipo = 'Atacado'
-  
+
     const dadosFiltrados = data.filter(item => item.estado === 'Entregue' && item.tipo === tipo);
-  
+
     // Agrupar os dados por mês e ano
     const grupo = dadosFiltrados.reduce((acc, item) => {
       const dataCriadoEm = new Date(item.criadoEm);
       const mes = dataCriadoEm.getMonth() + 1;
       const ano = dataCriadoEm.getFullYear();
       const chave = `${ano}-${mes}`;
-  
+
       if (!acc[chave]) {
         acc[chave] = {
           ano,
@@ -44,27 +44,27 @@ export default function Relatorio() {
           compras: 0
         };
       }
-  
+
       acc[chave].total += item.totalDaNota;
       acc[chave].compras++;
-  
+
       return acc;
     }, {});
-  
+
     // Converter o objeto em um array e ordenar por mês
     const resultado = Object.values(grupo).sort((a, b) => a.mes - b.mes);
-  
+
     // Calcule o ticketMedio para cada mês
     resultado.forEach(item => {
       item.ticketMedioMes = item.total / item.compras;
     });
-  
+
     // Calcule o ticketMedio total do ano atual
     const anoAtual = new Date().getFullYear();
     const totalComprasAnoAtual = resultado.filter(item => item.ano === anoAtual).reduce((acc, item) => acc + item.compras, 0);
     const totalValorAnoAtual = resultado.filter(item => item.ano === anoAtual).reduce((acc, item) => acc + item.total, 0);
     const ticketMedioAnoAtual = totalValorAnoAtual / totalComprasAnoAtual;
-  
+
     // Adicione o ticketMedioAnoAtual ao final do array
     resultado.push({
       ano: anoAtual,
@@ -73,20 +73,20 @@ export default function Relatorio() {
       compras: totalComprasAnoAtual,
       ticketMedioMes: ticketMedioAnoAtual
     });
-  
+
     return resultado;
   }
 
   const Render = ({ data }) => {
 
     return (
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12 }}>
 
         <View style={{ flexDirection: 'row' }}>
-          <Texto texto={`${data.mes}${data.mes > 0 ? '/' : ''}`} />
-          <Texto texto={data.ano} />
+          <Texto texto={`${data.mes}${data.mes > 0 ? '/' : ''}`}   tipo='Light'/>
+          <Texto texto={data.ano}  tipo='Light'/>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: "center", gap: 24 }}>
+        <View style={{ flexDirection: 'row', alignItems: "center", gap: 12 }}>
 
           <Texto tipo='Light' texto={`${parseFloat(data.total).toFixed(2)}`} estilo={{ width: 70, textAlign: 'right' }} />
           <Texto tipo='Light' texto={`${parseFloat(data.ticketMedioMes).toFixed(2)}`} estilo={{ width: 70, textAlign: 'right' }} />
@@ -104,13 +104,13 @@ export default function Relatorio() {
         titulo='Relatório Financeiro' />
       <Tela>
 
-        <SeletorAV setXAtacado={setXAtacado} xAtacado={xAtacado} />
+        <SeletorAV xAtacado={xAtacado} setXAtacado={setXAtacado} label1="Atacado" label2="Varejo" />
 
         <FlatList
           ListHeaderComponent={
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 12 }}>
               <Texto texto={''} />
-              <View style={{ flexDirection: 'row', alignItems: "center", gap: 24 }}>
+              <View style={{ flexDirection: 'row', alignItems: "center", gap: 12 }}>
 
                 <Texto texto={'Ent.'} tipo='Medium' estilo={{ width: 70, textAlign: 'right' }} />
                 <Texto texto={'Tkt.'} tipo='Medium' estilo={{ width: 70, textAlign: 'right' }} />
@@ -118,7 +118,7 @@ export default function Relatorio() {
             </View>
           }
           data={separarItensMesAMes(ordemDeCompra)}
-          ItemSeparatorComponent={<View style={{ marginVertical: 6, borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}
+          ItemSeparatorComponent={<View style={{ borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}
           renderItem={({ item }) => <Render data={item} />}
         />
 

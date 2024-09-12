@@ -14,8 +14,8 @@ const Theme = {
   colors: {
     padrao: '#000',
     theme: '#222',
-    detalhe: '#FF8A80',
-    efeito: '#FFF3E0',
+    detalhe: '#ff7366',
+    efeito: '#FFF3E099',
     background: '#f3f3f3',
     fundo: '#FAFAFA',
   }

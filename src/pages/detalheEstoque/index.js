@@ -5,7 +5,7 @@ import api from '../../services/api';
 import Topo from '../../components/Topo';
 import Texto from '../../components/Texto';
 import Load from '../../components/Load';
-import Tela from '../../components/Tela';
+import Icone from '../../components/Icone';
 
 export default function DetalheEstoque() {
 
@@ -70,6 +70,7 @@ export default function DetalheEstoque() {
 
     if (load) return <Load />
 
+
     return (
         <View>
             <Topo
@@ -85,35 +86,37 @@ export default function DetalheEstoque() {
                 renderItem={({ item, index }) => {
                     return (
                         <View key={index} style={{ width: width, paddingHorizontal: 14 }}>
-                            <View style={{ flexDirection: "row",  justifyContent: "space-between", borderBottomWidth: .5, borderColor: '#d9d9d9', paddingVertical: 12 }}>
-                                <Texto tamanho={22} tipo='Bold' texto={item.tamanho} estilo={{ marginLeft: 36 }} />
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
 
-                                    <Texto texto='Res.' estilo={{ width: 30, textAlign: 'right' }} />
-                                    <Texto texto='Vend.' estilo={{ width: 50, textAlign: 'right' }} />
-                                    <Texto texto='Est.' estilo={{ width: 50, textAlign: 'right' }} />
-                                </View>
-                            </View>
 
                             <FlatList
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{paddingTop:14, paddingBottom:104}}
-                                ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
+                                showsVerticalScrollIndicator={false}
+                                contentContainerStyle={{  paddingBottom: 80 }}
+                                ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9' }} />}
                                 data={item.cores}
+                                ListHeaderComponent={
+                                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: .5, borderColor: '#d9d9d9' }}>
+                                        <Texto tamanho={22} tipo='Bold' texto={item.tamanho} estilo={{ marginLeft: 30 }} />
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+                                            <Icone nomeDoIcone={'cube-outline'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
+                                            <Icone nomeDoIcone={'repeat'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
+                                            <Icone nomeDoIcone={'pricetag-outline'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
+
+                                        </View>
+                                    </View>
+                                }
                                 renderItem={({ item }) => {
                                     return (
                                         <Pressable onPress={() => {
                                             navigation.navigate('RegistraEstoque', { codigoDeBarras: item.codigoDeBarras })
-                                        }} key={index} style={{ flexDirection: "row", justifyContent: "space-between", height: 25, alignItems: 'center' }}>
-                                            <View style={{ width: 26, aspectRatio: 1, borderRadius: 10, backgroundColor: item.corHexa, marginRight: 10, opacity: .8 }} />
+                                        }} key={index} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: 'center', paddingVertical: 12 }}>
+                                            <View style={{ width: 20, aspectRatio: 1, borderRadius: 20, backgroundColor: item.corHexa, marginRight: 10, opacity: .8 }} />
 
                                             <Texto tipo='Light' texto={item.cor} estilo={{ flex: 1 }} />
+                                            <Texto tipo='Light' texto={item.reservado ? item.reservado : ''} estilo={{ width: 40, textAlign: 'center' }} />
+                                            <Texto tipo='Light' texto={item.saida ? item.saida : ''} estilo={{ width: 40, textAlign: 'center' }} />
+                                            <Texto tipo='Light' texto={item.estoque - item.saida} estilo={{ width: 40, textAlign: 'center' }} />
 
-                                            {item.reservado === 0 ? null : <Texto tipo='Light' texto={item.reservado} estilo={{ width: 30, textAlign: 'right' }} />}
-
-                                            {!item.saida ? null : <Texto tipo='Light' texto={item.saida} estilo={{ width: 50, textAlign: 'right' }} />}
-
-                                            <Texto tipo='Light' texto={item.estoque - item.saida} estilo={{ width: 50, textAlign: 'right' }} />
                                         </Pressable>
                                     )
                                 }}

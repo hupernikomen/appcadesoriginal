@@ -1,6 +1,6 @@
 import { View, Image } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, BounceInDown } from 'react-native-reanimated';
 
 export default function Load() {
 
@@ -9,7 +9,7 @@ export default function Load() {
     return (
         <Animated.View  entering={FadeInDown.duration(1500)} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
             <Image
-                style={{width: 100, height:150, marginBottom:50, opacity:.5 }}
+                style={{width: 150, height:150, marginBottom:50, opacity:.5 }}
                 source={require('../../../assets/images/logocades.png')}
             />
         </Animated.View>

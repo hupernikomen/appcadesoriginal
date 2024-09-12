@@ -247,20 +247,13 @@ export default function RegistraEstoque() {
       <Topo
         posicao='left'
         iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+        iconeRight={{ nome: 'contrast', acao: () => navigation.navigate('ListaDeCores') }}
         titulo={rota?.codigoDeBarras ? 'Editar Produto' : 'Cadastrar Produto'} />
       <Tela>
 
         <ScrollView style={{ marginTop: 10 }}>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-
-            <MaskOfInput bg={false} load={loadBusca} style={{ flex: 1 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
-
-            {!!rota ? null : <Pressable onPress={() => navigation.navigate('ListaDeCores')} style={{ margin: 2, width: 60, height: 60, borderRadius: 12, backgroundColor: '#e9e9e9', alignItems: "center", justifyContent: "center" }}>
-              <Icone onpress={() => navigation.navigate('ListaDeCores')} nomeDoIcone='contrast' label='CORES' corDoIcone='#222' />
-            </Pressable>}
-
-          </View>
+          <MaskOfInput bg={false} load={loadBusca} style={{ flex: 1, marginBottom: 12 }} title='Código de Barras' value={codigoDeBarras} editable={false} />
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <MaskOfInput editable={!rota} type='numeric' style={{ width: 80 }} title='Ref.' value={referencia} setValue={setReferencia} maxlength={4} />

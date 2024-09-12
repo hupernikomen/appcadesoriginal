@@ -38,8 +38,8 @@ export function CrudProvider({ children }) {
 
 
 
-  // REFATORACAO
   async function ListaOrdemDeCompras() {
+    
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${credencial?.token}`,
@@ -51,16 +51,21 @@ export function CrudProvider({ children }) {
 
       // Filtra e exclui ordens de compra com total da nota igual a 0
       const ordensDeCompraValidas = await Promise.all(
+        
         ordensDeCompra.map(async (item) => {
-          if (item?.totalDaNota === 0 || !item?.totalDaNota) {
+          
+          if (item?.itemDoPedido.length === 0) {
+
             try {
               await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${item?.id}`, { headers });
               return null;
+
             } catch (error) {
-              console.error(error.response);
+              console.log(error.response);
               return item;
             }
           }
+
           return item;
         })
       );
@@ -69,7 +74,7 @@ export function CrudProvider({ children }) {
       setOrdemDeCompra(ordensDeCompraFiltradas);
 
     } catch (error) {
-      console.error(error.response);
+      console.log(error.response);
     }
   }
 
@@ -180,6 +185,48 @@ export function CrudProvider({ children }) {
 
 
 
+  async function FecharNota(data) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${credencial?.token}`
+    };
+  
+    const response = await api.get(`/busca/itensDoPedido?ordemDeCompraID=${data[0].ordemDeCompraID}`);
+    const itensDoPedidoBD = response.data;
+  
+    for (const item of data) {
+      if (itensDoPedidoBD.length > 0) {
+        const novoItem = {
+          quantidade: item.quantidade,
+          produtoID: itensDoPedidoBD.find((i) => i.id === item.id)?.produto?.id,
+        };
+    
+        try {
+          await Promise.all(itensDoPedidoBD.map(async (item) => {
+            await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${item?.id}`, novoItem, { headers });
+          }));
+        } catch (error) {
+          console.error(error.response);
+        }
+      } else {
+        const novoItem = {
+          ordemDeCompraID: item.ordemDeCompraID,
+          produtoID: item.produto.id,
+          quantidade: item.quantidade,
+        };
+  
+        try {
+          await api.post('/cria/itemDoPedido', novoItem, { headers });
+        } catch (error) {
+          console.error(error.response);
+        }
+      }
+    }
+  }
+
+
+
+
   return (
     <CrudContext.Provider value={{
       clientes,
@@ -187,6 +234,7 @@ export function CrudProvider({ children }) {
       ordemDeCompra,
       ListaOrdemDeCompras,
       AdicionarItemAoPedido,
+      FecharNota,
       BuscaItemDoPedido,
       itensDoPedido,
       ListaProdutos,

@@ -1,26 +1,31 @@
-import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
+import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { useContext, useEffect, useState } from 'react';
 import { useNavigation, useTheme, useIsFocused } from '@react-navigation/native';
 
 import { CrudContext } from '../../contexts/crudContext';
 import { CredencialContext } from '../../contexts/credencialContext';
+import { AppContext } from '../../contexts/appContext';
 
 import Texto from '../../components/Texto';
 import Topo from '../../components/Topo';
 import Icone from '../../components/Icone';
 import Load from '../../components/Load';
+import Animated, { FadeInUp, FadeInDown, BounceInDown } from 'react-native-reanimated';
 
 export default function Home() {
   const navigation = useNavigation()
   const focus = useIsFocused()
   const { colors } = useTheme()
   const [load, setLoad] = useState(false)
+  const { height } = Dimensions.get("window")
 
-  const { credencial, autenticado } = useContext(CredencialContext)
+  const { credencial } = useContext(CredencialContext)
+  const { ChecarAcesso } = useContext(AppContext)
   const { clientes, ordemDeCompra, ListaOrdemDeCompras, ListaProdutos, quantidadeNoEstoque, ListaClientes } = useContext(CrudContext)
   const [aniversariante, setAniversariante] = useState([])
 
   useEffect(() => {
+
     setLoad(true)
     Promise.all([ListaOrdemDeCompras(), ListaProdutos(), ListaClientes()]).finally(() => setLoad(false))
 
@@ -33,12 +38,12 @@ export default function Home() {
 
 
   const buttonsInfo = [
-    { icone: 'repeat', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas', desabilitado: credencial?.cargo === 'Funcionario' },
-    { icone: 'reader-outline', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas', desabilitado: credencial?.cargo === 'Funcionario' },
-    { icone: 'people-outline', nome: 'Clientes', notificacao: clientes?.length, pagina: 'ListaDeClientes', desabilitado: credencial?.cargo === 'Vendedor' || credencial?.cargo === 'Funcionario' },
-    { icone: 'shirt-outline', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'ListaEstoque', desabilitado: credencial?.cargo === 'Vendedor' || credencial?.cargo === 'Funcionario' },
-    // { icone: 'barcode-outline', nome: 'Crachá', notificacao: '', pagina: !!autenticado ? 'BarrasPonto' : 'Login', desabilitado: credencial?.cargo === 'Vendedor' },
-    { icone: 'trending-up', nome: 'Relatorio', notificacao: '', pagina: 'Relatorio', desabilitado: credencial?.cargo !== 'Socio' },
+    { icone: 'repeat', nome: 'Vendas', notificacao: '', pagina: 'HomeDeVendas' },
+    { icone: 'reader-outline', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas', },
+    { icone: 'people-outline', nome: 'Clientes', notificacao: clientes?.length, pagina: 'ListaDeClientes' },
+    { icone: 'shirt-outline', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'ListaEstoque' },
+    // { icone: 'barcode-outline', nome: 'Crachá', notificacao: '', pagina: !!autenticado ? 'BarrasPonto' : 'Login' },
+    { icone: 'trending-up', nome: 'Financeiro', notificacao: '', pagina: 'Relatorio' },
   ]
 
   function EncontrarAniversariantes() {
@@ -70,23 +75,23 @@ export default function Home() {
   }
 
 
-  function Button({ icone, nome, notificacao, pagina, desabilitado }) {
 
-    if (desabilitado) return
+  function Button({ icone, nome, notificacao, pagina }) {
+
 
     return (
-      <Pressable
-        disabled={desabilitado}
-        style={stl.buttons}
-        onPress={() => navigation.navigate(pagina)}>
+      <Animated.View entering={BounceInDown.duration(2000).delay(200)}>
 
-        <Icone nomeDoIcone={icone} corDoIcone={colors.detalhe} tamanhoDoIcone={26} onpress={() => navigation.navigate(pagina)} />
+        <Pressable
+          style={stl.buttons}
+          onPress={() => ChecarAcesso(credencial.cargo, pagina)}>
 
-        {notificacao > 0 ? <Texto estilo={stl.notification}  texto={notificacao} tamanho={12} tipo='Light' /> : null}
+          <Icone nomeDoIcone={icone} corDoIcone={colors.detalhe} tamanhoDoIcone={26} onpress={() => ChecarAcesso(credencial.cargo, pagina)} />
+          <Texto estilo={stl.notification} texto={notificacao > 0 ? notificacao : ''} tamanho={12} tipo='Light' />
+          <Texto texto={nome} tipo='Light' />
 
-        <Texto texto={nome} tipo='Light' />
-
-      </Pressable>
+        </Pressable>
+      </Animated.View>
     )
   }
 
@@ -108,19 +113,21 @@ export default function Home() {
             <FlatList
               ListHeaderComponent={
 
-                (credencial.cargo !== "Funcionario" && credencial.cargo !== "Vendedor") && <View style={{ alignSelf: 'center', paddingHorizontal: 14, marginBottom: 50 }}>
-                  <Texto texto={'Alerta:'} tipo={'Regular'} />
+                aniversariante.length > 0 && <View style={{ alignSelf: 'center', marginBottom: 50 }}>
+                  <Texto texto={'Alerta:'} alinhamento='center' tipo={'Regular'} />
                   {aniversariante.map((item, index) => {
+                    console.log(item);
+                    
                     return (
-                      <Pressable key={index} onPress={() => navigation.navigate('DetalheCliente', { clienteID: aniversariante.id })}>
-                        <Texto texto={`Cliente ${item.nome.split(" ")[0]} ${item.nome.split(" ")[1]} aniversaria dia ${item.dataNascimento.substring(0, 5)}`} tipo={'Light'} />
+                      <Pressable key={index} onPress={() => navigation.navigate('DetalheCliente', { cpf_cnpj: item.cpf_cnpj })}>
+                        <Texto estilo={{width: 240}} alinhamento='center' texto={`${item.nome.split(" ")[0]} ${item.nome.split(" ")[1]} aniversaria dia ${item.dataNascimento.substring(0, 5)}`} tipo={'Light'} />
                       </Pressable>
                     )
                   })}
                 </View>
               }
               data={buttonsInfo}
-              contentContainerStyle={{ padding: 4 }}
+              contentContainerStyle={{ paddingVertical: 20 }}
               showsVerticalScrollIndicator={false}
               numColumns={2}
               renderItem={({ item }) => {
@@ -139,7 +146,6 @@ export default function Home() {
               icone={'key-outline'}
               nome={'Entrar'}
               pagina={'Login'} />
-
           }
         </View>
       </View >
@@ -153,7 +159,7 @@ const stl = StyleSheet.create({
     elevation: 3,
     width: 120,
     height: 120,
-    margin: 1,
+    margin: 2,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -164,8 +170,8 @@ const stl = StyleSheet.create({
   notification: {
     textAlign: 'center',
     position: "absolute",
-    right: 8,
-    top: 6,
+    right: 12,
+    top: 8,
   }
 
 })

@@ -25,7 +25,7 @@ export default function DetalheCliente() {
 
     useEffect(() => {
         BuscaCliente()
-        ContagemDeCompras()
+        // ContagemDeCompras()
 
     }, [rota])
 
@@ -53,10 +53,10 @@ export default function DetalheCliente() {
         let totalPago = 0;
 
         ordemDeCompra.forEach(order => {
-            if (order.estado === 'Entregue' && order.cliente.id === cliente.id) {
+            if (order?.estado === 'Entregue' && order?.cliente.id === cliente?.id) {
                 count++;
-                totalValor += order.totalDaNota;
-                totalPago += order.valorPago;
+                totalValor += order?.totalDaNota;
+                totalPago += order?.valorPago;
             }
         });
 
@@ -70,7 +70,6 @@ export default function DetalheCliente() {
     const buttonsInfo = [
         { icone: 'logo-whatsapp', nome: 'Whatsapp', rota: () => Linking.openURL(`whatsapp://send?phone=55${cliente.whatsapp}`) },
         { icone: 'pencil', nome: 'Editar', rota: () => navigation.navigate('RegistraCliente', cliente) },
-        { icone: 'reader-outline', nome: 'Compras', rota: () => navigation.navigate('HistoricoDeVendas', { clienteID: cliente.id }) },
     ]
 
     return (
@@ -78,24 +77,28 @@ export default function DetalheCliente() {
             <Topo
                 posicao='left'
                 iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+                iconeRight={{ nome: 'information', acao: () => navigation.navigate('Info', { 
+                    info: 'Os cálculos de compras do cliente (caso existam), consideram apenas pedidos Entregues e não incluem pagamentos em andamento.' }) }}
                 titulo={''} />
 
             <Tela>
-                <View style={{ alignItems: "center", justifyContent: "center", marginTop: 20, padding: 14 }}>
-                    <Texto alinhamento='center' tipo='Bold' tamanho={22} texto={FormatarTexto(cliente?.nome)} />
-                    <Texto tipo='Light' texto={`Nasc. ${cliente?.dataNascimento}`} />
-                    <Texto tipo='Light' texto={`${cliente?.cpf_cnpj}`} />
+                <View style={{ alignItems: "center", justifyContent: "center", marginTop: 20, padding: 14, gap: 12 }}>
+                    <View style={{ alignItems: "center" }}>
 
-                    <View style={{ marginVertical: 12, alignItems: 'center' }}>
-
-                        <Texto tipo='Light' texto={`Cliente com ${ContagemDeCompras().count} compra${ContagemDeCompras().count > 1 ? 's' : ''} realizada${ContagemDeCompras().count > 1 ? 's' : ''}`} />
-                        <Texto tipo='Light' texto={`Total em notas R$ ${parseFloat(ContagemDeCompras().totalValor).toFixed(2)}`} />
-                        <Texto tipo='Light' texto={`Total pago R$ ${parseFloat(ContagemDeCompras().totalPago).toFixed(2)}`} />
+                        <Texto alinhamento='center' tipo='Bold' tamanho={22} texto={cliente?.nomeFantasia ? FormatarTexto(cliente?.nomeFantasia) : FormatarTexto(cliente?.nome)} estilo={{ marginBottom: 12 }} />
+                        {cliente.nomeFantasia ? <Texto alinhamento='center' tipo='Light' tamanho={16} texto={FormatarTexto(cliente?.nome)} /> : null}
+                        <Texto tipo='Light' texto={cliente?.cpf_cnpj?.length > 14 ? `CNPJ: ${cliente?.cpf_cnpj}` : `CPF: ${cliente?.cpf_cnpj}`} />
+                        <Texto tipo='Light' texto={`Data Nascimento: ${cliente?.dataNascimento}`} />
                     </View>
-                    <View style={{ marginVertical: 12, alignItems: 'center' }}>
 
-                        <Texto alinhamento='center' cor='#aaa' tipo='Light' tamanho={13} texto={`Obs. Os cálculos são feitos com base nas ordens de compras 'Entregues', porém não identifica pagamentos em andamento`} />
-                    </View>
+                    {ContagemDeCompras().count === 0 ? null : <View style={{ marginVertical: 12, alignItems: 'center' }}>
+
+                        <Pressable onPress={() => navigation.navigate('HistoricoDeVendas', { clienteID: cliente.id })}>
+                            <Texto tipo='Light' texto={`${ContagemDeCompras().count} compra${ContagemDeCompras().count > 1 ? 's' : ''}, totalizando R$ ${parseFloat(ContagemDeCompras().totalPago).toFixed(2)}`} />
+                            <Texto texto={'Ver Detalhes'} alinhamento='center' />
+                        </Pressable>
+
+                    </View>}
                 </View>
 
                 <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'center', gap: 6, marginTop: 30 }}>

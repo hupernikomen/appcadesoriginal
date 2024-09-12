@@ -6,6 +6,8 @@ import MaskOfInput from '../../components/MaskOfInput';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import { useNavigation } from '@react-navigation/native';
+import Icone from '../../components/Icone';
+import Texto from '../../components/Texto';
 
 export default function ListColors() {
 
@@ -24,7 +26,7 @@ export default function ListColors() {
         try {
             const response = await api.get("/listaCores")
             const cores = response.data
-            
+
             setCores(cores)
 
         } catch (error) {
@@ -65,45 +67,55 @@ export default function ListColors() {
     }
 
     function calcularEstoque(arr) {
-        return arr?.reduce((acc, current) => {
+        const result = arr?.reduce((acc, current) => {
             acc.estoque += current.estoque;
             acc.saida += current.saida;
             return acc;
-        }, { estoque: 0, saida: 0 }).estoque - arr?.reduce((acc, current) => acc + current.saida, 0);
-    }
+        }, { estoque: 0, saida: 0 });
 
+        return {
+            estoque: result.estoque - result.saida,
+            saida: result.saida
+        };
+    }
 
     const Cores = ({ data }) => {
 
         return (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                
-                <Text style={{ fontWeight: '300', color: "#000" }}>{data?.nome}</Text>
-                
-                <View style={{ flexDirection: "row" }}>
-                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 60, textAlign: 'right' }}>{calcularEstoque(data?.produto)} </Text>
-                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 60, textAlign: 'right' }}>{data?.produto[0]?.saida} </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }}>
+                <View style={{ flexDirection: "row", gap: 12 }}>
+
+                    <View style={{ width: 20, aspectRatio: 1, borderRadius: 20, backgroundColor: data.corHexa }} />
+                    <Text style={{ fontWeight: '300', color: "#000" }}>{data?.nome}</Text>
+                </View>
+
+                <View style={{ flexDirection: "row", gap: 6 }}>
+                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 40, textAlign: 'center' }}>{calcularEstoque(data?.produto).estoque} </Text>
+                    <Text style={{ fontWeight: '300', color: "#000", fontSize: 12, width: 40, textAlign: 'center' }}>{calcularEstoque(data?.produto).saida} </Text>
                 </View>
             </View>
         )
     }
 
+
     const CoresCabecalho = () => {
         return (
 
             <View>
-                <View style={{ flexDirection: "row", paddingVertical: 10, marginBottom: 20, borderBottomColor: '#e9e9e9', borderBottomWidth: 1 }}>
+                <View style={{ flexDirection: "row",alignItems:"center", paddingVertical: 10, borderBottomColor: '#e9e9e9', borderBottomWidth: 1 }}>
                     <MaskOfInput style={{ flex: 1 }} title='Nome da Cor' value={nome} setValue={setNome} maxlength={20} />
-                    <Pressable onPress={() => CriaCor()} style={{ height: 65, width: 65, alignItems: 'center', justifyContent: 'center' }}><Text>Criar</Text></Pressable>
+                    <Pressable onPress={() => CriaCor()} style={{ height: 65, width: 65, alignItems: 'center', justifyContent: 'center' }}>
+                        <Texto texto='Criar' />
+                    </Pressable>
                 </View>
 
-                <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between", marginBottom: 18 }}>
+                <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: "space-between" }}>
 
-                    <Text style={{ fontWeight: '500', color: "#000" }}>Cor</Text>
+                    <Texto texto='Cor' />
 
-                    <View style={{ flexDirection: "row" }}>
-                        <Text style={{ fontWeight: '500', color: "#000", width: 60, textAlign: 'right' }}>E</Text>
-                        <Text style={{ fontWeight: '500', color: "#000", width: 60, textAlign: 'right' }}>V</Text>
+                    <View style={{ flexDirection: "row", gap: 6 }}>
+                        <Icone nomeDoIcone={'pricetag-outline'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
+                        <Icone nomeDoIcone={'repeat'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
 
                     </View>
                 </View>
@@ -123,7 +135,8 @@ export default function ListColors() {
 
             <Tela>
                 <FlatList data={cores?.sort((a, b) => a.nome.localeCompare(b.nome))}
-                    ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 6 }} />}
+                    showsVerticalScrollIndicator={false}
+                    ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9' }} />}
                     ListHeaderComponent={<CoresCabecalho />}
                     renderItem={({ item }) => <Cores data={item} />}
                 />
