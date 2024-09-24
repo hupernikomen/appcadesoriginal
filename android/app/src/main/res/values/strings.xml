@@ -2,5 +2,5 @@
     <string name="app_name">SG Cades</string>
     <string name="appCenterCrashes_whenToSendCrashes" moduleConfig="true" translatable="false">DO_NOT_ASK_JAVASCRIPT</string>
     <string name="appCenterAnalytics_whenToEnableAnalytics" moduleConfig="true" translatable="false">ALWAYS_SEND</string>
-    <string moduleConfig="true" name="CodePushDeploymentKey">0b5R36f69bGXkw47O0I30Kq2HNf7jihPLVKQo</string>
+    <string moduleConfig="true" name="CodePushDeploymentKey">FVL3tNkL7UQ--WgnGd4UC-JoHCStl34VptSn4</string>
 </resources>

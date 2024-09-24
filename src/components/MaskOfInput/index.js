@@ -14,7 +14,7 @@ export default function MaskOfInput({ bg = true, styleMask, lines, load, mask, s
 
   const styles = StyleSheet.create({
     box: {
-      height: 50,
+      height: 54,
       paddingVertical: 4,
       borderRadius: 12,
       paddingHorizontal: 10,

@@ -11,7 +11,7 @@ import Texto from '../../components/Texto';
 import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import Icone from '../../components/Icone';
-import SeletorAV from '../../components/SeletorAV';
+import Interruptor from '../../components/Interruptor';
 import Load from '../../components/Load';
 
 export default function Sale() {
@@ -22,7 +22,7 @@ export default function Sale() {
 	const navigation = useNavigation()
 
 	const [load, setLoad] = useState(false)
-	const [xAtacado, setXAtacado] = useState(false);
+	const [interruptor, setInterruptor] = useState(false);
 
 	const [busca, setBusca] = useState('');
 	const [clientesFiltrados, setClientesFiltrados] = useState([])
@@ -68,7 +68,7 @@ export default function Sale() {
 		}
 
 		try {
-			const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id, tipo: xAtacado ? 'Varejo' : 'Atacado' }, { headers })
+			const response = await api.post(`/cria/ordemDeCompra`, { clienteID: data?.id, usuarioID: credencial.id, tipo: interruptor ? 'Varejo' : 'Atacado' }, { headers })
 			navigation.navigate('CriaOrcamento', { ordemDeCompraID: response.data.id })
 			setLoad(false)
 
@@ -161,13 +161,12 @@ if (load) return <Load/>
 	return (
 		<>
 			<Topo
-				posicao='left'
-				iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+				iconeLeft={{ nome: 'chevron-back', acao: () => navigation.goBack() }}
 				titulo='Ordem de Compra' />
 
 			<Tela>
 
-			<SeletorAV xAtacado={xAtacado} setXAtacado={setXAtacado} label1="Atacado" label2="Varejo" />
+			<Interruptor interruptor={interruptor} setInterruptor={setInterruptor} label1="Atacado" label2="Varejo" />
 
 
 				<FlatList
@@ -179,7 +178,7 @@ if (load) return <Load/>
 						<View style={{ flexDirection: "row", alignItems: 'center', gap: 2, marginBottom: 20 }}>
 							<MaskOfInput mask={mask} setValue={setBusca} value={busca} style={{ flex: 1, fontSize: 22 }} title={'Buscar Cliente'} />
 
-							{xAtacado && !clientesFiltrados.length ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e999', height: 50, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
+							{interruptor && !clientesFiltrados.length ? <Pressable onPress={() => BuscaCliente("000.000.000-00")} style={{ borderRadius: 12, gap: 6, backgroundColor: '#e9e9e999', height: 50, justifyContent: 'flex-start', alignItems: "center", paddingHorizontal: 18, flexDirection: "row" }}>
 								<Icone label='S/ CAD.' tamanhoDoIcone={16} corDoIcone='#000' nomeDoIcone='lock-open-outline' onpress={() => BuscaCliente("000.000.000-00")} />
 							</Pressable> : null}
 

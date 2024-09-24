@@ -16,12 +16,12 @@ import Scanner from '../pages/scanner';
 import ListaDeCores from '../pages/listaDeCores';
 import ListaDeClientes from '../pages/listaClientes';
 import FinalizaVenda from '../pages/finalizaVenda';
-import BarrasPonto from '../pages/barrasPonto';
 import ListaEstoque from '../pages/listaEstoque';
 import DetalheEstoque from '../pages/detalheEstoque';
 import DetalheCliente from '../pages/detalheCliente';
 import Relatorio from '../pages/relatorio';
-import Info from '../pages/info';
+import Desempenho from '../pages/desempenho';
+import Colaborador from '../pages/colaborador';
 
 export default function RotasStack() {
     const { colors } = useTheme()
@@ -49,12 +49,12 @@ export default function RotasStack() {
             <Stack.Screen name='ListaDeCores' component={ListaDeCores} />
             <Stack.Screen name='ListaDeClientes' component={ListaDeClientes} options={{ animation: 'slide_from_left' }} />
             <Stack.Screen name='FinalizaVenda' component={FinalizaVenda} />
-            <Stack.Screen name='BarrasPonto' component={BarrasPonto} />
             <Stack.Screen name='ListaEstoque' component={ListaEstoque} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name='DetalheEstoque' component={DetalheEstoque} />
             <Stack.Screen name='DetalheCliente' component={DetalheCliente} />
             <Stack.Screen name='Relatorio' component={Relatorio}  options={{ animation: 'slide_from_left' }}/>
-            <Stack.Screen name='Info' component={Info}  options={{ animation: 'slide_from_left' }}/>
+            <Stack.Screen name='Desempenho' component={Desempenho}  options={{ animation: 'slide_from_left' }}/>
+            <Stack.Screen name='Colaborador' component={Colaborador}  options={{ animation: 'slide_from_left' }}/>
 
 
 

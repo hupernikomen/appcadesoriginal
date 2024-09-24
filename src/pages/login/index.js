@@ -12,13 +12,10 @@ export default function Login() {
 
     const { width } = Dimensions.get('window')
     const { signIn } = useContext(CredencialContext)
-    const { load } = useContext(AppContext)
     const { colors } = useTheme()
     const [nome, setNome] = useState('')
     const [senha, setSenha] = useState('')
     const logo = require('../../../assets/images/logocades.png');
-
-    if (load) return <Load />
 
     return (
         <View style={{ flex: 1, alignItems: "center", justifyContent: 'center' }}>
@@ -32,7 +29,7 @@ export default function Login() {
 
                 <Pressable
                     style={[stl.botaoEntrar, { backgroundColor: colors.detalhe, width: width - 100 }]}
-                    onPress={() => signIn(nome, senha)} >
+                    onPress={ async () => await signIn(nome, senha)} >
 
                     <Texto texto={'Entrar'} cor='#fff' />
 

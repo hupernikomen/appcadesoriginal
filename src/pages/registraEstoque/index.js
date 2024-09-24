@@ -108,6 +108,7 @@ export default function RegistraEstoque() {
     setEstoque('')
     setValorAtacado('')
     setValorVarejo('')
+    setReferencia('')
 
   }
 
@@ -245,8 +246,7 @@ export default function RegistraEstoque() {
 
     <>
       <Topo
-        posicao='left'
-        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+        iconeLeft={{ nome: 'chevron-back', acao: () => navigation.goBack() }}
         iconeRight={{ nome: 'contrast', acao: () => navigation.navigate('ListaDeCores') }}
         titulo={rota?.codigoDeBarras ? 'Editar Produto' : 'Cadastrar Produto'} />
       <Tela>
@@ -402,7 +402,7 @@ export default function RegistraEstoque() {
         {itensAAdcionar.length && !finalizarLista ?
 
           <Pressable onPress={() => RegistraProduto()}
-            style={[styles.botaoCadastrar, { backgroundColor: colors.theme }]}>
+            style={[styles.botaoCadastrar, { backgroundColor: colors.detalhe }]}>
 
             {load ? <ActivityIndicator color={'#fff'} /> : <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>}
 
@@ -412,7 +412,7 @@ export default function RegistraEstoque() {
 
         {!!rota &&
           <Pressable onPress={() => AtualizaProduto()}
-            style={[styles.botaoCadastrar, { backgroundColor: colors.theme }]}>
+            style={[styles.botaoCadastrar, { backgroundColor: colors.detalhe }]}>
 
             {load ? <ActivityIndicator color={'#fff'} /> : <Text style={{ color: '#fff', fontSize: 16 }}>Atualizar</Text>}
 

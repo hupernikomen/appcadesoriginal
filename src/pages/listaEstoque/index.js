@@ -126,8 +126,7 @@ export default function ListaEstoque() {
         <>
 
             <Topo
-                posicao='center'
-                iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+                iconeLeft={{ nome: 'chevron-back', acao: () => navigation.goBack() }}
                 iconeRight={{ nome: 'add-sharp', acao: () => navigation.navigate('RegistraEstoque') }}
                 titulo='Estoque Atual' />
 

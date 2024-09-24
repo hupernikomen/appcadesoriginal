@@ -18,31 +18,26 @@ export default function DrawerCustom(props) {
 
 
   return (
-    <DrawerContentScrollView {...props}>
+    <DrawerContentScrollView  {...props} >
 
-      <View style={{ flex: 1, backgroundColor: colors.detalhe }}>
-        {!!autenticado ?
+      {autenticado ? <View style={{ flex: 1, backgroundColor: colors.background }}>
 
-          <View style={{ padding: 16, flexDirection: 'row', alignItems: "center", gap: 12 }}>
-            <AntDesign name='user' color={'#fff'} size={36} />
-            <View>
-              <Texto cor='#fff' tipo='Regular' texto={credencial.nome} />
-              <Pressable onPress={() => signOut()}>
-                <Texto cor='#fff' tipo='Light' texto={'Sair'} />
-              </Pressable>
-            </View>
+
+        <View style={{ padding: 16, flexDirection: 'row', alignItems: "center", gap: 12 }}>
+          <View>
+            <Texto cor='#000' tipo='Light' texto={credencial.nome} />
+            <Pressable onPress={() => signOut()}>
+              <Texto cor='#000' tipo='Light' tamanho={13} texto={'Sair'} />
+            </Pressable>
           </View>
-          :
-          <DrawerItem
-            label="Login"
-            onPress={() => navigation.navigate("Login")}
-          />
-        }
+        </View>
 
-        <View style={{ borderTopWidth: .5, borderColor: '#333' }}>
+
+
+        <View style={{ borderTopWidth: .5, borderColor: '#999', gap: .5 }}>
           <DrawerItem
             label="Home"
-            inactiveTintColor='#fff'
+            inactiveTintColor='#000'
             labelStyle={{ fontFamily: 'Roboto-Light' }}
             onPress={() => navigation.navigate("Home")}
           />
@@ -50,10 +45,10 @@ export default function DrawerCustom(props) {
         </View>
 
       </View>
-        <View style={{ padding: 16 }}>
-          <Texto cor='#aaa' tipo='Light' texto={'Desenvolvido por:'} tamanho={12} />
-          <Texto cor='#fff' tipo='Light' texto={'Wilson Ramos'} />
-        </View>
+        :
+        null
+      }
+
 
 
     </DrawerContentScrollView>

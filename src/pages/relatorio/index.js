@@ -1,81 +1,114 @@
 import { FlatList, Pressable, View, Switch } from 'react-native';
 import { useEffect, useState, useContext } from 'react';
 import Texto from '../../components/Texto';
-import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Topo from '../../components/Topo';
 
-import { CrudContext } from '../../contexts/crudContext';
+import { AppContext } from '../../contexts/appContext';
+
+import api from '../../services/api';
+
 import Tela from '../../components/Tela';
-import SeletorAV from '../../components/SeletorAV';
+import Load from '../../components/Load';
 
 export default function Relatorio() {
 
   const navigation = useNavigation()
 
-  const { ordemDeCompra, ListaOrdemDeCompras } = useContext(CrudContext)
-
-  const [xAtacado, setXAtacado] = useState(false);
+  const { formatCurrency } = useContext(AppContext)
+  const [pagamentos, setPagamentos] = useState([])
+  const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
 
-    ListaOrdemDeCompras()
+    ListarPagamentos()
 
   }, [])
 
-  function separarItensMesAMes(data) {
-    // Filtrar os dados para vendas no estado 'entregue' e do tipo especificado
-    let tipo = 'Atacado'
-    xAtacado ? tipo = 'Varejo' : tipo = 'Atacado'
+  async function ListarPagamentos() {
+    try {
+      const response = await api.get('/lista/pagamentos')
+      const pagamentos = response.data
+  
+      const planoDePagamentos = pagamentos.reduce((acc, current) => {
 
-    const dadosFiltrados = data.filter(item => item.estado === 'Entregue' && item.tipo === tipo);
+        if (current.parcelas === 0) {
+          const paymentMonth = `${parseInt(current.criadoEm.split('-')[1]) < 10 ? `0${parseInt(current.criadoEm.split('-')[1])}` : parseInt(current.criadoEm.split('-')[1])}/${parseInt(current.criadoEm.split('-')[0])}`;
+          const existingMonth = acc.find((month) => month.data === paymentMonth);
 
-    // Agrupar os dados por mês e ano
-    const grupo = dadosFiltrados.reduce((acc, item) => {
-      const dataCriadoEm = new Date(item.criadoEm);
-      const mes = dataCriadoEm.getMonth() + 1;
-      const ano = dataCriadoEm.getFullYear();
-      const chave = `${ano}-${mes}`;
+          if (existingMonth) {
+            existingMonth.valor += current.totalPago;
 
-      if (!acc[chave]) {
-        acc[chave] = {
-          ano,
-          mes,
-          total: 0,
-          compras: 0
-        };
-      }
+          } else {
+            acc.push({ data: paymentMonth, valor: current.totalPago });
 
-      acc[chave].total += item.totalDaNota;
-      acc[chave].compras++;
+          }
 
-      return acc;
-    }, {});
+        } else {
+          const paymentMonths = PagamentosMensais(current.criadoEm, current.parcelas, current.totalPago);
+          paymentMonths.forEach((paymentMonth) => {
 
-    // Converter o objeto em um array e ordenar por mês
-    const resultado = Object.values(grupo).sort((a, b) => a.mes - b.mes);
+            const existingMonth = acc.find((month) => month.data === paymentMonth.data);
 
-    // Calcule o ticketMedio para cada mês
-    resultado.forEach(item => {
-      item.ticketMedioMes = item.total / item.compras;
-    });
+            if (existingMonth) {
+              existingMonth.valor += paymentMonth.valor;
 
-    // Calcule o ticketMedio total do ano atual
-    const anoAtual = new Date().getFullYear();
-    const totalComprasAnoAtual = resultado.filter(item => item.ano === anoAtual).reduce((acc, item) => acc + item.compras, 0);
-    const totalValorAnoAtual = resultado.filter(item => item.ano === anoAtual).reduce((acc, item) => acc + item.total, 0);
-    const ticketMedioAnoAtual = totalValorAnoAtual / totalComprasAnoAtual;
+            } else {
+              acc.push(paymentMonth);
 
-    // Adicione o ticketMedioAnoAtual ao final do array
-    resultado.push({
-      ano: anoAtual,
-      mes: 'Total em ',
-      total: totalValorAnoAtual,
-      compras: totalComprasAnoAtual,
-      ticketMedioMes: ticketMedioAnoAtual
-    });
+            }
+          });
+        }
+        return acc;
 
-    return resultado;
+      }, []);
+  
+
+
+      planoDePagamentos.sort((a, b) => {
+        const [mesA, anoA] = a.data.split('/');
+        const [mesB, anoB] = b.data.split('/');
+
+        if (anoA !== anoB) {
+          return anoA - anoB;
+
+        } else {
+          return mesA - mesB;
+
+        }
+      });
+  
+      setPagamentos(planoDePagamentos);
+  
+    } catch (error) {
+      console.log(error.response);
+  
+    } finally {
+      setCarregando(false)
+    }
   }
+  
+
+
+  function PagamentosMensais(date, parcels, totalPago) {
+    const month = parseInt(date.split('-')[1]);
+    const year = parseInt(date.split('-')[0]);
+    const paymentMonths = [];
+  
+    for (let i = 0; i < parcels; i++) {
+      let paymentYear = year;
+      let paymentMonthNumber = month + i;
+      while (paymentMonthNumber > 12) {
+        paymentYear++;
+        paymentMonthNumber -= 12;
+      }
+      const paymentMonth = `${paymentMonthNumber < 10 ? `0${paymentMonthNumber}` : paymentMonthNumber}/${paymentYear}`;
+      paymentMonths.push({ data: paymentMonth, valor: totalPago / parcels });
+    }
+  
+    return paymentMonths;
+  }
+
 
   const Render = ({ data }) => {
 
@@ -83,41 +116,30 @@ export default function Relatorio() {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12 }}>
 
         <View style={{ flexDirection: 'row' }}>
-          <Texto texto={`${data.mes}${data.mes > 0 ? '/' : ''}`}   tipo='Light'/>
-          <Texto texto={data.ano}  tipo='Light'/>
+          <Texto texto={`${data.data}`} tipo='Light' />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: "center", gap: 12 }}>
 
-          <Texto tipo='Light' texto={`${parseFloat(data.total).toFixed(2)}`} estilo={{ width: 70, textAlign: 'right' }} />
-          <Texto tipo='Light' texto={`${parseFloat(data.ticketMedioMes).toFixed(2)}`} estilo={{ width: 70, textAlign: 'right' }} />
+        <View style={{ flexDirection: 'row', alignItems: "center", gap: 12 }}>
+          <Texto texto={`R$ ${formatCurrency(data.valor)}`} tipo='Light' />
         </View>
+
       </View>
     )
   }
+
+  if (carregando) return <Load/>
 
 
   return (
     <>
       <Topo
-        posicao='left'
-        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-        titulo='Relatório Financeiro' />
+        iconeLeft={{ nome: 'chevron-back', acao: () => navigation.goBack() }}
+        titulo='Projeção Mensal' />
       <Tela>
 
-        <SeletorAV xAtacado={xAtacado} setXAtacado={setXAtacado} label1="Atacado" label2="Varejo" />
-
         <FlatList
-          ListHeaderComponent={
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 12 }}>
-              <Texto texto={''} />
-              <View style={{ flexDirection: 'row', alignItems: "center", gap: 12 }}>
-
-                <Texto texto={'Ent.'} tipo='Medium' estilo={{ width: 70, textAlign: 'right' }} />
-                <Texto texto={'Tkt.'} tipo='Medium' estilo={{ width: 70, textAlign: 'right' }} />
-              </View>
-            </View>
-          }
-          data={separarItensMesAMes(ordemDeCompra)}
+          ListHeaderComponent={<Texto tipo='Light' texto={'Projeção mensal de receitas de acordo com registros a vista (mês atual) e parcelados (futuros).'} estilo={{ alignSelf: 'center', textAlign: 'center', marginVertical: 24 }} />}
+          data={pagamentos}
           ItemSeparatorComponent={<View style={{ borderColor: '#d9d9d9', borderBottomWidth: .5 }} />}
           renderItem={({ item }) => <Render data={item} />}
         />

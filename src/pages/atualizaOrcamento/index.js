@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet, Alert, ScrollView } from 'react-native';
 
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
@@ -9,7 +9,6 @@ import { CredencialContext } from '../../contexts/credencialContext';
 import api from '../../services/api';
 
 import Texto from '../../components/Texto';
-import Load from '../../components/Load';
 import MaskOfInput from '../../components/MaskOfInput';
 import Icone from '../../components/Icone';
 
@@ -18,52 +17,67 @@ import Share from 'react-native-share';
 import Topo from '../../components/Topo';
 
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import ItemDoPedido from '../../components/ItemDoPedido';
 
 
 export default function AtualizaOrcamento() {
    const { colors } = useTheme()
    const { credencial } = useContext(CredencialContext)
-   const { listaDeTamanhos } = useContext(AppContext)
+   const { listaDeTamanhos, formatCurrency, load } = useContext(AppContext)
 
-   const { BuscaItemDoPedido, itensDoPedido, load, AdicionarItemAoPedido, SubtraiUmItemDoPedido, ListaOrdemDeCompras } = useContext(CrudContext)
+   const { ListaOrdemDeCompras } = useContext(CrudContext)
 
    const navigation = useNavigation()
    const { params: rota } = useRoute()
 
-   const [modalVisible, setModalVisible] = useState(false);
    const [referencia, setReferencia] = useState([])
    const [produtoEncontrado, setProdutoEncontrado] = useState([])
    const [orcamento, setOrcamento] = useState([])
-   const [tamanhoSelecionado, setTamanhoSelecionado] = useState("")
-   const [loadPage, setLoadPage] = useState(true)
    const [status, setStatus] = useState('')
-   
+
+   const [itensNoPedido, setItensNoPedido] = useState([]);
+
+   const [pagamento, setPagamento] = useState([])
+
    const tipoC = orcamento?.tipo?.substr(0, 1)
 
-   useEffect(() => {
-      Promise.all([BuscaOrdemDecompra(), AtualizaOrdemDecompra()]).then(() => setLoadPage(false))
+   const [tamanhoSelecionado, setTamanhoSelecionado] = useState(null);
+   const [cores, setCores] = useState({});
 
-      switch (orcamento?.estado) {
-         case 'Aberto':
-            setStatus('Processando')
-            break;
-      
-         case 'Processando':
-            setStatus('Embalado')
-            break;
-   
-         case 'Embalado':
-            setStatus('Entregue')
-            break;
-      
-         default:
-            break;
-      }
-   }, [itensDoPedido])
+
+
 
    useEffect(() => {
-      BuscaItemDoPedido(rota.ordemDeCompraID)
+      Promise.all([BuscaItemDoPedido(), BuscaOrdemDecompra(), BuscaPagamento()])
+
    }, [rota])
+
+
+
+
+   useEffect(() => {
+
+      const tamanhos = [...new Set(produtoEncontrado.map(item => item.tamanho))];
+      const coresPorTamanho = {};
+
+      tamanhos.forEach(tamanho => {
+         const coresParaTamanho = produtoEncontrado.filter(item => item.tamanho === tamanho).map(item => item.cor.nome);
+         const estoquePorTamanho = produtoEncontrado.filter(item => item.tamanho === tamanho).map(item => item.estoque - (item.reservado + item.saida));
+         const produtosPorTamanho = produtoEncontrado.filter(item => item.tamanho === tamanho);
+         coresPorTamanho[tamanho] = { cores: [...new Set(coresParaTamanho)], estoque: estoquePorTamanho, produtos: produtosPorTamanho };
+      });
+
+      setCores(coresPorTamanho);
+
+   }, [produtoEncontrado]);
+
+
+
+   const handleTamanhoSelecionado = tamanho => {
+      setTamanhoSelecionado(tamanho);
+   };
+
+
 
 
    useEffect(() => {
@@ -73,8 +87,21 @@ export default function AtualizaOrcamento() {
          Keyboard.dismiss()
 
       } else { setProdutoEncontrado([]) }
+
    }, [referencia])
 
+
+
+   const calcularTotal = () => {
+      const getValor = (item) => {
+         const valorString = tipoC === 'A' ? item.produto.valorAtacado : item.produto.valorVarejo;
+         return parseFloat(valorString?.replace(',', '.'));
+      };
+
+      const getSubtotal = (item) => getValor(item) * item.quantidade;
+
+      return itensNoPedido.reduce((total, item) => total + getSubtotal(item), 0);
+   };
 
 
 
@@ -91,40 +118,67 @@ export default function AtualizaOrcamento() {
    };
 
 
+
+   // BUSCA PAGAMENTO PARA EXIBIR INFORMAÇÕES INICIAIS NA TELA
+
+   async function BuscaPagamento() {
+      try {
+         const response = await api.get(`/busca/pagamento?ordemDeCompraID=${rota.ordemDeCompraID}`)
+         const pagamento = response.data
+
+         setPagamento(pagamento);
+
+      } catch (error) {
+         console.log(error.response);
+
+      }
+   }
+
+
+
+   // BUSCA ORDEM DE COMPRAS PARA EXIBIR INFORMAÇÕES INICIAIS NA TELA
+
    async function BuscaOrdemDecompra() {
       try {
-         const res = await api.get(`/busca/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`)
-         setOrcamento(res.data)
+         const response = await api.get(`/busca/ordemDeCompra?ordemDeCompraID=${rota?.ordemDeCompraID}`)
+         const orcamento = response.data
+         setOrcamento(orcamento)
+
+         switch (orcamento?.estado) {
+            case 'Aberto':
+               setStatus('Processando')
+               break;
+
+            case 'Processando':
+               setStatus('Embalado')
+               break;
+
+            case 'Embalado':
+               setStatus('Entregue')
+               break;
+
+            default:
+               setStatus('Entregue')
+               break;
+         }
 
       } catch (error) {
          console.log(error.response);
+
       }
    }
 
-   async function AtualizaOrdemDecompra() {
-      const headers = {
-         'Content-Type': 'application/json',
-         'Authorization': `Bearer ${credencial?.token}`
-      }
 
-      const totalDaNota = itensDoPedido.reduce((acc, current) => {
-         return acc + (current.quantidade * current.valorUnitario);
-      }, 0);
 
-      try {
-         await api.put(`/atualiza/ordemDeCompra?ordemDeCompraID=${orcamento?.id}`, { totalDaNota }, { headers })
-         await BuscaOrdemDecompra()
 
-      } catch (error) {
-         console.log(error.response);
-      }
-   }
 
    // BUSCA O PRODUTO DA REFERENCIA DIGITADA
+
    async function BuscaProduto() {
       try {
          const res = await api.get(`/busca/produto/referencia?referencia=${referencia}`)
          setProdutoEncontrado(res.data)
+
 
       } catch (error) {
          console.log(error.response)
@@ -132,7 +186,43 @@ export default function AtualizaOrcamento() {
    }
 
 
-   async function StateBudget() {
+
+   // AVANÇA PARA O PROXIMO ESTADO E ATUALIZA INFORMAÇÕES ALTERADAS
+
+   async function AvancaEstado() {
+
+      const headers = {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${credencial?.token}`
+      }
+
+
+      // SE TIVER HAVIDO ALGUMA ALTERAÇÃO NO TOTAL DA NOTA ...
+
+      if (pagamento.totalDaNota !== calcularTotal() || orcamento?.estado === "Processando") {
+
+         await AtualizaItemDoPedido()
+         await api.put(`/atualiza/estoque?ordemDeCompraID=${orcamento?.id}`, { headers })
+         navigation.navigate('FinalizaVenda', {
+            ordemDeCompraID: rota.ordemDeCompraID,
+            total: calcularTotal(),
+            estado: status
+         })
+
+      } else {
+
+         try {
+            await api.put(`/atualiza/estoque?ordemDeCompraID=${orcamento?.id}`, { headers })
+            navigation.navigate('HistoricoDeVendas')
+         }
+
+         catch (error) { console.log(error.response) }
+      }
+
+   }
+
+
+   async function AtualizaItemDoPedido() {
 
       const headers = {
          'Content-Type': 'application/json',
@@ -140,11 +230,22 @@ export default function AtualizaOrcamento() {
       }
 
       try {
-         await api.put(`/atualiza/estoque?ordemDeCompraID=${orcamento?.id}`, { headers })
-         navigation.navigate('HistoricoDeVendas')
+         for (const item of itensNoPedido) {
+
+            await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${item?.id}`, {
+               produtoID: item.produto.id,
+               quantidade: item.quantidade
+            }, { headers })
+
+         }
+      } catch (error) {
+         console.log(error.response);
+
       }
-      catch (error) { console.log(error.response) }
    }
+
+
+
 
    async function CancelarCompra(ordemDeCompraID) {
 
@@ -165,9 +266,9 @@ export default function AtualizaOrcamento() {
       } catch (error) {
          console.log(error.response);
 
-      } finally {
-         setModalVisible(!modalVisible)
       }
+
+
    }
 
 
@@ -256,23 +357,23 @@ export default function AtualizaOrcamento() {
 
         <div style="align-items: end; display: flex; flex-direction: column; padding-right: 10px">
           <div style="font-weight: 300; display: flex; font-size: 13px; text-align: end ">Valor da Nota:
-            <div style="width: 80px">R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}</div>
+            <div style="width: 80px">R$ ${formatCurrency(calcularTotal())}</div>
           </div>
 
-          ${!!orcamento?.desconto ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end ">Desconto de ${orcamento?.desconto}%
-            <div style="width: 80px ">-R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}</div>
+          ${!!pagamento?.desconto ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end ">Desconto de ${pagamento?.desconto}%
+            <div style="width: 80px ">-R$ ${formatCurrency(!!pagamento?.desconto ? calcularTotal() * (pagamento?.desconto / 100) : calcularTotal())}</div>
           </div>` : ''}
 
-          ${!!orcamento?.valorAdiantado ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end">Adiantamento:
-            <div style="width: 80px">R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}</div>
+          ${!!pagamento?.valorAdiantado ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end">Adiantamento:
+            <div style="width: 80px">R$ ${formatCurrency(pagamento?.valorAdiantado)}</div>
           </div>` : ''}
 
-          ${!!orcamento?.tempoDePagamento ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end ">Parcelado em ${orcamento?.tempoDePagamento}x
-            <div style="width: 80px ">R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}</div>
+          ${!!pagamento?.parcelas ? `<div style="font-weight: 300; display: flex; font-size: 13px; text-align: end ">Parcelado em ${pagamento?.parcelas}x
+            <div style="width: 80px ">R$ ${formatCurrency(!!pagamento?.parcelas ? (calcularTotal() - pagamento?.valorAdiantado) / pagamento?.parcelas : calcularTotal())}</div>
           </div>` : ''}
 
           <div style="font-size: 13px; display: flex; text-align: end; margin-top:10px ">Total a pagar:
-            <div style="width: 80px ">R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}</div>
+            <div style="width: 80px ">R$ ${formatCurrency(!!pagamento?.desconto || !!pagamento?.valorAdiantado ? (calcularTotal() - pagamento?.valorAdiantado) - (calcularTotal() * (pagamento?.desconto / 100)) : calcularTotal())}</div>
           </div>
         </div>
       </div>
@@ -280,48 +381,39 @@ export default function AtualizaOrcamento() {
   `
 
 
+   async function BuscaItemDoPedido() {
 
-   function ItemDaLista({ data }) {
+      try {
+         const response = await api.get(`/busca/itemDoPedido?ordemDeCompraID=${rota.ordemDeCompraID}`)
+         const itemDoPedido = response.data
 
-      const { id, referencia, nome, tamanho, cor, valorAtacado, valorVarejo } = data.produto
-      
-      const status = orcamento.estado === "Aberto" || orcamento.estado === "Processando"
+         setItensNoPedido(itemDoPedido)
 
-      return (
-         <View>
-            <View style={{ flexDirection: 'row', alignItems: "center" }}>
-
-               <View style={{ backgroundColor: colors.detalhe, marginRight: 10, borderRadius: 10, paddingHorizontal: 6 }}>
-                  <Texto tamanho={12} texto={`${referencia} `} tipo='Light' cor='#fff' />
-               </View>
-
-                  <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${nome} T. ${tamanho} ${cor?.nome} #${tipoC === 'A' ? valorAtacado : valorVarejo}`} />
-
-               <View style={{ flexDirection: 'row', alignItems: "center" }}>
-
-                  <Pressable disabled={!status || load} style={[styles.btnQtd, { opacity: status ? .7 : .5 }]}
-                     onPress={() => status && SubtraiUmItemDoPedido(data.id, id, data.quantidade, orcamento?.id)}>
-                     <Texto texto='-' />
-                  </Pressable>
-
-                  <Texto estilo={{ width: 26, textAlign: 'center' }} texto={data.quantidade} />
-
-                  <Pressable disabled={!status || load} style={[styles.btnQtd, { opacity: status ? .7 : .5 }]}
-                     onPress={() => status && AdicionarItemAoPedido({ produtoID: data.produto?.id, ordemDeCompraID: orcamento?.id })}>
-                     <Texto texto='+' />
-                  </Pressable>
-
-               </View>
-            </View>
-         </View>
-      )
+      } catch (error) {
+         console.log(error.response);
+      }
    }
 
+   // ACRESCENTA ITEM AO PEDIDO, CASO ELE JA EXISTA NO PEDIDO, SOME + 1
 
-   const HeaderBudget = () => {
+   const AdicionaItem = ({ produto, ordemDeCompraID }) => {
+
+      const itemExistente = itensNoPedido.find(item => item.produto.id === produto.id);
+
+      if (itemExistente) {
+         return
+
+      } else {
+         setItensNoPedido(prevItens => [...prevItens, { produto, ordemDeCompraID, quantidade: 1 }]);
+
+      }
+   };
+
+
+   const Resultado = () => {
 
       let totalQuantidade = 0;
-      orcamento.itemDoPedido.forEach((item) => {
+      itensNoPedido.forEach((item) => {
          totalQuantidade += item.quantidade;
       });
 
@@ -330,34 +422,71 @@ export default function AtualizaOrcamento() {
             {load ? <ActivityIndicator color={colors.theme} /> :
                <View style={{ alignItems: "flex-end", borderTopWidth: 1, borderColor: '#e9e9e9', padding: 10 }}>
 
-                  {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(orcamento?.totalDaNota).toFixed(2)}`} tipo={'Light'} /> : null}
-                  {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? orcamento?.totalDaNota * (orcamento?.desconto / 100) : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
-                  {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: -R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
-                  {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : orcamento?.totalDaNota).toFixed(2)}`} /> : null}
-                  <Texto tipo='Light' texto={`Total de itens: ${totalQuantidade}`} />
-                  <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (orcamento?.totalDaNota - orcamento?.valorAdiantado) - (orcamento?.totalDaNota * (orcamento?.desconto / 100)) : orcamento?.totalDaNota).toFixed(2)}`} />
-
+                  <Texto tipo='Light' texto={`Total de itens: ${totalQuantidade}`} estilo={{ marginBottom: 12 }} />
+                  <Texto texto={`Valor da Nota: R$ ${formatCurrency(calcularTotal())}`} tipo={'Light'} />
+                  {!!pagamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${pagamento?.desconto}%: -R$ ${formatCurrency(!!pagamento?.desconto ? calcularTotal() * (pagamento?.desconto / 100) : calcularTotal())}`} /> : null}
+                  {!!pagamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: -R$ ${formatCurrency(pagamento?.valorAdiantado)}`} /> : null}
+                  {!!pagamento?.parcelas ? <Texto tipo='Light' texto={`Parcelado em ${pagamento?.parcelas}x R$ ${formatCurrency(!!pagamento?.parcelas ? (calcularTotal() - pagamento?.valorAdiantado) / pagamento?.parcelas : calcularTotal())}`} /> : null}
+                  {pagamento?.obs ? <Texto estilo={{ marginTop: 12 }} tipo='Light' texto={`Obs.: ${pagamento?.obs}`} /> : null}
+                  <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${(!!pagamento?.desconto || !!pagamento?.valorAdiantado ? formatCurrency((calcularTotal() - pagamento?.valorAdiantado) - (calcularTotal() * (pagamento?.desconto / 100))) : formatCurrency(calcularTotal()))}`} />
                </View>
             }
          </View>
       )
    }
 
-   if (loadPage) return <Load />
+
+   const CoresPorTamanho = ({ tamanhoSelecionado, cores }) => {
+      const coresParaTamanho = cores[tamanhoSelecionado].cores;
+      const estoqueParaTamanho = cores[tamanhoSelecionado].estoque;
+      const produtosParaTamanho = cores[tamanhoSelecionado].produtos;
+
+      return (
+         <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 6, marginBottom: 24 }}
+            ItemSeparatorComponent={<View style={{ margin: 4 }} />}
+            data={coresParaTamanho}
+            renderItem={({ item, index }) => (
+               <Pressable
+                  onPress={() => AdicionaItem({ produto: produtosParaTamanho[index], ordemDeCompraID: orcamento?.id })}
+                  key={index}
+                  style={{
+                     alignItems: "center",
+                     justifyContent: "center",
+                     borderRadius: 12,
+                     height: 40,
+                     backgroundColor: colors.fundo,
+                     elevation: 5,
+                     opacity: 0.7,
+                     paddingHorizontal: 12,
+                     marginVertical: 12,
+                  }}
+               >
+                  <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
+                     <Texto texto={`${estoqueParaTamanho[index]}`} tipo={'Light'} tamanho={10} />
+                  </View>
+                  <Texto texto={item} tipo="Regular" />
+               </Pressable>
+            )}
+         />
+      );
+   };
+
+
+
+
 
 
 
    return (
-
-      
-
       <>
          <Topo
-            posicao='left'
-            iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-            titulo={`Pedido ${orcamento?.estado}  ${tipoC}-${orcamento?.id.substr(0, 6).toUpperCase()}`} >
+            iconeLeft={{ nome: 'chevron-back', acao: () => navigation.goBack() }}
+            titulo={`Pedido ${orcamento?.estado}  ${tipoC}-${orcamento?.id?.substr(0, 6).toUpperCase()}`} >
 
-            <Animated.View  entering={FadeInUp.duration(400).delay(300)}
+            <Animated.View entering={FadeInUp.duration(400).delay(300)}
                style={{
                   flexDirection: 'row',
                   justifyContent: 'space-around',
@@ -365,151 +494,92 @@ export default function AtualizaOrcamento() {
                   backgroundColor: colors.theme,
                }}
             >
-               {orcamento?.estado !== 'Entregue' && orcamento?.estado !== 'Processando' && (
-                  <Icone
-                     disabled={!itensDoPedido.length > 0}
-                     label="CONDIÇÕES"
-                     tamanhoDoIcone={18}
-                     onpress={() =>
-                        navigation.navigate('FinalizaVenda', {
-                           ordemDeCompraID: rota.ordemDeCompraID,
-                        })
-                     }
-                     nomeDoIcone={'wallet-outline'}
-                     corDoIcone="#fff"
-                  />
-               )}
+               <Icone
+                  estilo={{ flex: 1 }}
+                  disabled={!itensNoPedido.length > 0 || orcamento?.estado !== 'Entregue' || orcamento?.estado !== 'Processando'}
+                  label="CONDIÇÕES"
+                  tamanhoDoIcone={18}
+                  onpress={() =>
+                     navigation.navigate('FinalizaVenda', {
+                        ordemDeCompraID: rota.ordemDeCompraID,
+                     })
+                  }
+                  nomeDoIcone={'wallet-outline'}
+                  corDoIcone="#000"
+               />
 
-               {orcamento?.estado !== 'Aberto' && (
-                  <Icone
-                     label="PDF"
-                     tamanhoDoIcone={18}
-                     onpress={gerarPDF}
-                     nomeDoIcone={'share-social-outline'}
-                     corDoIcone="#fff"
-                  />
-               )}
+               <Icone
+                  disabled={orcamento?.estado === 'Aberto'}
+                  estilo={{ flex: 1 }}
+                  label="PDF"
+                  tamanhoDoIcone={18}
+                  onpress={gerarPDF}
+                  nomeDoIcone={'share-social-outline'}
+                  corDoIcone="#000"
+               />
 
-               {orcamento?.estado !== 'Aberto' && orcamento?.estado !== 'Entregue' && (
-                  <Icone
-                     label={status.toUpperCase()}
-                     tamanhoDoIcone={18}
-                     onpress={StateBudget}
-                     nomeDoIcone={'arrow-redo-outline'}
-                     corDoIcone="#fff"
-                  />
-               )}
+               <Icone
+                  disabled={orcamento?.estado === 'Aberto' || orcamento?.estado === 'Entregue'}
+                  estilo={{ flex: 1 }}
+                  label={status?.toUpperCase()}
+                  tamanhoDoIcone={18}
+                  onpress={AvancaEstado}
+                  nomeDoIcone={'arrow-redo-outline'}
+                  corDoIcone="#000"
+               />
 
-               {orcamento?.estado !== 'Entregue' && (
-                  <Icone
-                     label="EXCLUIR"
-                     tamanhoDoIcone={18}
-                     onpress={() => acaoExcluir()}
-                     nomeDoIcone={'trash-outline'}
-                     corDoIcone="#fff"
-                  />
-               )}
+               <Icone
+                  disabled={orcamento?.estado === 'Entregue'}
+                  estilo={{ flex: 1 }}
+                  label="EXCLUIR"
+                  tamanhoDoIcone={18}
+                  onpress={() => acaoExcluir()}
+                  nomeDoIcone={'trash-outline'}
+                  corDoIcone="#000"
+               />
             </Animated.View>
          </Topo>
 
 
+         <View style={{ margin: 14, gap: 6 }}>
+               <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
+
+            <ScrollView horizontal>
+               {Object.keys(cores).sort((a, b) => listaDeTamanhos.indexOf(a) - listaDeTamanhos.indexOf(b)).map(tamanho => (
+                  <Pressable
+                     key={tamanho}
+                     onPress={() => handleTamanhoSelecionado(tamanho)}
+                     style={{
+                        width: 40,
+                        aspectRatio: 1,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: colors.fundo,
+                        elevation: 5,
+                        opacity: 0.7,
+                        borderRadius: 12,
+                        margin: 6
+
+                     }}
+                  >
+                     <Texto texto={tamanho} tipo="Medium" cor="#222" />
+                  </Pressable>
+               ))}
+            </ScrollView>
+            {tamanhoSelecionado && (
+               <CoresPorTamanho tamanhoSelecionado={tamanhoSelecionado} cores={cores} />
+            )}
+         </View>
+
+
 
          <FlatList
-            ListHeaderComponent={
-               <View style={{marginVertical:14}}>
-                  {orcamento?.estado !== 'Entregue' ?
-                     <View style={{  gap:12 }}>
-                        <View>
-                           <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
-                        </View>
-
-                        <View style={{ flexDirection: "row", gap: 6, }}>
-                           {listaDeTamanhos.map((tamanho, index) => {
-                              const tamanhoExiste = [...new Set(produtoEncontrado
-                                 .filter(item => (item?.estoque - (item?.reservado + item?.saida)) > 0)
-                                 .map(item => item.tamanho))]
-                              if (!tamanhoExiste) return
-                              return (
-                                 <Pressable disabled={!tamanhoExiste.includes(tamanho)} onPress={() => setTamanhoSelecionado(tamanho)} key={index}
-                                    style={{
-                                       display: tamanhoExiste.includes(tamanho) ? 'flex' : 'none',
-                                       width: 40,
-                                       aspectRatio: 1,
-                                       alignItems: "center",
-                                       justifyContent: "center",
-                                       backgroundColor: colors.fundo,
-                                       elevation: 5,
-                                       opacity: .7,
-                                       borderRadius: 12,
-                                    }}>
-                                    <Texto texto={tamanho} tipo='Medium' cor='#222' />
-                                 </Pressable>
-                              )
-                           })}
-
-                        </View>
-
-                        <FlatList
-                           horizontal
-                           ItemSeparatorComponent={<View style={{ marginHorizontal: 3 }} />}
-                           contentContainerStyle={{ paddingHorizontal: 2 }}
-                           data={[...new Set(produtoEncontrado?.filter(item => item.tamanho === tamanhoSelecionado)
-                              .filter(item => item.estoque > (item.reservado + item.saida)))]}
-                           renderItem={({ item, index }) => {
-                              return (
-                                 <Pressable disabled={load} onPress={() => AdicionarItemAoPedido({ produtoID: item.id, ordemDeCompraID: orcamento?.id })
-                                 } key={index}
-                                    style={{
-                                       alignItems: "center",
-                                       justifyContent: "center",
-                                       borderRadius: 12,
-                                       height: 40,
-                                       backgroundColor: colors.fundo,
-                                       elevation: 5,
-                                       opacity: .7,
-                                       paddingHorizontal: 12,
-                                       marginVertical: 12,
-                                    }}>
-
-                                    <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
-                                       <Texto texto={item?.estoque - (item?.reservado + item?.saida)} tipo={'Light'} tamanho={10} />
-                                    </View>
-                                    <Texto texto={item?.cor?.nome} tipo={'Regular'} />
-                                 </Pressable>
-                              )
-                           }}
-                        />
-                     </View> : null}
-
-                  {orcamento?.estado !== 'Entregue' && !!orcamento?.observacao ? <View style={{  marginVertical: 12 }}>
-
-                     {!!orcamento?.observacao ?
-                        <Texto texto={`Obs. ${orcamento?.observacao}`} /> : null}
-
-                  </View> : null}
-               </View>
-            }
-            data={itensDoPedido}
-            ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
-            contentContainerStyle={{paddingHorizontal:14,}}
-            renderItem={({ item }) => <ItemDaLista data={item} />}
-            ListFooterComponent={itensDoPedido?.length > 0 ? <HeaderBudget /> : null}
+            data={itensNoPedido}
+            ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 6 }} />}
+            contentContainerStyle={{ paddingHorizontal: 14, }}
+            renderItem={({ item }) => <ItemDoPedido lista={item} listaInicial={orcamento} listaPedido={itensNoPedido} setListaPedido={setItensNoPedido} />}
+            ListFooterComponent={itensNoPedido?.length > 0 ? <Resultado /> : null}
          />
-
-      
       </>
    );
 }
-
-const styles = StyleSheet.create({
-  
-   btnQtd: {
-      elevation: 3,
-      borderRadius: 6,
-      alignItems: "center",
-      justifyContent: 'center',
-      width: 25,
-      height: 40,
-      backgroundColor: '#fff'
-   }
-});

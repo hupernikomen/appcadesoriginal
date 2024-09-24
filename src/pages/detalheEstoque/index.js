@@ -1,6 +1,6 @@
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
-import { View, Text, FlatList, Pressable, Dimensions } from 'react-native';
+import { View, FlatList, Pressable, Dimensions } from 'react-native';
 import api from '../../services/api';
 import Topo from '../../components/Topo';
 import Texto from '../../components/Texto';
@@ -74,7 +74,6 @@ export default function DetalheEstoque() {
     return (
         <View>
             <Topo
-                posicao='left'
                 iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
                 titulo={route.params?.referencia?.referencia + " - " + route.params?.referencia?.nome} />
 
@@ -87,20 +86,19 @@ export default function DetalheEstoque() {
                     return (
                         <View key={index} style={{ width: width, paddingHorizontal: 14 }}>
 
-
                             <FlatList
                                 showsVerticalScrollIndicator={false}
-                                contentContainerStyle={{  paddingBottom: 80 }}
+                                contentContainerStyle={{ paddingBottom: 80 }}
                                 ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9' }} />}
                                 data={item.cores}
                                 ListHeaderComponent={
-                                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: .5, borderColor: '#d9d9d9' }}>
+                                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }}>
                                         <Texto tamanho={22} tipo='Bold' texto={item.tamanho} estilo={{ marginLeft: 30 }} />
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
 
-                                            <Icone nomeDoIcone={'cube-outline'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
+                                            <Icone nomeDoIcone={'bag-outline'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
                                             <Icone nomeDoIcone={'repeat'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
-                                            <Icone nomeDoIcone={'pricetag-outline'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
+                                            <Icone nomeDoIcone={'shirt-outline'} corDoIcone='#000' width={40} tamanhoDoIcone={18} />
 
                                         </View>
                                     </View>

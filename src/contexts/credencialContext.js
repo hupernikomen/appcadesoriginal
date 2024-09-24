@@ -4,6 +4,7 @@ import api from "../services/api";
 import { useNavigation, DrawerActions } from "@react-navigation/native";
 
 
+
 export const CredencialContext = createContext({})
 
 export function CredencialProvider({ children }) {
@@ -54,6 +55,7 @@ export function CredencialProvider({ children }) {
 
 
   async function signIn(nome, senha) {
+
     
     if (!nome || !senha) return
     

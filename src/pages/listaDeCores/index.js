@@ -129,8 +129,7 @@ export default function ListColors() {
     return (
         <>
             <Topo
-                posicao='left'
-                iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+                iconeLeft={{ nome: 'chevron-back', acao: () => navigation.goBack() }}
                 titulo='Cores' />
 
             <Tela>

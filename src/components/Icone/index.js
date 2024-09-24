@@ -2,7 +2,7 @@ import { Pressable, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Texto from '../Texto';
 
-export default function Icone({ estilo, height = 55, width = 50, label = '', disabled, onpress, nomeDoIcone, corDoIcone = '#fff', tamanhoDoIcone = 22 }) {
+export default function Icone({ estilo, height = 55, width = 50, label = '', disabled, onpress, nomeDoIcone, corDoIcone = '#000', tamanhoDoIcone = 22 }) {
    return (
       <Pressable disabled={disabled} onPress={onpress} style={[estilo, {
          alignItems: 'center',
@@ -10,7 +10,7 @@ export default function Icone({ estilo, height = 55, width = 50, label = '', dis
          height: height,
          alignItems: 'center',
          justifyContent: "center",
-         opacity: disabled ? .3 : 1,
+         opacity: disabled ? .4 : 1,
       }]}>
 
          <Ionicons name={nomeDoIcone} color={corDoIcone} size={tamanhoDoIcone} />

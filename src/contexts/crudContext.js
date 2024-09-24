@@ -1,21 +1,18 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import api from "../services/api";
-import { useNavigation } from "@react-navigation/native";
 
 import { AppContext } from "./appContext";
 import { CredencialContext } from "./credencialContext";
+import Load from "../components/Load";
 
 export const CrudContext = createContext({})
 
 export function CrudProvider({ children }) {
 
-  const navigation = useNavigation()
-
   const { credencial } = useContext(CredencialContext)
   const { load, setLoad, Toast } = useContext(AppContext)
   const [clientes, setClientes] = useState([])
   const [ordemDeCompra, setOrdemDeCompra] = useState([])
-  const [itensDoPedido, setItensDoPedido] = useState([])
   const [quantidadeNoEstoque, setQuantidadeNoEstoque] = useState('')
 
   useEffect(() => {
@@ -34,8 +31,6 @@ export function CrudProvider({ children }) {
       console.log(error.response);
     }
   }
-
-
 
 
   async function ListaOrdemDeCompras() {
@@ -79,55 +74,6 @@ export function CrudProvider({ children }) {
   }
 
 
-  async function BuscaItemDoPedido(ordemDeCompraID) {
-
-    setLoad(true)
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${credencial?.token}`
-    }
-
-    try {
-      const response = await api.get(`/busca/itemDoPedido?ordemDeCompraID=${ordemDeCompraID}`)
-      const itemDoPedido = response.data
-
-      setItensDoPedido(itemDoPedido)
-      setLoad(false)
-
-    } catch (error) {
-      console.log(error.response);
-      setLoad(false)
-    }
-  }
-
-
-
-  async function SubtraiUmItemDoPedido(itemDoPedidoID, produtoID, quantidade, ordemDeCompraID) {
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${credencial?.token}`
-    }
-
-    const atualizacao = {
-      quantidade: Number(quantidade - 1), 
-      produtoID: produtoID
-    }
-
-    try {
-      await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${itemDoPedidoID}`, atualizacao, { headers })
-      BuscaItemDoPedido(ordemDeCompraID)
-
-    } catch (error) {
-      console.log(error.response)
-    }
-
-  }
-
-
-
-
   async function ListaProdutos() {
     try {
       const response = await api.get('/lista/produtos');
@@ -145,47 +91,32 @@ export function CrudProvider({ children }) {
   }
 
 
-  async function AdicionarItemAoPedido(data) {
+  async function CancelarCompra(ordemDeCompraID) {
 
-    setLoad(true)
 
     const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${credencial?.token}`
+       'Content-Type': 'application/json',
+       'Authorization': `Bearer ${credencial?.token}`
     }
-
-    // Verifica se o produto já está na lista
-    const itemJaIncluso = itensDoPedido.find(item => item.produto?.id === data.produtoID);
 
     try {
-      if (itemJaIncluso) {
-        // Atualiza a quantidade do item existente
-        await api.put(`/atualiza/itemDoPedido?itemDoPedidoID=${itemJaIncluso?.id}`, { quantidade: Number(itemJaIncluso.quantidade + 1), produtoID: data?.produtoID }, { headers })
 
-      } else {
-        // Cria um novo item
-        const novoItem = {
-          ordemDeCompraID: data.ordemDeCompraID,
-          produtoID: data.produtoID,
-          quantidade: 1,
-        }
+       await api.delete(`/cancelaCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
+       await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
+      //  await ListaOrdemDeCompras()
+       navigation.navigate('Home')
 
-        await api.post('/cria/itemDoPedido', novoItem, { headers })
-
-      }
     } catch (error) {
-      Toast(error.response.data.error)
+       console.log(error.response);
 
-    } finally {
-      setLoad(false)
     }
-    BuscaItemDoPedido(data.ordemDeCompraID)
 
-  }
 
+ }
 
 
   async function FecharNota(data) {
+
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${credencial?.token}`
@@ -226,22 +157,18 @@ export function CrudProvider({ children }) {
 
 
 
-
   return (
     <CrudContext.Provider value={{
       clientes,
       ListaClientes,
       ordemDeCompra,
       ListaOrdemDeCompras,
-      AdicionarItemAoPedido,
       FecharNota,
-      BuscaItemDoPedido,
-      itensDoPedido,
       ListaProdutos,
       quantidadeNoEstoque,
       load,
       setLoad,
-      SubtraiUmItemDoPedido
+      CancelarCompra
     }}>
       {children}
     </CrudContext.Provider>

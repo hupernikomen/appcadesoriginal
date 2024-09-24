@@ -66,11 +66,11 @@ export function AppProvider({ children }) {
 
   function ChecarAcesso(cargo, pagina) {
     const accessRules = {
-      Socio: ['Login', 'Home', 'HistoricoDeVendas', 'HomeDeVendas','ListaEstoque', 'ListaDeClientes', 'RegistraCliente', 'Relatorio'],
-      Administrador: ['Login', 'Home', 'HistoricoDeVendas','ListaEstoque', 'ListaDeClientes', 'Relatorio'],
-      Gerente: ['Login', 'Home', 'HistoricoDeVendas', 'HomeDeVendas','ListaEstoque', 'ListaDeClientes', 'RegistraCliente'],
+      Socio: ['Login', 'Home', 'HistoricoDeVendas', 'HomeDeVendas','ListaEstoque', 'ListaDeClientes', 'RegistraCliente', 'Relatorio', 'Desempenho', 'Colaborador'],
+      Administrador: ['Login', 'Home', 'HistoricoDeVendas','ListaEstoque', 'ListaDeClientes', 'Relatorio', 'Desempenho'],
+      Gerente: ['Login', 'Home', 'HistoricoDeVendas', 'HomeDeVendas','ListaEstoque', 'ListaDeClientes', 'RegistraCliente', 'Colaborador'],
       Vendedor: ['Login', 'Home', 'HistoricoDeVendas', 'HomeDeVendas'],
-      Funcionario: ['Login', 'Home'],
+      Funcionario: ['Login', 'Home', 'Colaborador'],
     };
   
     if (pagina === 'Login') { 
@@ -91,6 +91,23 @@ export function AppProvider({ children }) {
   }
 
 
+  function formatCurrency(number) {
+    if (typeof number === 'string') {
+      number = number.replace(/[^\d\.]/g, '');
+      number = parseFloat(number);
+    }
+  
+    const strNumber = number?.toFixed(2).toString();
+    const parts = strNumber?.split('.');
+    const formattedIntegerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const formattedNumber = `${formattedIntegerPart},${parts[1]}`;
+  
+    return formattedNumber;
+  }
+  
+
+
+
   return (
     <AppContext.Provider value={{
       Toast,
@@ -99,7 +116,8 @@ export function AppProvider({ children }) {
       FormatarTexto,
       load, setLoad,
       listaDeTamanhos,
-      ChecarAcesso
+      ChecarAcesso,
+      formatCurrency
     }}>
       {children}
     </AppContext.Provider>

@@ -10,16 +10,18 @@ import Texto from '../../components/Texto';
 import Topo from '../../components/Topo';
 import Icone from '../../components/Icone';
 import Load from '../../components/Load';
-import Animated, { FadeInUp, FadeInDown, BounceInDown } from 'react-native-reanimated';
+import Animated, { BounceInDown } from 'react-native-reanimated';
+
+const { width } = Dimensions.get('window')
 
 export default function Home() {
+
   const navigation = useNavigation()
   const focus = useIsFocused()
   const { colors } = useTheme()
   const [load, setLoad] = useState(false)
-  const { height } = Dimensions.get("window")
 
-  const { credencial } = useContext(CredencialContext)
+  const { credencial, autenticado } = useContext(CredencialContext)
   const { ChecarAcesso } = useContext(AppContext)
   const { clientes, ordemDeCompra, ListaOrdemDeCompras, ListaProdutos, quantidadeNoEstoque, ListaClientes } = useContext(CrudContext)
   const [aniversariante, setAniversariante] = useState([])
@@ -32,7 +34,7 @@ export default function Home() {
   }, [focus])
 
   useEffect(() => {
-    EncontrarAniversariantes()
+    BuscarClientesAniversariantes()
 
   }, [clientes])
 
@@ -42,11 +44,13 @@ export default function Home() {
     { icone: 'reader-outline', nome: 'Histórico', notificacao: ordemDeCompra?.filter(item => item.estado !== 'Aberto' && item.estado !== 'Entregue').length, pagina: 'HistoricoDeVendas', },
     { icone: 'people-outline', nome: 'Clientes', notificacao: clientes?.length, pagina: 'ListaDeClientes' },
     { icone: 'shirt-outline', nome: 'Estoque', notificacao: quantidadeNoEstoque, pagina: 'ListaEstoque' },
-    // { icone: 'barcode-outline', nome: 'Crachá', notificacao: '', pagina: !!autenticado ? 'BarrasPonto' : 'Login' },
     { icone: 'trending-up', nome: 'Financeiro', notificacao: '', pagina: 'Relatorio' },
+    // { icone: 'podium-outline', nome: 'Desempenho', notificacao: '', pagina: 'Desempenho' },
+    { icone: 'umbrella-outline', nome: 'Colaborador', notificacao: '', pagina: 'Colaborador' },
+
   ]
 
-  function EncontrarAniversariantes() {
+  function BuscarClientesAniversariantes() {
     const hoje = new Date();
     const aniversariantes = [];
 
@@ -78,7 +82,6 @@ export default function Home() {
 
   function Button({ icone, nome, notificacao, pagina }) {
 
-
     return (
       <Animated.View entering={BounceInDown.duration(2000).delay(200)}>
 
@@ -86,7 +89,7 @@ export default function Home() {
           style={stl.buttons}
           onPress={() => ChecarAcesso(credencial.cargo, pagina)}>
 
-          <Icone nomeDoIcone={icone} corDoIcone={colors.detalhe} tamanhoDoIcone={26} onpress={() => ChecarAcesso(credencial.cargo, pagina)} />
+          <Icone nomeDoIcone={icone} corDoIcone={colors.detalhe} tamanhoDoIcone={24} onpress={() => ChecarAcesso(credencial.cargo, pagina)} height={34} />
           <Texto estilo={stl.notification} texto={notificacao > 0 ? notificacao : ''} tamanho={12} tipo='Light' />
           <Texto texto={nome} tipo='Light' />
 
@@ -100,34 +103,27 @@ export default function Home() {
 
   return (
     <>
-      <Topo
-        posicao='center'
-        iconeLeft={{ nome: 'menu', acao: () => navigation.openDrawer() }}
-        titulo='SG Cades Original' />
+      <Topo titulo='SG Cades Original' />
 
       <View style={{ flex: 1, justifyContent: 'space-around', paddingVertical: 20 }}>
 
-        <View style={{ alignItems: "center", justifyContent: 'center' }}>
+          {(aniversariante.length > 0 && autenticado) && <View style={{ alignSelf: 'center', marginVertical: 24 }}>
+            <Texto tipo='Light' texto={'Clientes Aniversariantes:'} estilo={{ alignSelf: 'center', marginBottom: 6 }} />
+            {aniversariante.map((item, index) => {
+              return (
+                <Pressable key={index} onPress={() => navigation.navigate('DetalheCliente', { cpf_cnpj: item.cpf_cnpj })} style={{ padding: 4 }}>
+                  <Texto estilo={{ width: width - 100 }} alinhamento='center' texto={`${item.nome.split(" ")[0]} ${item.nome.split(" ")[1]} - ${item.dataNascimento.substring(0, 5)}`} tipo={'Light'} />
+                </Pressable>
+              )
+            })}
+          </View>}
+        <View style={{ alignItems: "center", justifyContent: 'center', flex:1 }}>
+
 
           {credencial?.token ?
             <FlatList
-              ListHeaderComponent={
-
-                aniversariante.length > 0 && <View style={{ alignSelf: 'center', marginBottom: 50 }}>
-                  <Texto texto={'Alerta:'} alinhamento='center' tipo={'Regular'} />
-                  {aniversariante.map((item, index) => {
-                    console.log(item);
-                    
-                    return (
-                      <Pressable key={index} onPress={() => navigation.navigate('DetalheCliente', { cpf_cnpj: item.cpf_cnpj })}>
-                        <Texto estilo={{width: 240}} alinhamento='center' texto={`${item.nome.split(" ")[0]} ${item.nome.split(" ")[1]} aniversaria dia ${item.dataNascimento.substring(0, 5)}`} tipo={'Light'} />
-                      </Pressable>
-                    )
-                  })}
-                </View>
-              }
               data={buttonsInfo}
-              contentContainerStyle={{ paddingVertical: 20 }}
+              contentContainerStyle={{ paddingVertical: 100 }}
               showsVerticalScrollIndicator={false}
               numColumns={2}
               renderItem={({ item }) => {
@@ -153,13 +149,14 @@ export default function Home() {
   );
 }
 
+
 const stl = StyleSheet.create({
   buttons: {
-    backgroundColor: '#f1f1f1',
+    backgroundColor: '#f5f5f5',
     elevation: 3,
     width: 120,
-    height: 120,
-    margin: 2,
+    height: 105,
+    margin: 5,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',

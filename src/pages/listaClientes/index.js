@@ -111,8 +111,7 @@ export default function ListaDeClientes() {
   return (
     <>
       <Topo
-        posicao='left'
-        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.navigate('Home') }}
+        iconeLeft={{ nome: 'chevron-back', acao: () => navigation.navigate('Home') }}
         iconeRight={{ nome: 'add-sharp', acao: () => navigation.dispatch(
           CommonActions.reset({
             index: 1,

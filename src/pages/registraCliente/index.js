@@ -160,8 +160,7 @@ export default function RegistraCliente() {
   return (
     <>
       <Topo
-        posicao='left'
-        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.dispatch(
+        iconeLeft={{ nome: 'chevron-back', acao: () => navigation.dispatch(
           CommonActions.reset({
             index: 1,
             routes: [
@@ -224,7 +223,7 @@ export default function RegistraCliente() {
               CEP,
               inscricaoEstadualRg
             )}
-              style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}>
+              style={[style.botaoCadastrar, { backgroundColor: colors.detalhe }]}>
               <Text style={{ color: '#fff', fontSize: 16 }}>Atualizar</Text>
             </Pressable>
             :
@@ -241,7 +240,7 @@ export default function RegistraCliente() {
               CEP,
               inscricaoEstadualRg
             )}
-              style={[style.botaoCadastrar, { backgroundColor: colors.theme }]}>
+              style={[style.botaoCadastrar, { backgroundColor: colors.detalhe }]}>
               <Text style={{ color: '#fff', fontSize: 16 }}>Cadastrar</Text>
             </Pressable>}
 

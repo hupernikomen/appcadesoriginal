@@ -12,16 +12,17 @@ export default function Routes() {
 
   return (
     <Drawer.Navigator
+    
       drawerContent={MenuLateral}
       initialRouteName='HomeScreen'
       screenOptions={{
         headerShown: false,
         unmountOnBlur: true,
-        drawerType: 'slide',
+        drawerType: 'back',
         drawerStyle: {
-          width: width / 1.5,
-          backgroundColor: colors.theme,
-        }
+          width: 0,
+          // backgroundColor: colors.theme,
+        },
       }}>
       <Drawer.Screen name='HomeScreen' component={HomeStack} />
     </Drawer.Navigator>

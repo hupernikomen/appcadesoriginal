@@ -5,7 +5,7 @@ import { StatusBar } from 'react-native';
 
 import { AppProvider } from './src/contexts/appContext';
 import { CrudProvider } from './src/contexts/crudContext';
-import { CredencialContext, CredencialProvider } from './src/contexts/credencialContext';
+import { CredencialProvider } from './src/contexts/credencialContext';
 
 import Routes from './src/routes';
 
@@ -13,9 +13,9 @@ const Theme = {
   ...DefaultTheme,
   colors: {
     padrao: '#000',
-    theme: '#222',
+    theme: '#f3f3f3',
     detalhe: '#ff7366',
-    efeito: '#FFF3E099',
+    efeito: '#ff9900',
     background: '#f3f3f3',
     fundo: '#FAFAFA',
   }
@@ -25,13 +25,15 @@ function App() {
   return (
 
     <NavigationContainer theme={Theme}>
+      
       <CredencialProvider>
         <AppProvider>
           <CrudProvider>
+
             <StatusBar
-              backgroundColor={Theme.colors.theme}
+              backgroundColor={Theme.colors.background}
               translucent={false}
-              barStyle={'light-content'} />
+              barStyle={'dark-content'} />
 
             <Routes />
 

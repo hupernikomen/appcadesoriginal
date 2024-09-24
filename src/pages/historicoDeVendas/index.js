@@ -8,7 +8,7 @@ import Tela from '../../components/Tela';
 import Topo from '../../components/Topo';
 import Texto from '../../components/Texto';
 import ContainerItem from '../../components/ContainerItem';
-import SeletorAV from '../../components/SeletorAV';
+import Interruptor from '../../components/Interruptor';
 
 export default function HistoricoDeVendas() {
 
@@ -19,7 +19,7 @@ export default function HistoricoDeVendas() {
   const { FormatarTexto } = useContext(AppContext)
   const { ordemDeCompra, ListaOrdemDeCompras } = useContext(CrudContext)
 
-  const [xAtacado, setXAtacado] = useState(false);
+  const [interruptor, setInterruptor] = useState(false);
 
 
   useEffect(() => {
@@ -33,8 +33,6 @@ export default function HistoricoDeVendas() {
     const formatoData = new Intl.DateTimeFormat("pt-BR", {
       day: "2-digit",
       month: "2-digit",
-      // hour: "2-digit", 
-      // minute: "2-digit" 
     });
     return formatoData.format(data);
 
@@ -46,7 +44,7 @@ export default function HistoricoDeVendas() {
 
     return (
 
-      <ContainerItem opacidade={item.estado === 'Entregue' ? .4 : 1} onpress={() => {
+      <ContainerItem  onpress={() => {
         navigation.navigate('AtualizaOrcamento', { ordemDeCompraID: item.id })
       }}>
 
@@ -72,22 +70,24 @@ export default function HistoricoDeVendas() {
   return (
     <>
       <Topo
-        posicao='left'
-        iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
+        iconeLeft={{ nome: 'chevron-back', acao: () => navigation.goBack() }}
         titulo='Histórico' />
 
       <Tela>
 
-      <SeletorAV xAtacado={xAtacado} setXAtacado={setXAtacado} label1="Atacado" label2="Varejo" />
 
         <FlatList
+        ListHeaderComponent={
+          
+          rota?.clienteID ? null : <Interruptor interruptor={interruptor} setInterruptor={setInterruptor} label1="Em Aberto" label2="Finalizados" /> 
+        }
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9' }} />}
           renderItem={({ item }) => <RenderItem item={item} />}
           data={
             rota?.clienteID
               ? ordenarListaPorEstado(ordemDeCompra).filter((item) => item.cliente?.id === rota?.clienteID)
-              : ordenarListaPorEstado(ordemDeCompra).filter((item) => xAtacado ? item.tipo === "Varejo" : item.tipo === "Atacado")
+              : ordenarListaPorEstado(ordemDeCompra).filter((item) => interruptor ? item.estado === "Entregue" : item.estado !== "Entregue")
           }
         />
 

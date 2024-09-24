@@ -75,10 +75,7 @@ export default function DetalheCliente() {
     return (
         <>
             <Topo
-                posicao='left'
-                iconeLeft={{ nome: 'arrow-back-outline', acao: () => navigation.goBack() }}
-                iconeRight={{ nome: 'information', acao: () => navigation.navigate('Info', { 
-                    info: 'Os cálculos de compras do cliente (caso existam), consideram apenas pedidos Entregues e não incluem pagamentos em andamento.' }) }}
+                iconeLeft={{ nome: 'chevron-back', acao: () => navigation.goBack() }}
                 titulo={''} />
 
             <Tela>

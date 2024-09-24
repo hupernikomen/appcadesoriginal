@@ -1,6 +1,6 @@
-import { View, Text, FlatList, Pressable, Keyboard, ActivityIndicator, Modal, StyleSheet, BackHandler, Alert } from 'react-native';
+import { View, FlatList, Pressable, Keyboard, ActivityIndicator, ScrollView, BackHandler, Alert } from 'react-native';
 
-import { useRoute, useNavigation, useTheme, CommonActions } from '@react-navigation/native';
+import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { useEffect, useState, useContext } from 'react';
 import { AppContext } from '../../contexts/appContext';
 import { CrudContext } from '../../contexts/crudContext';
@@ -9,47 +9,36 @@ import { CredencialContext } from '../../contexts/credencialContext';
 import api from '../../services/api';
 
 import Texto from '../../components/Texto';
-import Load from '../../components/Load';
 import MaskOfInput from '../../components/MaskOfInput';
 import Icone from '../../components/Icone';
-
-import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import Topo from '../../components/Topo';
+import ItemDoPedido from '../../components/ItemDoPedido';
 
 
 export default function CriaOrcamento() {
    const { colors } = useTheme()
    const { credencial } = useContext(CredencialContext)
-   const { listaDeTamanhos, Toast } = useContext(AppContext)
+   const { listaDeTamanhos, formatCurrency } = useContext(AppContext)
 
-   const { FecharNota, load } = useContext(CrudContext)
+   const { FecharNota } = useContext(CrudContext)
 
    const navigation = useNavigation()
    const { params: rota } = useRoute()
 
-   const [modalVisible, setModalVisible] = useState(false);
    const [referencia, setReferencia] = useState([])
    const [produtoEncontrado, setProdutoEncontrado] = useState([])
    const [orcamento, setOrcamento] = useState([])
-   const [tamanhoSelecionado, setTamanhoSelecionado] = useState("")
-   const [loadPage, setLoadPage] = useState(true)
 
    const [itensNoPedido, setItensNoPedido] = useState([]);
    const tipoC = orcamento?.tipo?.substr(0, 1)
 
 
-   useEffect(() => {
+   const [tamanhoSelecionado, setTamanhoSelecionado] = useState(null);
+   const [cores, setCores] = useState({});
 
-      const backHandler = BackHandler.addEventListener(
-         'hardwareBackPress',
-         backAction,
-      );
 
-      return () => backHandler.remove();
-   }, []);
 
-   
-   
+
    useEffect(() => {
       BuscaOrdemDecompra()
 
@@ -58,36 +47,102 @@ export default function CriaOrcamento() {
          setTamanhoSelecionado('')
          Keyboard.dismiss()
 
-      } else { setProdutoEncontrado([]) }
+      } else {
+         setProdutoEncontrado([])
+      }
    }, [referencia])
 
 
 
-   const backAction = () => {
+
+   useEffect(() => {
+
+      const tamanhos = [...new Set(produtoEncontrado.map(item => item.tamanho))];
+      const coresPorTamanho = {};
+
+      tamanhos.forEach(tamanho => {
+         const coresParaTamanho = produtoEncontrado.filter(item => item.tamanho === tamanho).map(item => item.cor.nome);
+         const estoquePorTamanho = produtoEncontrado.filter(item => item.tamanho === tamanho).map(item => item.estoque - (item.reservado + item.saida));
+         const produtosPorTamanho = produtoEncontrado.filter(item => item.tamanho === tamanho);
+         coresPorTamanho[tamanho] = { cores: [...new Set(coresParaTamanho)], estoque: estoquePorTamanho, produtos: produtosPorTamanho };
+      });
+
+      setCores(coresPorTamanho);
+
+   }, [produtoEncontrado]);
+
+
+
+   const handleTamanhoSelecionado = tamanho => {
+      setTamanhoSelecionado(tamanho);
+   };
+
+
+
+
+   useEffect(() => {
+      const backHandler = BackHandler.addEventListener(
+         'hardwareBackPress',
+         acaoVoltar,
+      );
+
+      // AO CLICAR NO BOTAO VOLTAR
+
+      return () => backHandler.remove();
+   }, []);
+
+
+   function Alerta(mensagem) {
+      Alert.alert('', mensagem, [
+         {
+            text: 'Ok',
+            onPress: () => null,
+         },
+      ])
+   }
+
+
+   const acaoVoltar = () => {
+
+      // SE TIVER ITEM JA ADICIONADO MOSTRAR POPUP, SE NAO VOLTAR A PAGINA ANTERIOR
+
       itensNoPedido.length > 0 ?
-         Alert.alert('', 'Pedido não finalizado! Saindo, será excluído. Finalize em CONDIÇÕES.', [
+         Alert.alert('', 'Seu pedido não foi finalizado...', [
+            { text: 'Cancelar Pedido', onPress: () => CancelarCompra(orcamento?.id) },
             {
-               text: 'Voltar',
+               text: 'Continuar',
                onPress: () => null,
-               style: 'cancel',
             },
-            { text: 'Sair', onPress: () => navigation.goBack() },
          ]) : navigation.goBack()
       return true;
    };
 
-   const acaoExcluir = () => {
-      Alert.alert('', `Deseja excluir pedido: ${tipoC}-${orcamento?.id?.slice(0, 6).toUpperCase()} ?`, [
-         { text: 'Excluir', onPress: () => CancelarCompra(orcamento?.id) },
+
+
+   const acaoAvancar = () => {
+
+      // MOSTRAR POPUP ALERTANDO SOBRE A IMPOSSIBILIDADE DE VOLTAR APOS AVANCAR PARA PAGAMENTO
+
+      Alert.alert('', 'Confirme para gerar pedido', [
+         { text: 'Revisar', onPress: () => null },
          {
-            text: 'Cancelar',
-            onPress: () => null,
-            style: 'cancel',
+            text: 'Confirmar',
+            onPress: () => navigation.navigate('FinalizaVenda',
+               {
+                  ordemDeCompraID: rota.ordemDeCompraID,
+                  total: calcularTotal(),
+                  estado: orcamento?.estado
+               }
+            ),
          },
-      ]);
-      return true;
+      ])
+      return false;
    };
 
+
+
+
+   // BUSCAR ORDEM DE COMPRAS PARA EXIBIR INFORMAÇÕES EM TELA
 
    async function BuscaOrdemDecompra() {
       try {
@@ -97,26 +152,48 @@ export default function CriaOrcamento() {
       } catch (error) {
          console.log(error.response);
 
-      } finally {
-         setLoadPage(false)
-
       }
    }
 
 
 
-   // BUSCA O PRODUTO DA REFERENCIA DIGITADA
+   // BUSCA O PRODUTO DA REFERENCIA DIGITADA PARA REGISTRO DE ITENS
+
    async function BuscaProduto() {
       try {
          const res = await api.get(`/busca/produto/referencia?referencia=${referencia}`)
          setProdutoEncontrado(res.data)
 
+
+
+
       } catch (error) {
          console.log(error.response)
+
       }
    }
 
 
+
+   // ACRESCENTA ITEM AO PEDIDO, CASO ELE JA EXISTA NO PEDIDO, SOME + 1
+
+   const AdicionaItem = ({ produto, ordemDeCompraID }) => {
+
+      const itemExistente = itensNoPedido.find(item => item.produto === produto);
+
+      if (itemExistente) {
+         return
+
+      } else {
+         setItensNoPedido(prevItens => [...prevItens, { produto, ordemDeCompraID, quantidade: 1 }]);
+
+      }
+   };
+
+
+
+
+   // CANCELA A COMPRA EXCLUINDO DO BANCO RETORNANDO OS ITENS AO ESTOQUE, E EXCLUI A ORDEM DE COMPRA JA VAZIA
 
    async function CancelarCompra(ordemDeCompraID) {
 
@@ -126,102 +203,21 @@ export default function CriaOrcamento() {
       }
 
       try {
-
          await api.delete(`/cancelaCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
          await api.delete(`/deleta/ordemDeCompra?ordemDeCompraID=${ordemDeCompraID}`, { headers })
-         navigation.navigate('Home')
+
 
       } catch (error) {
          console.log(error.response);
 
       } finally {
-         setModalVisible(!modalVisible)
+         navigation.navigate('Home')
 
       }
    }
 
 
-
-   const SomaItem = ({ produto, ordemDeCompraID }) => {
-
-      const itemExistente = itensNoPedido.find((item) => item.produto === produto);
-
-      if (itemExistente) {
-
-         const novaQuantidade = itemExistente.quantidade + 1;
-
-         setItensNoPedido((prevItens) =>
-            prevItens.map((item) =>
-               item.produto === produto ? { ...item, quantidade: novaQuantidade } : item
-            )
-         );
-
-      } else {
-         setItensNoPedido((prevItens) => [...prevItens, { produto, ordemDeCompraID, quantidade: 1 }]);
-
-      }
-   };
-
-
-
-   const SubtraiUmItemDoPedido = ({ produto }) => {
-
-      const itemExistente = itensNoPedido.find((item) => item.produto.id === produto.id);
-
-      if (itemExistente) {
-
-         const novaQuantidade = itemExistente.quantidade - 1;
-
-         if (novaQuantidade > 0) {
-            setItensNoPedido((prevItens) =>
-               prevItens.map((item) =>
-                  item.produto.id === produto.id ? { ...item, quantidade: novaQuantidade } : item
-               )
-            );
-
-         } else {
-            setItensNoPedido((prevItens) => prevItens.filter((item) => item.produto.id !== produto.id));
-
-         }
-      }
-   };
-
-
-   function ItemDaLista({ data }) {
-
-
-      return (
-         <View>
-            <View style={{ flexDirection: 'row', alignItems: "center" }}>
-
-               <View style={{ backgroundColor: colors.detalhe, marginRight: 10, borderRadius: 10, paddingHorizontal: 6 }}>
-                  <Texto tamanho={12} texto={`${data.produto?.referencia} `} tipo='Light' cor='#fff' />
-               </View>
-
-               <Texto estilo={{ flex: 1, paddingHorizontal: 6 }} tipo={'Light'} texto={`${data.produto?.nome} T. ${data.produto?.tamanho} ${data.produto?.cor?.nome} #${tipoC === 'A' ? data.produto?.valorAtacado : data.produto?.valorVarejo}`} />
-
-               <View style={{ flexDirection: 'row', alignItems: "center" }}>
-
-                  <Pressable style={[styles.btnQtd]}
-                     onPress={() => SubtraiUmItemDoPedido({ produto: data.produto, quantidade: data.quantidade, orcamentoID: orcamento?.id })}>
-                     <Texto texto='-' />
-                  </Pressable>
-
-                  <Texto estilo={{ width: 26, textAlign: 'center' }} texto={data.quantidade} />
-
-                  <Pressable style={[styles.btnQtd]}
-                     disabled={data.quantidade >= (data.produto.estoque - data.produto.saida)}
-                     onPress={() => SomaItem({ produto: data.produto, ordemDeCompraID: orcamento?.id })}>
-                     <Texto texto='+' />
-                  </Pressable>
-
-               </View>
-            </View>
-         </View>
-      )
-   }
-
-
+   // CALCULA O TOTAL DOS ITENS ACRESCENTADOS NA NOTA
 
    const calcularTotal = () => {
       const getValor = (item) => {
@@ -236,198 +232,133 @@ export default function CriaOrcamento() {
 
 
 
-   const HeaderBudget = () => {
+
+
+   const Resultados = () => {
 
       let totalQuantidade = 0;
       itensNoPedido.forEach(item => totalQuantidade += item.quantidade);
+      const total = calcularTotal()
 
       return (
          <View style={{ marginVertical: 20 }}>
             {load ? <ActivityIndicator color={colors.theme} /> :
                <View style={{ alignItems: "flex-end", borderTopWidth: 1, borderColor: '#e9e9e9', padding: 10 }}>
-
-                  {!!orcamento?.desconto || !!orcamento?.tempoDePagamento ? <Texto texto={`Valor da Nota: R$ ${parseFloat(calcularTotal()).toFixed(2)}`} tipo={'Light'} /> : null}
-                  {!!orcamento?.desconto ? <Texto tipo='Light' texto={`Desconto de ${orcamento?.desconto}%: -R$ ${parseFloat(!!orcamento?.desconto ? calcularTotal() * (orcamento?.desconto / 100) : calcularTotal()).toFixed(2)}`} /> : null}
-                  {!!orcamento?.valorAdiantado ? <Texto tipo='Light' texto={`Adiantamento: R$ ${parseFloat(orcamento?.valorAdiantado).toFixed(2)}`} /> : null}
-                  {!!orcamento?.tempoDePagamento ? <Texto tipo='Light' texto={`Parcelado em ${orcamento?.tempoDePagamento}x R$ ${parseFloat(!!orcamento?.tempoDePagamento ? (calcularTotal() - orcamento?.valorAdiantado) / orcamento?.tempoDePagamento : calcularTotal()).toFixed(2)}`} /> : null}
                   <Texto tipo='Light' texto={`Total de itens: ${totalQuantidade}`} />
-                  <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${parseFloat(!!orcamento?.desconto || !!orcamento?.valorAdiantado ? (calcularTotal() - orcamento?.valorAdiantado) - (calcularTotal() * (orcamento?.desconto / 100)) : calcularTotal()).toFixed(2)}`} />
-
+                  <Texto estilo={{ marginTop: 12 }} texto={`Total a pagar: R$ ${formatCurrency(total)}`} />
                </View>
             }
          </View>
       )
    }
 
-   if (loadPage) return <Load />
 
-   const getIconeProps = (label, iconName, onPress, disabled = false) => {
-      return {
-         label,
-         tamanhoDoIcone: 18,
-         onpress: onPress,
-         nomeDoIcone: iconName,
-         corDoIcone: '#fff',
-         disabled,
-      };
+   const CoresPorTamanho = ({ tamanhoSelecionado, cores }) => {
+      const coresParaTamanho = cores[tamanhoSelecionado].cores;
+      const estoqueParaTamanho = cores[tamanhoSelecionado].estoque;
+      const produtosParaTamanho = cores[tamanhoSelecionado].produtos;
+
+      return (
+         <FlatList
+            horizontal
+            contentContainerStyle={{ paddingHorizontal: 6 }}
+            ItemSeparatorComponent={<View style={{ margin: 4 }} />}
+            data={coresParaTamanho}
+            renderItem={({ item, index }) => (
+               <Pressable
+                  onPress={() => estoqueParaTamanho[index] > 0 ? AdicionaItem({ produto: produtosParaTamanho[index], ordemDeCompraID: orcamento?.id }) : Alerta(`Cor ${item} - Estoque Zerado `)}
+                  key={index}
+                  style={{
+                     alignItems: "center",
+                     justifyContent: "center",
+                     borderRadius: 12,
+                     height: 40,
+                     backgroundColor: colors.fundo,
+                     elevation: 5,
+                     opacity: 0.7,
+                     paddingHorizontal: 12,
+                     marginVertical: 12,
+                  }}
+               >
+                  <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
+                     <Texto texto={`${estoqueParaTamanho[index]}`} tipo={'Light'} tamanho={10} />
+                  </View>
+                  <Texto texto={item} tipo="Regular" />
+               </Pressable>
+            )}
+         />
+      );
    };
+
+
+
+
 
    return (
       <>
          <Topo
             posicao='left'
-            iconeLeft={{ nome: 'arrow-back-outline', acao: () => backAction() }}
-            titulo={`Pedido ${orcamento?.estado}  ${tipoC}-${orcamento?.id.substr(0, 6).toUpperCase()}`} >
-            <Animated.View entering={FadeInUp.duration(400).delay(300)}
+            iconeLeft={{ nome: 'arrow-back-outline', acao: () => acaoVoltar() }}
+            titulo={`Pedido ${orcamento?.estado}  ${tipoC}-${orcamento?.id?.substr(0, 6).toUpperCase()}`} >
+            <View
                style={{
                   flexDirection: 'row',
-                  justifyContent: 'space-around',
+                  justifyContent: 'center',
                   gap: 6,
                   backgroundColor: colors.theme,
-               }}
-            >
-               {orcamento?.estado !== 'Entregue' && orcamento?.estado !== 'Processando' && (
-                  <Icone
-                     {...getIconeProps(
-                        'CONDIÇÕES',
-                        'wallet-outline',
-                        async () => {
-                           await FecharNota(itensNoPedido);
+               }} >
+               {orcamento?.estado !== 'Entregue' && orcamento?.estado !== 'Processando' &&
+                  <Icone disabled={!itensNoPedido.length > 0} nomeDoIcone={'wallet-outline'} label='CONDIÇÕES' onpress={() => {
+                     FecharNota(itensNoPedido)
+                     acaoAvancar()
 
-                           navigation.dispatch(
-                              CommonActions.reset({
-                                 index: 1,
-                                 routes: [
-                                    // { name: 'Home' },
-                                    {
-                                       name: 'FinalizaVenda',
-                                       params: {
-                                          ordemDeCompraID: rota.ordemDeCompraID,
-                                          total: calcularTotal(),
-                                       },
-                                    },
-                                 ],
-                              })
-                           )
-
-
-
-                        },
-                        !itensNoPedido.length > 0
-                     )}
-                  />
-               )}
-
-               {orcamento?.estado !== 'Aberto' && (
-                  <Icone {...getIconeProps('PDF', 'share-social-outline', gerarPDF)} />
-               )}
-
-               {orcamento?.estado !== 'Aberto' && orcamento?.estado !== 'Entregue' && (
-                  <Icone {...getIconeProps('STATUS', 'arrow-redo-outline', AtualizaEstoque)} />
-               )}
-
-               {orcamento?.estado !== 'Entregue' && (
-                  <Icone {...getIconeProps('EXCLUIR', 'trash-outline', () => acaoExcluir())} />
-               )}
-            </Animated.View>
+                  }} />
+               }
+            </View>
          </Topo>
 
+
+
+
+         <View style={{ margin: 14, gap: 6 }}>
+            <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
+
+            <ScrollView horizontal>
+               {Object.keys(cores).sort((a, b) => listaDeTamanhos.indexOf(a) - listaDeTamanhos.indexOf(b)).map(tamanho => (
+                  <Pressable
+                     key={tamanho}
+                     onPress={() => handleTamanhoSelecionado(tamanho)}
+                     style={{
+                        width: 40,
+                        aspectRatio: 1,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: colors.fundo,
+                        elevation: 5,
+                        opacity: 0.7,
+                        borderRadius: 12,
+                        margin: 6
+
+                     }}
+                  >
+                     <Texto texto={tamanho} tipo="Medium" cor="#222" />
+                  </Pressable>
+               ))}
+            </ScrollView>
+            {tamanhoSelecionado && (
+               <CoresPorTamanho tamanhoSelecionado={tamanhoSelecionado} cores={cores} />
+            )}
+         </View>
+
          <FlatList
-            ListHeaderComponent={
-               <View style={{ marginVertical: 14 }}>
-                  {orcamento?.estado !== 'Entregue' ?
-                     <View style={{ marginBottom: 18, gap: 12 }}>
-                        <View>
-                           <MaskOfInput title={produtoEncontrado[0]?.nome || 'Informe uma Referência'} value={referencia} setValue={setReferencia} maxlength={4} type='numeric' />
-                        </View>
-
-                        <View style={{ flexDirection: "row", gap: 6, }}>
-                           {listaDeTamanhos.map((tamanho, index) => {
-                              const tamanhoExiste = [...new Set(produtoEncontrado
-                                 .filter(item => (item?.estoque - (item?.reservado + item?.saida)) > 0)
-                                 .map(item => item.tamanho))]
-                              if (!tamanhoExiste) return
-                              return (
-                                 <Pressable disabled={!tamanhoExiste.includes(tamanho)} onPress={() => setTamanhoSelecionado(tamanho)} key={index}
-                                    style={{
-                                       display: tamanhoExiste.includes(tamanho) ? 'flex' : 'none',
-                                       width: 40,
-                                       aspectRatio: 1,
-                                       alignItems: "center",
-                                       justifyContent: "center",
-                                       backgroundColor: colors.fundo,
-                                       elevation: 5,
-                                       opacity: .7,
-                                       borderRadius: 12,
-                                    }}>
-                                    <Texto texto={tamanho} tipo='Medium' cor='#222' />
-                                 </Pressable>
-                              )
-                           })}
-
-                        </View>
-
-                        <FlatList
-                           horizontal
-                           ItemSeparatorComponent={<View style={{ marginHorizontal: 3 }} />}
-                           contentContainerStyle={{ paddingHorizontal: 2 }}
-                           data={[...new Set(produtoEncontrado?.filter(item => item.tamanho === tamanhoSelecionado)
-                              .filter(item => item.estoque > (item.reservado + item.saida)))]}
-                           renderItem={({ item, index }) => {
-
-                              return (
-                                 <Pressable disabled={load} onPress={() => SomaItem({ produto: item, ordemDeCompraID: orcamento?.id })
-                                 } key={index}
-                                    style={{
-                                       alignItems: "center",
-                                       justifyContent: "center",
-                                       borderRadius: 12,
-                                       height: 40,
-                                       backgroundColor: colors.fundo,
-                                       elevation: 5,
-                                       opacity: .7,
-                                       paddingHorizontal: 12,
-                                       marginVertical: 12,
-                                    }}>
-
-                                    <View style={{ position: "absolute", right: 6, top: -6, paddingHorizontal: 6, backgroundColor: colors.background, borderRadius: 6 }}>
-                                       <Texto texto={item?.estoque - (item?.reservado + item?.saida)} tipo={'Light'} tamanho={10} />
-                                    </View>
-                                    <Texto texto={item?.cor?.nome} tipo={'Regular'} />
-                                 </Pressable>
-                              )
-                           }}
-                        />
-                     </View> : null}
-
-                  {orcamento?.estado !== 'Entregue' && !!orcamento?.observacao ? <View style={{ marginVertical: 12 }}>
-
-                     {!!orcamento?.observacao ?
-                        <Texto texto={`Obs. ${orcamento?.observacao}`} /> : null}
-
-                  </View> : null}
-               </View>
-            }
             data={itensNoPedido}
             ItemSeparatorComponent={<View style={{ borderBottomWidth: .5, borderColor: '#d9d9d9', marginVertical: 12 }} />}
             contentContainerStyle={{ paddingHorizontal: 14, }}
-            renderItem={({ item }) => <ItemDaLista data={item} />}
-            ListFooterComponent={itensNoPedido?.length > 0 ? <HeaderBudget /> : null}
+            renderItem={({ item }) => <ItemDoPedido lista={item} listaInicial={orcamento} listaPedido={itensNoPedido} setListaPedido={setItensNoPedido} />}
+            ListFooterComponent={itensNoPedido?.length > 0 ? <Resultados /> : null}
          />
 
       </>
    );
 }
 
-const styles = StyleSheet.create({
-
-   btnQtd: {
-      elevation: 3,
-      borderRadius: 6,
-      alignItems: "center",
-      justifyContent: 'center',
-      width: 25,
-      height: 40,
-      backgroundColor: '#fff'
-   }
-});
